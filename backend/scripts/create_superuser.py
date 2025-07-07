@@ -44,7 +44,7 @@ async def create_superuser():
         # Create superuser
         user = User(
             email=email,
-            hashed_password=get_password_hash(password),
+            password_hash=get_password_hash(password),
             first_name=first_name,
             last_name=last_name,
             role="admin",

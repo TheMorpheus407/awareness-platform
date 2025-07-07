@@ -26,5 +26,8 @@ USER appuser
 # Expose port
 EXPOSE 8000
 
+# Set Python path
+ENV PYTHONPATH=/app
+
 # Default command
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

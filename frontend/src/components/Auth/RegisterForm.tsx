@@ -5,10 +5,12 @@ import { Mail, Lock, User, Building, UserPlus } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import type { RegisterCredentials } from '../../types';
 import { LoadingSpinner } from '../Common';
+import { useTranslation } from 'react-i18next';
 
 export const RegisterForm: React.FC = () => {
   const navigate = useNavigate();
   const { register: registerUser, isLoading } = useAuth();
+  const { t } = useTranslation();
   const {
     register,
     handleSubmit,
@@ -36,14 +38,14 @@ export const RegisterForm: React.FC = () => {
             <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-100 rounded-full mb-4">
               <UserPlus className="w-8 h-8 text-primary-600" />
             </div>
-            <h2 className="text-3xl font-bold text-secondary-900">Create Account</h2>
-            <p className="text-secondary-600 mt-2">Join the cybersecurity awareness platform</p>
+            <h2 className="text-3xl font-bold text-secondary-900">{t('auth.register.title')}</h2>
+            <p className="text-secondary-600 mt-2">{t('auth.register.subtitle')}</p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div>
               <label htmlFor="full_name" className="block text-sm font-medium text-secondary-700 mb-2">
-                Full Name
+                {t('auth.register.fullNameLabel')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -51,16 +53,16 @@ export const RegisterForm: React.FC = () => {
                 </div>
                 <input
                   {...register('full_name', {
-                    required: 'Full name is required',
+                    required: t('auth.errors.nameRequired'),
                     minLength: {
                       value: 2,
-                      message: 'Full name must be at least 2 characters',
+                      message: t('auth.errors.nameMinLength'),
                     },
                   })}
                   type="text"
                   autoComplete="name"
                   className="pl-10 input-field"
-                  placeholder="John Doe"
+                  placeholder={t('auth.register.fullNamePlaceholder')}
                 />
               </div>
               {errors.full_name && (
@@ -70,7 +72,7 @@ export const RegisterForm: React.FC = () => {
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-secondary-700 mb-2">
-                Email Address
+                {t('auth.register.emailLabel')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -78,16 +80,16 @@ export const RegisterForm: React.FC = () => {
                 </div>
                 <input
                   {...register('email', {
-                    required: 'Email is required',
+                    required: t('auth.errors.emailRequired'),
                     pattern: {
                       value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                      message: 'Invalid email address',
+                      message: t('auth.errors.invalidEmail'),
                     },
                   })}
                   type="email"
                   autoComplete="email"
                   className="pl-10 input-field"
-                  placeholder="you@example.com"
+                  placeholder={t('auth.register.emailPlaceholder')}
                 />
               </div>
               {errors.email && (
@@ -97,7 +99,7 @@ export const RegisterForm: React.FC = () => {
 
             <div>
               <label htmlFor="company_name" className="block text-sm font-medium text-secondary-700 mb-2">
-                Company Name (Optional)
+                {t('auth.register.companyNameLabel')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -108,14 +110,14 @@ export const RegisterForm: React.FC = () => {
                   type="text"
                   autoComplete="organization"
                   className="pl-10 input-field"
-                  placeholder="Acme Corp"
+                  placeholder={t('auth.register.companyNamePlaceholder')}
                 />
               </div>
             </div>
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-secondary-700 mb-2">
-                Password
+                {t('auth.register.passwordLabel')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -123,20 +125,20 @@ export const RegisterForm: React.FC = () => {
                 </div>
                 <input
                   {...register('password', {
-                    required: 'Password is required',
+                    required: t('auth.errors.passwordRequired'),
                     minLength: {
                       value: 8,
-                      message: 'Password must be at least 8 characters',
+                      message: t('auth.errors.passwordMinLength8'),
                     },
                     pattern: {
                       value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-                      message: 'Password must contain uppercase, lowercase, number, and special character',
+                      message: t('auth.errors.passwordPattern'),
                     },
                   })}
                   type="password"
                   autoComplete="new-password"
                   className="pl-10 input-field"
-                  placeholder="••••••••"
+                  placeholder={t('auth.register.passwordPlaceholder')}
                 />
               </div>
               {errors.password && (
@@ -146,7 +148,7 @@ export const RegisterForm: React.FC = () => {
 
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-secondary-700 mb-2">
-                Confirm Password
+                {t('auth.register.confirmPasswordLabel')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -154,13 +156,13 @@ export const RegisterForm: React.FC = () => {
                 </div>
                 <input
                   {...register('confirmPassword', {
-                    required: 'Please confirm your password',
-                    validate: (value) => value === password || 'Passwords do not match',
+                    required: t('auth.errors.confirmPasswordRequired'),
+                    validate: (value) => value === password || t('auth.errors.passwordMismatch'),
                   })}
                   type="password"
                   autoComplete="new-password"
                   className="pl-10 input-field"
-                  placeholder="••••••••"
+                  placeholder={t('auth.register.confirmPasswordPlaceholder')}
                 />
               </div>
               {errors.confirmPassword && (
@@ -177,13 +179,13 @@ export const RegisterForm: React.FC = () => {
                 className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-secondary-300 rounded"
               />
               <label htmlFor="agree-terms" className="ml-2 block text-sm text-secondary-700">
-                I agree to the{' '}
+                {t('auth.terms.agree')}{' '}
                 <a href="#" className="text-primary-600 hover:text-primary-500">
-                  Terms and Conditions
+                  {t('auth.terms.termsAndConditions')}
                 </a>{' '}
-                and{' '}
+                {t('auth.terms.and')}{' '}
                 <a href="#" className="text-primary-600 hover:text-primary-500">
-                  Privacy Policy
+                  {t('auth.terms.privacyPolicy')}
                 </a>
               </label>
             </div>
@@ -198,7 +200,7 @@ export const RegisterForm: React.FC = () => {
               ) : (
                 <>
                   <UserPlus className="w-5 h-5 mr-2" />
-                  Create Account
+                  {t('auth.register.createAccount')}
                 </>
               )}
             </button>
@@ -206,9 +208,9 @@ export const RegisterForm: React.FC = () => {
 
           <div className="mt-6 text-center">
             <p className="text-sm text-secondary-600">
-              Already have an account?{' '}
+              {t('auth.register.hasAccount')}{' '}
               <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500">
-                Sign in
+                {t('auth.register.signIn')}
               </Link>
             </p>
           </div>

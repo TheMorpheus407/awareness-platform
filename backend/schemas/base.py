@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
@@ -22,7 +23,7 @@ class TimestampMixin(BaseModel):
 class IDMixin(BaseModel):
     """Mixin for ID field."""
     
-    id: int
+    id: UUID
 
 
 class MessageResponse(BaseModel):

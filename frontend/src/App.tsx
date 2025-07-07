@@ -1,10 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { ProtectedRoute } from './components/Auth';
 import { MainLayout } from './components/Layout';
 import { Login, Register, Dashboard, Users, Companies } from './pages';
 
 function App() {
+  const { t } = useTranslation();
+  
   return (
     <BrowserRouter>
       <Toaster 
@@ -39,10 +42,10 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/users" element={<Users />} />
             <Route path="/companies" element={<Companies />} />
-            <Route path="/courses" element={<div className="text-2xl font-bold">Courses (Coming Soon)</div>} />
-            <Route path="/phishing" element={<div className="text-2xl font-bold">Phishing Simulation (Coming Soon)</div>} />
-            <Route path="/reports" element={<div className="text-2xl font-bold">Reports (Coming Soon)</div>} />
-            <Route path="/settings" element={<div className="text-2xl font-bold">Settings (Coming Soon)</div>} />
+            <Route path="/courses" element={<div className="text-2xl font-bold">{t('courses.comingSoon')}</div>} />
+            <Route path="/phishing" element={<div className="text-2xl font-bold">{t('phishing.comingSoon')}</div>} />
+            <Route path="/reports" element={<div className="text-2xl font-bold">{t('reports.comingSoon')}</div>} />
+            <Route path="/settings" element={<div className="text-2xl font-bold">{t('settings.comingSoon')}</div>} />
           </Route>
         </Route>
         

@@ -33,6 +33,16 @@ dist-ssr
 # Testing
 coverage
 .nyc_output
+*.lcov
+
+# E2E test artifacts
+playwright-report/
+playwright-results.xml
+test-results/
+e2e/screenshots-baseline/
+e2e/screenshots-actual/
+e2e/screenshots-diff/
+videos/
 
 # Production
 build

@@ -1,8 +1,9 @@
 """Company model."""
 
 from typing import TYPE_CHECKING, List
+import enum
 
-from sqlalchemy import Boolean, Column, Integer, String, Text, JSON
+from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from .base import Base
@@ -11,50 +12,50 @@ if TYPE_CHECKING:
     from .user import User
 
 
+class CompanySize(str, enum.Enum):
+    """Company size enumeration."""
+    SMALL = "small"
+    MEDIUM = "medium"
+    LARGE = "large"
+    ENTERPRISE = "enterprise"
+
+
+class CompanyStatus(str, enum.Enum):
+    """Company status enumeration."""
+    TRIAL = "trial"
+    ACTIVE = "active"
+    SUSPENDED = "suspended"
+    CANCELLED = "cancelled"
+
+
 class Company(Base):
     """Company model for multi-tenant support."""
     
     __tablename__ = "companies"
     
     # Basic information
-    name = Column(String(255), nullable=False, unique=True, index=True)
-    display_name = Column(String(255), nullable=False)
-    domain = Column(String(255), nullable=True, unique=True, index=True)
-    
-    # Contact information
-    contact_email = Column(String(255), nullable=False)
-    contact_phone = Column(String(20), nullable=True)
-    contact_person = Column(String(255), nullable=True)
-    
-    # Address
-    address_line1 = Column(String(255), nullable=True)
-    address_line2 = Column(String(255), nullable=True)
-    city = Column(String(100), nullable=True)
-    state = Column(String(100), nullable=True)
-    postal_code = Column(String(20), nullable=True)
-    country = Column(String(100), nullable=True)
+    name = Column(String(255), nullable=False)
+    domain = Column(String(255), nullable=False, unique=True, index=True)
+    size = Column(Enum(CompanySize), nullable=False, default=CompanySize.SMALL)
+    status = Column(Enum(CompanyStatus), nullable=False, default=CompanyStatus.TRIAL)
     
     # Company details
     industry = Column(String(100), nullable=True)
-    size = Column(String(50), nullable=True)  # 1-10, 11-50, 51-200, 201-500, 501-1000, 1000+
-    website = Column(String(500), nullable=True)
-    
-    # Subscription and features
-    subscription_plan = Column(String(50), nullable=False, default="free")  # free, starter, professional, enterprise
-    subscription_expires = Column(String(50), nullable=True)
-    is_active = Column(Boolean, default=True, nullable=False)
-    
-    # Configuration
-    settings = Column(JSON, nullable=True)  # JSON field for company-specific settings
-    features = Column(JSON, nullable=True)  # JSON field for enabled features
+    country = Column(String(2), nullable=False, default="DE")
+    timezone = Column(String(50), nullable=False, default="Europe/Berlin")
     
     # Branding
-    logo_url = Column(String(500), nullable=True)
-    primary_color = Column(String(7), nullable=True)  # Hex color
-    secondary_color = Column(String(7), nullable=True)  # Hex color
+    logo_url = Column(Text, nullable=True)
+    primary_color = Column(String(7), nullable=True, default="#1976d2")
+    secondary_color = Column(String(7), nullable=True, default="#dc004e")
     
-    # Compliance
-    compliance_frameworks = Column(JSON, nullable=True)  # List of compliance frameworks
+    # Subscription
+    trial_ends_at = Column(DateTime(timezone=True), nullable=True)
+    subscription_ends_at = Column(DateTime(timezone=True), nullable=True)
+    max_users = Column(Integer, nullable=False, default=50)
+    
+    # Soft delete
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
     
     # Relationships
     users = relationship("User", back_populates="company", lazy="dynamic")
@@ -65,9 +66,19 @@ class Company(Base):
     @property
     def employee_count(self) -> int:
         """Get the number of employees in the company."""
-        return self.users.filter_by(is_active=True).count()
+        return self.users.filter_by(is_active=True, deleted_at=None).count()
     
     @property
-    def is_premium(self) -> bool:
-        """Check if company has a premium subscription."""
-        return self.subscription_plan in ["professional", "enterprise"]
+    def is_trial(self) -> bool:
+        """Check if company is in trial mode."""
+        return self.status == CompanyStatus.TRIAL
+    
+    @property
+    def is_active(self) -> bool:
+        """Check if company is active."""
+        return self.status == CompanyStatus.ACTIVE
+    
+    @property
+    def is_suspended(self) -> bool:
+        """Check if company is suspended."""
+        return self.status == CompanyStatus.SUSPENDED

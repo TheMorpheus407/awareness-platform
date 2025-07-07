@@ -42,7 +42,7 @@ class TestAuthEndpoints:
         from core.security import get_password_hash
         inactive_user = User(
             email="inactive@example.com",
-            hashed_password=get_password_hash("password123"),
+            password_hash=get_password_hash("password123"),
             full_name="Inactive User",
             company_id=test_company.id,
             is_active=False,
@@ -77,7 +77,7 @@ class TestAuthEndpoints:
         assert data["email"] == "newuser@example.com"
         assert data["full_name"] == "New User"
         assert "id" in data
-        assert "hashed_password" not in data
+        assert "password_hash" not in data
 
     def test_register_duplicate_email(self, client, test_user, test_company):
         """Test registration with duplicate email."""
@@ -143,7 +143,7 @@ class TestAuthEndpoints:
         data = response.json()
         assert data["email"] == test_user.email
         assert data["full_name"] == test_user.full_name
-        assert "hashed_password" not in data
+        assert "password_hash" not in data
 
     def test_me_endpoint_unauthorized(self, client):
         """Test get current user without authentication."""
@@ -164,7 +164,7 @@ class TestAuthEndpoints:
         
         # Verify password was changed
         db_session.refresh(test_user)
-        assert verify_password("newpassword456", test_user.hashed_password)
+        assert verify_password("newpassword456", test_user.password_hash)
 
     def test_change_password_wrong_current(self, client, auth_headers):
         """Test password change with wrong current password."""

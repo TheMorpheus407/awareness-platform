@@ -1,17 +1,14 @@
-export interface User {
-  id: string;
-  email: string;
-  full_name: string;
-  role: 'admin' | 'company_admin' | 'user';
-  company_id?: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
+import type { User } from './api';
 
 export interface LoginCredentials {
   email: string;
   password: string;
+}
+
+export interface LoginWith2FACredentials {
+  email: string;
+  password: string;
+  totp_code: string;
 }
 
 export interface RegisterCredentials {
@@ -27,12 +24,24 @@ export interface AuthResponse {
   user: User;
 }
 
-export interface Company {
-  id: string;
-  name: string;
-  domain: string;
-  employee_count: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+export interface TwoFactorSetupResponse {
+  secret: string;
+  qr_code: string;
+  backup_codes: string[];
+  manual_entry_key: string;
+}
+
+export interface TwoFactorVerifyRequest {
+  totp_code: string;
+}
+
+export interface TwoFactorDisableRequest {
+  password: string;
+  totp_code: string;
+}
+
+export interface BackupCodesStatus {
+  total_codes: number;
+  used_codes: number;
+  remaining_codes: number;
 }

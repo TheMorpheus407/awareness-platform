@@ -55,7 +55,7 @@ async def send_verification_email_endpoint(
     background_tasks.add_task(
         send_verification_email,
         email=current_user.email,
-        name=current_user.full_name or current_user.username,
+        name=current_user.full_name,
         verification_url=verification_url,
     )
     
@@ -146,7 +146,7 @@ async def resend_verification_email(
     background_tasks.add_task(
         send_verification_email,
         email=user.email,
-        name=user.full_name or user.username,
+        name=user.full_name,
         verification_url=verification_url,
     )
     

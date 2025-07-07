@@ -12,6 +12,7 @@ import {
   X,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 
 interface SidebarProps {
@@ -21,15 +22,16 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Users', href: '/users', icon: Users, adminOnly: true },
-    { name: 'Companies', href: '/companies', icon: Building, adminOnly: true },
-    { name: 'Courses', href: '/courses', icon: GraduationCap },
-    { name: 'Phishing', href: '/phishing', icon: Mail },
-    { name: 'Reports', href: '/reports', icon: FileBarChart },
-    { name: 'Settings', href: '/settings', icon: Settings },
+    { nameKey: 'navigation.dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { nameKey: 'navigation.users', href: '/users', icon: Users, adminOnly: true },
+    { nameKey: 'navigation.companies', href: '/companies', icon: Building, adminOnly: true },
+    { nameKey: 'navigation.courses', href: '/courses', icon: GraduationCap },
+    { nameKey: 'navigation.phishing', href: '/phishing', icon: Mail },
+    { nameKey: 'navigation.reports', href: '/reports', icon: FileBarChart },
+    { nameKey: 'navigation.settings', href: '/settings', icon: Settings },
   ];
 
   const filteredNavigation = navigation.filter(
@@ -59,7 +61,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         <div className="flex items-center justify-between h-16 px-6 border-b border-secondary-200">
           <div className="flex items-center">
             <Shield className="w-8 h-8 text-primary-600 mr-2" />
-            <span className="text-xl font-bold text-secondary-900">CyberAware</span>
+            <span className="text-xl font-bold text-secondary-900">{t('branding.appName')}</span>
           </div>
           <button
             onClick={onClose}
@@ -72,7 +74,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         <nav className="mt-6 px-3">
           {filteredNavigation.map((item) => (
             <NavLink
-              key={item.name}
+              key={item.nameKey}
               to={item.href}
               className={({ isActive }) =>
                 clsx(
@@ -86,7 +88,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               onClick={() => window.innerWidth < 1024 && onClose()}
             >
               <item.icon className="w-5 h-5 mr-3" />
-              {item.name}
+              {t(item.nameKey)}
             </NavLink>
           ))}
         </nav>

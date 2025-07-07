@@ -123,7 +123,7 @@ async def reset_password(
         )
     
     # Update password
-    user.hashed_password = get_password_hash(data.new_password)
+    user.password_hash = get_password_hash(data.new_password)
     user.password_reset_token = None
     user.password_reset_expires = None
     user.password_changed_at = datetime.utcnow()

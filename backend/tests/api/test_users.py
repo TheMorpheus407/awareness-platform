@@ -43,7 +43,7 @@ class TestUsersAPI:
         company_user = User(
             email="samecompany@example.com",
             username="samecompanyuser",
-            hashed_password="hashed123",
+            password_hash="hashed123",
             company_id=test_company.id
         )
         db_session.add(company_user)
@@ -59,7 +59,7 @@ class TestUsersAPI:
         other_user = User(
             email="othercompany@example.com",
             username="othercompanyuser",
-            hashed_password="hashed123",
+            password_hash="hashed123",
             company_id=other_company.id
         )
         db_session.add(other_user)
@@ -95,7 +95,7 @@ class TestUsersAPI:
         assert data["email"] == test_user.email
         assert data["username"] == test_user.username
         assert data["role"] == test_user.role.value
-        assert "hashed_password" not in data  # Should not expose password
+        assert "password_hash" not in data  # Should not expose password
     
     async def test_get_current_user(
         self, 
@@ -275,7 +275,7 @@ class TestUsersAPI:
         user = User(
             email="todelete@example.com",
             username="todeleteuser",
-            hashed_password="hashed123"
+            password_hash="hashed123"
         )
         db_session.add(user)
         await db_session.commit()
@@ -306,7 +306,7 @@ class TestUsersAPI:
         other_user = User(
             email="other@example.com",
             username="otheruser",
-            hashed_password="hashed123"
+            password_hash="hashed123"
         )
         db_session.add(other_user)
         await db_session.commit()
@@ -332,7 +332,7 @@ class TestUsersAPI:
             user = User(
                 email=f"role{i}@example.com",
                 username=f"roleuser{i}",
-                hashed_password="hashed123",
+                password_hash="hashed123",
                 role=role
             )
             db_session.add(user)

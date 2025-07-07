@@ -17,7 +17,7 @@ class TestUserModel:
         user = User(
             email="test@example.com",
             username="testuser",
-            hashed_password="hashed_password_123",
+            password_hash="hashed_password_123",
             full_name="Test User",
             phone_number="+491234567890",
             department="IT",
@@ -45,7 +45,7 @@ class TestUserModel:
         user1 = User(
             email="unique@example.com",
             username="user1",
-            hashed_password="hashed123"
+            password_hash="hashed123"
         )
         db_session.add(user1)
         await db_session.commit()
@@ -54,7 +54,7 @@ class TestUserModel:
         user2 = User(
             email="unique@example.com",
             username="user2",
-            hashed_password="hashed123"
+            password_hash="hashed123"
         )
         db_session.add(user2)
         
@@ -66,7 +66,7 @@ class TestUserModel:
         user1 = User(
             email="user1@example.com",
             username="uniqueusername",
-            hashed_password="hashed123"
+            password_hash="hashed123"
         )
         db_session.add(user1)
         await db_session.commit()
@@ -75,7 +75,7 @@ class TestUserModel:
         user2 = User(
             email="user2@example.com",
             username="uniqueusername",
-            hashed_password="hashed123"
+            password_hash="hashed123"
         )
         db_session.add(user2)
         
@@ -98,7 +98,7 @@ class TestUserModel:
         user = User(
             email="employee@testcompany.com",
             username="employee1",
-            hashed_password="hashed123",
+            password_hash="hashed123",
             company_id=company.id
         )
         db_session.add(user)
@@ -126,7 +126,7 @@ class TestUserModel:
         user = User(
             email="delete@example.com",
             username="deleteuser",
-            hashed_password="hashed123"
+            password_hash="hashed123"
         )
         db_session.add(user)
         await db_session.commit()
@@ -150,7 +150,7 @@ class TestUserModel:
         user = User(
             email="verify@example.com",
             username="verifyuser",
-            hashed_password="hashed123"
+            password_hash="hashed123"
         )
         db_session.add(user)
         await db_session.commit()
@@ -172,7 +172,7 @@ class TestUserModel:
         user = User(
             email="login@example.com",
             username="loginuser",
-            hashed_password="hashed123"
+            password_hash="hashed123"
         )
         db_session.add(user)
         await db_session.commit()
@@ -202,7 +202,7 @@ class TestUserModel:
         user = User(
             email="defaults@example.com",
             username="defaultuser",
-            hashed_password="hashed123"
+            password_hash="hashed123"
         )
         db_session.add(user)
         await db_session.commit()
@@ -222,7 +222,7 @@ class TestUserModel:
         user = User(
             email="update@example.com",
             username="updateuser",
-            hashed_password="hashed123",
+            password_hash="hashed123",
             full_name="Original Name"
         )
         db_session.add(user)
@@ -251,7 +251,7 @@ class TestUserModel:
         user = User(
             email="notifications@example.com",
             username="notifyuser",
-            hashed_password="hashed123"
+            password_hash="hashed123"
         )
         db_session.add(user)
         await db_session.commit()

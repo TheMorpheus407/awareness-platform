@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AxiosError } from 'axios';
-import { ApiError } from '../types';
+import type { ApiError } from '../types';
 
 interface UseApiOptions {
   onSuccess?: (data: any) => void;

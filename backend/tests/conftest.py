@@ -104,8 +104,9 @@ def test_user(db_session, test_company) -> User:
     """Create a test user."""
     user = User(
         email="test@example.com",
-        hashed_password=get_password_hash("testpassword123"),
-        full_name="Test User",
+        password_hash=get_password_hash("testpassword123"),
+        first_name="Test",
+        last_name="User",
         company_id=test_company.id,
         is_active=True,
         is_superuser=False,
@@ -122,8 +123,9 @@ def test_admin(db_session, test_company) -> User:
     """Create a test admin user."""
     admin = User(
         email="admin@example.com",
-        hashed_password=get_password_hash("adminpassword123"),
-        full_name="Admin User",
+        password_hash=get_password_hash("adminpassword123"),
+        first_name="Admin",
+        last_name="User",
         company_id=test_company.id,
         is_active=True,
         is_superuser=True,

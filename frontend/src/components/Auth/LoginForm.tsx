@@ -5,10 +5,12 @@ import { Mail, Lock, LogIn } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import type { LoginCredentials } from '../../types';
 import { LoadingSpinner } from '../Common';
+import { useTranslation } from 'react-i18next';
 
 export const LoginForm: React.FC = () => {
   const navigate = useNavigate();
   const { login, isLoading } = useAuth();
+  const { t } = useTranslation();
   const {
     register,
     handleSubmit,
@@ -32,14 +34,14 @@ export const LoginForm: React.FC = () => {
             <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-100 rounded-full mb-4">
               <LogIn className="w-8 h-8 text-primary-600" />
             </div>
-            <h2 className="text-3xl font-bold text-secondary-900">Welcome Back</h2>
-            <p className="text-secondary-600 mt-2">Sign in to your account</p>
+            <h2 className="text-3xl font-bold text-secondary-900">{t('auth.login.title')}</h2>
+            <p className="text-secondary-600 mt-2">{t('auth.login.subtitle')}</p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-secondary-700 mb-2">
-                Email Address
+                {t('auth.login.emailLabel')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -47,16 +49,16 @@ export const LoginForm: React.FC = () => {
                 </div>
                 <input
                   {...register('email', {
-                    required: 'Email is required',
+                    required: t('auth.errors.emailRequired'),
                     pattern: {
                       value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                      message: 'Invalid email address',
+                      message: t('auth.errors.invalidEmail'),
                     },
                   })}
                   type="email"
                   autoComplete="email"
                   className="pl-10 input-field"
-                  placeholder="you@example.com"
+                  placeholder={t('auth.login.emailPlaceholder')}
                 />
               </div>
               {errors.email && (
@@ -66,7 +68,7 @@ export const LoginForm: React.FC = () => {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-secondary-700 mb-2">
-                Password
+                {t('auth.login.passwordLabel')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -74,16 +76,16 @@ export const LoginForm: React.FC = () => {
                 </div>
                 <input
                   {...register('password', {
-                    required: 'Password is required',
+                    required: t('auth.errors.passwordRequired'),
                     minLength: {
                       value: 6,
-                      message: 'Password must be at least 6 characters',
+                      message: t('auth.errors.passwordMinLength'),
                     },
                   })}
                   type="password"
                   autoComplete="current-password"
                   className="pl-10 input-field"
-                  placeholder="••••••••"
+                  placeholder={t('auth.login.passwordPlaceholder')}
                 />
               </div>
               {errors.password && (
@@ -100,13 +102,13 @@ export const LoginForm: React.FC = () => {
                   className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-secondary-300 rounded"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-secondary-700">
-                  Remember me
+                  {t('auth.login.rememberMe')}
                 </label>
               </div>
 
               <div className="text-sm">
                 <a href="#" className="font-medium text-primary-600 hover:text-primary-500">
-                  Forgot your password?
+                  {t('auth.login.forgotPassword')}
                 </a>
               </div>
             </div>
@@ -121,7 +123,7 @@ export const LoginForm: React.FC = () => {
               ) : (
                 <>
                   <LogIn className="w-5 h-5 mr-2" />
-                  Sign In
+                  {t('auth.login.signIn')}
                 </>
               )}
             </button>
@@ -129,9 +131,9 @@ export const LoginForm: React.FC = () => {
 
           <div className="mt-6 text-center">
             <p className="text-sm text-secondary-600">
-              Don't have an account?{' '}
+              {t('auth.login.noAccount')}{' '}
               <Link to="/register" className="font-medium text-primary-600 hover:text-primary-500">
-                Sign up
+                {t('auth.login.signUp')}
               </Link>
             </p>
           </div>

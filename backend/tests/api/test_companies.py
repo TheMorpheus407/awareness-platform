@@ -206,7 +206,7 @@ class TestCompaniesAPI:
             user = User(
                 email=f"user{i}@{test_company.domain}",
                 username=f"companyuser{i}",
-                hashed_password="hashed123",
+                password_hash="hashed123",
                 company_id=test_company.id
             )
             db_session.add(user)

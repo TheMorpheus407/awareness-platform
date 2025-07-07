@@ -170,7 +170,7 @@ class TestDatabaseSession:
         user = User(
             email="autoflush@example.com",
             username="autoflushtest",
-            hashed_password="hashedpwd",
+            password_hash="hashedpwd",
             first_name="Auto",
             last_name="Flush"
         )

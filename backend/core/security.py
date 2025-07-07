@@ -61,18 +61,18 @@ def create_refresh_token(
     return encoded_jwt
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
+def verify_password(plain_password: str, password_hash: str) -> bool:
     """
     Verify a plain password against a hashed password.
     
     Args:
         plain_password: The plain text password
-        hashed_password: The hashed password
+        password_hash: The hashed password
         
     Returns:
         True if password matches, False otherwise
     """
-    return pwd_context.verify(plain_password, hashed_password)
+    return pwd_context.verify(plain_password, password_hash)
 
 
 def get_password_hash(password: str) -> str:

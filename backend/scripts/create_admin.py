@@ -29,8 +29,9 @@ async def create_admin_user():
         # Create admin user
         admin = User(
             email="admin@bootstrap-awareness.de",
-            username="admin",
-            hashed_password=get_password_hash("ChangeMe123!"),
+            password_hash=get_password_hash("ChangeMe123!"),
+            first_name="Platform",
+            last_name="Administrator",
             is_active=True,
             is_superuser=True,
             is_verified=True,

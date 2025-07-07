@@ -25,17 +25,21 @@ RUN apt-get update && apt-get install -y \
     postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy Python dependencies from builder
-COPY --from=builder /root/.local /root/.local
+# Create non-root user first
+RUN useradd -m -u 1000 appuser
+
+# Copy Python dependencies from builder to appuser home
+COPY --from=builder --chown=appuser:appuser /root/.local /home/appuser/.local
 
 # Make sure scripts in .local are usable
-ENV PATH=/root/.local/bin:$PATH
+ENV PATH=/home/appuser/.local/bin:$PATH
+ENV PYTHONPATH=/app
 
 # Copy application code
-COPY . .
+COPY --chown=appuser:appuser . .
 
-# Create non-root user
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+# Ensure startup script is executable
+RUN chmod +x /app/start.sh
 
 # Create necessary directories
 RUN mkdir -p /app/logs && chown appuser:appuser /app/logs
@@ -44,10 +48,10 @@ USER appuser
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD curl -f http://localhost:8000/api/v1/health || exit 1
+  CMD curl -f http://localhost:8000/api/health || exit 1
 
 # Expose port
 EXPOSE 8000
 
-# Run with gunicorn
-CMD ["gunicorn", "main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "--access-logfile", "-", "--error-logfile", "-"]
+# Run with startup script
+CMD ["/bin/bash", "/app/start.sh"]

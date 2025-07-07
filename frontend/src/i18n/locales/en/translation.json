@@ -1,0 +1,165 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "back": "Back",
+    "next": "Next",
+    "logout": "Logout",
+    "welcome": "Welcome",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "branding": {
+    "appName": "CyberAware",
+    "title": "Cybersecurity Awareness Platform",
+    "tagline": "Protect your organization through education",
+    "description": "Comprehensive cybersecurity awareness training platform"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "companies": "Companies",
+    "courses": "Courses",
+    "phishing": "Phishing",
+    "reports": "Reports",
+    "settings": "Settings"
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome Back",
+      "subtitle": "Sign in to your account",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "you@example.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "••••••••",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot your password?",
+      "signIn": "Sign In",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign up"
+    },
+    "register": {
+      "title": "Create Account",
+      "subtitle": "Start your cybersecurity journey",
+      "fullNameLabel": "Full Name",
+      "fullNamePlaceholder": "John Doe",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "you@example.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "••••••••",
+      "confirmPasswordLabel": "Confirm Password",
+      "confirmPasswordPlaceholder": "••••••••",
+      "companyNameLabel": "Company Name (Optional)",
+      "companyNamePlaceholder": "Acme Corp",
+      "createAccount": "Create Account",
+      "hasAccount": "Already have an account?",
+      "signIn": "Sign in"
+    },
+    "errors": {
+      "emailRequired": "Email is required",
+      "invalidEmail": "Invalid email address",
+      "passwordRequired": "Password is required",
+      "passwordMinLength": "Password must be at least 6 characters",
+      "passwordMinLength8": "Password must be at least 8 characters",
+      "passwordPattern": "Password must contain uppercase, lowercase, number, and special character",
+      "nameRequired": "Name is required",
+      "nameMinLength": "Name must be at least 2 characters",
+      "passwordMismatch": "Passwords do not match",
+      "confirmPasswordRequired": "Please confirm your password"
+    },
+    "terms": {
+      "agree": "I agree to the",
+      "termsAndConditions": "Terms and Conditions",
+      "and": "and",
+      "privacyPolicy": "Privacy Policy"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Welcome to your cybersecurity awareness platform",
+    "stats": {
+      "totalUsers": "Total Users",
+      "activeUsers": "Active Users",
+      "companies": "Companies",
+      "coursesCompleted": "Courses Completed",
+      "phishingCampaigns": "Phishing Campaigns",
+      "complianceScore": "Compliance Score"
+    },
+    "recentActivity": {
+      "title": "Recent Activity",
+      "completedCourse": "Completed course",
+      "failedPhishing": "Failed phishing test",
+      "joinedPlatform": "Joined the platform",
+      "completedQuiz": "Completed quiz",
+      "hoursAgo": "{{hours}} hours ago"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "launchPhishing": "Launch Phishing Campaign",
+      "createCourse": "Create New Course",
+      "inviteUsers": "Invite Users",
+      "generateReport": "Generate Compliance Report"
+    }
+  },
+  "users": {
+    "title": "User Management",
+    "subtitle": "Manage users and their permissions",
+    "addUser": "Add User",
+    "searchPlaceholder": "Search users...",
+    "table": {
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "company": "Company",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "roles": {
+      "admin": "Admin",
+      "user": "User",
+      "manager": "Manager"
+    }
+  },
+  "companies": {
+    "title": "Company Management",
+    "subtitle": "Manage organizations and their settings",
+    "addCompany": "Add Company",
+    "searchPlaceholder": "Search companies...",
+    "table": {
+      "name": "Name",
+      "domain": "Domain",
+      "users": "Users",
+      "status": "Status",
+      "created": "Created",
+      "actions": "Actions"
+    }
+  },
+  "courses": {
+    "comingSoon": "Courses (Coming Soon)"
+  },
+  "phishing": {
+    "comingSoon": "Phishing Simulation (Coming Soon)"
+  },
+  "reports": {
+    "comingSoon": "Reports (Coming Soon)"
+  },
+  "settings": {
+    "comingSoon": "Settings (Coming Soon)"
+  },
+  "errors": {
+    "generic": "An error occurred. Please try again.",
+    "networkError": "Network error. Please check your connection.",
+    "unauthorized": "You are not authorized to perform this action.",
+    "notFound": "The requested resource was not found."
+  }
+}

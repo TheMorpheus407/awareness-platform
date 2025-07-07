@@ -53,10 +53,36 @@ class ApiClient {
     formData.append('username', email);
     formData.append('password', password);
     
-    const response = await this.client.post('/auth/login', formData, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
+    try {
+      const response = await this.client.post('/auth/login', formData, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      // Check if 2FA is required
+      if (error.response?.status === 428) {
+        throw { requires2FA: true, ...error };
+      }
+      throw error;
+    }
+  }
+
+  async loginWith2FA(email: string, password: string, totpCode: string) {
+    const response = await this.client.post('/auth/login-2fa', {
+      email,
+      password,
+      totp_code: totpCode,
+    });
+    return response.data;
+  }
+
+  async loginWithBackupCode(email: string, password: string, backupCode: string) {
+    const response = await this.client.post('/auth/login-backup-code', {
+      email,
+      password,
+      backup_code: backupCode,
     });
     return response.data;
   }
@@ -68,6 +94,38 @@ class ApiClient {
 
   async getCurrentUser() {
     const response = await this.client.get('/auth/me');
+    return response.data;
+  }
+
+  // 2FA endpoints
+  async setup2FA(password: string) {
+    const response = await this.client.post('/auth/2fa/setup', { password });
+    return response.data;
+  }
+
+  async verify2FASetup(totpCode: string) {
+    const response = await this.client.post('/auth/2fa/verify', { totp_code: totpCode });
+    return response.data;
+  }
+
+  async disable2FA(password: string, totpCode: string) {
+    const response = await this.client.post('/auth/2fa/disable', { 
+      password, 
+      totp_code: totpCode 
+    });
+    return response.data;
+  }
+
+  async getBackupCodesStatus() {
+    const response = await this.client.get('/auth/2fa/backup-codes');
+    return response.data;
+  }
+
+  async regenerateBackupCodes(password: string, totpCode: string) {
+    const response = await this.client.post('/auth/2fa/regenerate-backup-codes', {
+      password,
+      totp_code: totpCode
+    });
     return response.data;
   }
 

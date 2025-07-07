@@ -34,3 +34,8 @@ pytz==2023.3.post1
 
 # Rate limiting
 slowapi==0.1.9
+
+# Two-Factor Authentication
+pyotp==2.9.0
+qrcode==7.4.2
+pillow==10.2.0

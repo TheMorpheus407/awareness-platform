@@ -5,12 +5,14 @@ import type { Company, PaginatedResponse } from '../types';
 import apiClient from '../services/api';
 import { LoadingSpinner, ErrorMessage } from '../components/Common';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 export const Companies: React.FC = () => {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   
-  const { data, loading, error, refetch } = useApi<PaginatedResponse<Company>>(
+  const { data, loading, error } = useApi<PaginatedResponse<Company>>(
     () => apiClient.getCompanies(page, 20),
     [page]
   );
@@ -31,8 +33,8 @@ export const Companies: React.FC = () => {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-secondary-900">Companies</h1>
-        <p className="text-secondary-600 mt-1">Manage registered companies</p>
+        <h1 className="text-2xl font-bold text-secondary-900">{t('companies.title')}</h1>
+        <p className="text-secondary-600 mt-1">{t('companies.subtitle')}</p>
       </div>
 
       <div className="card">
@@ -41,7 +43,7 @@ export const Companies: React.FC = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary-400 w-5 h-5" />
             <input
               type="text"
-              placeholder="Search companies..."
+              placeholder={t('companies.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 input-field"
@@ -49,7 +51,7 @@ export const Companies: React.FC = () => {
           </div>
           <button className="btn-primary">
             <Plus className="w-5 h-5 mr-2" />
-            Add Company
+            {t('companies.addCompany')}
           </button>
         </div>
 
@@ -65,7 +67,7 @@ export const Companies: React.FC = () => {
                     ? 'bg-green-100 text-green-800' 
                     : 'bg-red-100 text-red-800'
                 }`}>
-                  {company.is_active ? 'Active' : 'Inactive'}
+                  {company.is_active ? t('users.status.active') : t('users.status.inactive')}
                 </span>
               </div>
               
@@ -83,13 +85,13 @@ export const Companies: React.FC = () => {
               </div>
               
               <p className="text-xs text-secondary-500 mb-4">
-                Created {format(new Date(company.created_at), 'MMM d, yyyy')}
+                {t('companies.table.created')} {format(new Date(company.created_at), 'MMM d, yyyy')}
               </p>
               
               <div className="flex space-x-2">
                 <button className="flex-1 btn-secondary py-2 text-sm">
                   <Edit className="w-4 h-4 mr-1" />
-                  Edit
+                  {t('common.edit')}
                 </button>
                 <button className="p-2 text-secondary-600 hover:text-red-600 border border-secondary-300 rounded-lg hover:border-red-300">
                   <Trash2 className="w-4 h-4" />
@@ -110,14 +112,14 @@ export const Companies: React.FC = () => {
                 disabled={page === 1}
                 className="px-3 py-1 border border-secondary-300 rounded text-sm font-medium disabled:opacity-50"
               >
-                Previous
+                {t('common.back')}
               </button>
               <button
                 onClick={() => setPage(p => p + 1)}
                 disabled={page === data.pages}
                 className="px-3 py-1 border border-secondary-300 rounded text-sm font-medium disabled:opacity-50"
               >
-                Next
+                {t('common.next')}
               </button>
             </div>
           </div>

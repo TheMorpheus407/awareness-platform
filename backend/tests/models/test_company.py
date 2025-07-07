@@ -77,14 +77,14 @@ class TestCompanyModel:
         user1 = User(
             email="user1@relationship.com",
             username="user1",
-            hashed_password="hashed123",
+            password_hash="hashed123",
             full_name="User One",
             company_id=company.id
         )
         user2 = User(
             email="user2@relationship.com",
             username="user2",
-            hashed_password="hashed123",
+            password_hash="hashed123",
             full_name="User Two",
             company_id=company.id
         )

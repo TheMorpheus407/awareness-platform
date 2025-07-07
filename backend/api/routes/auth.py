@@ -6,7 +6,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, status, Request, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, and_, func
 import secrets
 
 from api.dependencies.auth import get_current_user
@@ -18,10 +18,12 @@ from core.security import (
     get_password_hash,
     decode_token,
 )
+from core.two_factor_auth import two_factor_auth
 from core.middleware import limiter
 from db.session import get_db
 from models.user import User
-from schemas.user import Token, UserCreate, UserResponse
+from models.two_fa_attempt import TwoFAAttempt
+from schemas.user import Token, UserCreate, UserResponse, TwoFactorLoginRequest, BackupCodeVerifyRequest
 from services.email import send_verification_email
 
 router = APIRouter()
@@ -58,15 +60,6 @@ async def register(
             detail="Email already registered",
         )
     
-    # Check if username already exists
-    result = await db.execute(
-        select(User).where(User.username == user_data.username)
-    )
-    if result.scalar_one_or_none():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username already taken",
-        )
     
     # Generate email verification token
     verification_token = secrets.token_urlsafe(32)
@@ -74,8 +67,7 @@ async def register(
     # Create new user
     user = User(
         email=user_data.email,
-        username=user_data.username,
-        hashed_password=get_password_hash(user_data.password),
+        password_hash=get_password_hash(user_data.password),
         first_name=user_data.first_name,
         last_name=user_data.last_name,
         phone=user_data.phone,
@@ -109,7 +101,7 @@ async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
 ) -> Any:
     """
-    Login endpoint for OAuth2 password flow.
+    Login endpoint for OAuth2 password flow with 2FA support.
     
     Args:
         db: Database session
@@ -119,7 +111,7 @@ async def login(
         Access and refresh tokens
         
     Raises:
-        HTTPException: If credentials are invalid
+        HTTPException: If credentials are invalid or 2FA is required
     """
     # Get user by email
     result = await db.execute(
@@ -127,7 +119,7 @@ async def login(
     )
     user = result.scalar_one_or_none()
     
-    if not user or not verify_password(form_data.password, user.hashed_password):
+    if not user or not verify_password(form_data.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
@@ -138,6 +130,17 @@ async def login(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Inactive user",
+        )
+    
+    # Check if 2FA is enabled
+    if user.has_2fa_enabled:
+        # Check for TOTP code in form_data.scopes (OAuth2 hack for additional fields)
+        # Since OAuth2PasswordRequestForm doesn't support custom fields,
+        # we need to use a different endpoint for 2FA login
+        raise HTTPException(
+            status_code=status.HTTP_428_PRECONDITION_REQUIRED,
+            detail="Two-factor authentication required",
+            headers={"X-2FA-Required": "true"},
         )
     
     # Create tokens
@@ -152,7 +155,235 @@ async def login(
     )
     
     # Update last login
-    user.last_login = db.func.now()
+    user.last_login = datetime.utcnow()
+    await db.commit()
+    
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+    }
+
+
+@router.post("/login-2fa", response_model=Token)
+@limiter.limit("10/minute")
+async def login_with_2fa(
+    request: Request,
+    login_data: TwoFactorLoginRequest,
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    """
+    Login endpoint with Two-Factor Authentication support.
+    
+    Args:
+        request: FastAPI request object
+        login_data: Login credentials with optional TOTP code
+        db: Database session
+        
+    Returns:
+        Access and refresh tokens
+        
+    Raises:
+        HTTPException: If credentials or TOTP code are invalid
+    """
+    # Get user by email
+    result = await db.execute(
+        select(User).where(User.email == login_data.email)
+    )
+    user = result.scalar_one_or_none()
+    
+    if not user or not verify_password(login_data.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+        )
+    
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Inactive user",
+        )
+    
+    # Check if 2FA is enabled
+    if user.has_2fa_enabled:
+        if not login_data.totp_code:
+            raise HTTPException(
+                status_code=status.HTTP_428_PRECONDITION_REQUIRED,
+                detail="Two-factor authentication code required",
+            )
+        
+        # Check rate limit
+        time_threshold = datetime.utcnow() - timedelta(minutes=15)
+        result = await db.execute(
+            select(func.count(TwoFAAttempt.id))
+            .where(
+                and_(
+                    TwoFAAttempt.user_id == user.id,
+                    TwoFAAttempt.attempt_type == "totp",
+                    TwoFAAttempt.created_at >= time_threshold,
+                    TwoFAAttempt.success == False
+                )
+            )
+        )
+        failed_attempts = result.scalar() or 0
+        
+        if failed_attempts >= 5:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Too many failed attempts. Please try again later."
+            )
+        
+        # Verify TOTP code
+        try:
+            secret = two_factor_auth.decrypt_secret(user.totp_secret)
+            is_valid = two_factor_auth.verify_totp(secret, login_data.totp_code)
+        except:
+            is_valid = False
+        
+        # Log attempt
+        attempt = TwoFAAttempt(
+            user_id=user.id,
+            attempt_type="totp",
+            success=is_valid,
+            ip_address=request.client.host if request.client else None,
+            user_agent=request.headers.get("User-Agent", "")[:500]
+        )
+        db.add(attempt)
+        
+        if not is_valid:
+            await db.commit()
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid two-factor authentication code",
+            )
+    
+    # Create tokens
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        subject=user.id, expires_delta=access_token_expires
+    )
+    
+    refresh_token_expires = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    refresh_token = create_refresh_token(
+        subject=user.id, expires_delta=refresh_token_expires
+    )
+    
+    # Update last login
+    user.last_login_at = datetime.utcnow()
+    await db.commit()
+    
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+    }
+
+
+@router.post("/login-backup-code", response_model=Token)
+@limiter.limit("5/hour")
+async def login_with_backup_code(
+    request: Request,
+    login_data: BackupCodeVerifyRequest,
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    """
+    Login using a backup code when TOTP is not available.
+    
+    Args:
+        request: FastAPI request object
+        login_data: Login credentials with backup code
+        db: Database session
+        
+    Returns:
+        Access and refresh tokens
+        
+    Raises:
+        HTTPException: If credentials or backup code are invalid
+    """
+    # Get user by email
+    result = await db.execute(
+        select(User).where(User.email == login_data.email)
+    )
+    user = result.scalar_one_or_none()
+    
+    if not user or not verify_password(login_data.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+        )
+    
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Inactive user",
+        )
+    
+    if not user.has_2fa_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Two-factor authentication is not enabled",
+        )
+    
+    # Get backup codes
+    backup_codes = user.get_backup_codes()
+    if not backup_codes:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No backup codes available",
+        )
+    
+    # Check if all codes are used
+    if user.two_fa_recovery_codes_used >= len(backup_codes):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="All backup codes have been used",
+        )
+    
+    # Verify backup code
+    code_valid = False
+    code_index = -1
+    
+    for i, hashed_code in enumerate(backup_codes):
+        if two_factor_auth.verify_backup_code(login_data.backup_code, hashed_code):
+            code_valid = True
+            code_index = i
+            break
+    
+    # Log attempt
+    attempt = TwoFAAttempt(
+        user_id=user.id,
+        attempt_type="backup_code",
+        success=code_valid,
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("User-Agent", "")[:500]
+    )
+    db.add(attempt)
+    
+    if not code_valid:
+        await db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid backup code",
+        )
+    
+    # Mark code as used by replacing it with "USED"
+    backup_codes[code_index] = "USED"
+    user.set_backup_codes(backup_codes)
+    user.two_fa_recovery_codes_used += 1
+    
+    # Create tokens
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        subject=user.id, expires_delta=access_token_expires
+    )
+    
+    refresh_token_expires = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    refresh_token = create_refresh_token(
+        subject=user.id, expires_delta=refresh_token_expires
+    )
+    
+    # Update last login
+    user.last_login_at = datetime.utcnow()
     await db.commit()
     
     return {

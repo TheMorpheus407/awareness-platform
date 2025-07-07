@@ -144,7 +144,7 @@ async def create_user(
     # Create new user
     user = User(
         email=user_data.email,
-        hashed_password=get_password_hash(user_data.password),
+        password_hash=get_password_hash(user_data.password),
         first_name=user_data.first_name,
         last_name=user_data.last_name,
         phone=user_data.phone,
@@ -213,7 +213,7 @@ async def update_user(
     
     # Hash password if provided
     if "password" in update_data:
-        update_data["hashed_password"] = get_password_hash(update_data.pop("password"))
+        update_data["password_hash"] = get_password_hash(update_data.pop("password"))
         user.password_changed_at = db.func.now()
     
     # Check if email is being changed and if it's already taken

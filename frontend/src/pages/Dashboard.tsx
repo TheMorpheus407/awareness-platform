@@ -1,12 +1,15 @@
 import React from 'react';
 import { Users, Building, GraduationCap, Mail, Shield, TrendingUp } from 'lucide-react';
 import { StatsCard } from '../components/Dashboard';
-import { useApi } from '../hooks/useApi';
+import { useApi, useDocumentTitle } from '../hooks';
 import type { DashboardStats } from '../types';
 import apiClient from '../services/api';
 import { LoadingSpinner, ErrorMessage } from '../components/Common';
+import { useTranslation } from 'react-i18next';
 
 export const Dashboard: React.FC = () => {
+  const { t } = useTranslation();
+  useDocumentTitle('dashboard.title');
   const { data: stats, loading, error } = useApi<DashboardStats>(
     () => apiClient.getDashboardStats()
   );
@@ -22,13 +25,13 @@ export const Dashboard: React.FC = () => {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-secondary-900">Dashboard</h1>
-        <p className="text-secondary-600 mt-1">Welcome to your cybersecurity awareness platform</p>
+        <h1 className="text-2xl font-bold text-secondary-900">{t('dashboard.title')}</h1>
+        <p className="text-secondary-600 mt-1">{t('dashboard.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <StatsCard
-          title="Total Users"
+          title={t('dashboard.stats.totalUsers')}
           value={stats?.total_users || 0}
           icon={Users}
           change={12}
@@ -36,7 +39,7 @@ export const Dashboard: React.FC = () => {
           color="primary"
         />
         <StatsCard
-          title="Active Users"
+          title={t('dashboard.stats.activeUsers')}
           value={stats?.active_users || 0}
           icon={TrendingUp}
           change={8}
@@ -44,13 +47,13 @@ export const Dashboard: React.FC = () => {
           color="success"
         />
         <StatsCard
-          title="Companies"
+          title={t('dashboard.stats.companies')}
           value={stats?.total_companies || 0}
           icon={Building}
           color="warning"
         />
         <StatsCard
-          title="Courses Completed"
+          title={t('dashboard.stats.coursesCompleted')}
           value={stats?.courses_completed || 0}
           icon={GraduationCap}
           change={25}
@@ -58,13 +61,13 @@ export const Dashboard: React.FC = () => {
           color="primary"
         />
         <StatsCard
-          title="Phishing Campaigns"
+          title={t('dashboard.stats.phishingCampaigns')}
           value={stats?.phishing_campaigns || 0}
           icon={Mail}
           color="danger"
         />
         <StatsCard
-          title="Compliance Score"
+          title={t('dashboard.stats.complianceScore')}
           value={`${stats?.compliance_score || 0}%`}
           icon={Shield}
           change={5}
@@ -75,7 +78,7 @@ export const Dashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="card">
-          <h2 className="text-lg font-semibold text-secondary-900 mb-4">Recent Activity</h2>
+          <h2 className="text-lg font-semibold text-secondary-900 mb-4">{t('dashboard.recentActivity.title')}</h2>
           <div className="space-y-4">
             {[
               { user: 'John Doe', action: 'Completed course', time: '2 hours ago' },
@@ -100,23 +103,23 @@ export const Dashboard: React.FC = () => {
         </div>
 
         <div className="card">
-          <h2 className="text-lg font-semibold text-secondary-900 mb-4">Quick Actions</h2>
+          <h2 className="text-lg font-semibold text-secondary-900 mb-4">{t('dashboard.quickActions.title')}</h2>
           <div className="space-y-3">
             <button className="w-full btn-primary justify-start">
               <Mail className="w-5 h-5 mr-2" />
-              Launch Phishing Campaign
+              {t('dashboard.quickActions.launchPhishing')}
             </button>
             <button className="w-full btn-secondary justify-start">
               <GraduationCap className="w-5 h-5 mr-2" />
-              Create New Course
+              {t('dashboard.quickActions.createCourse')}
             </button>
             <button className="w-full btn-secondary justify-start">
               <Users className="w-5 h-5 mr-2" />
-              Invite Users
+              {t('dashboard.quickActions.inviteUsers')}
             </button>
             <button className="w-full btn-secondary justify-start">
               <Shield className="w-5 h-5 mr-2" />
-              Generate Compliance Report
+              {t('dashboard.quickActions.generateReport')}
             </button>
           </div>
         </div>

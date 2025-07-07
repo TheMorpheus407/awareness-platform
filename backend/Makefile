@@ -1,16 +1,19 @@
-.PHONY: help install run test lint format migrate docker-up docker-down clean
+.PHONY: help install run test lint format migrate docker-up docker-down clean init-db seed-db test-rls
 
 help:
 	@echo "Available commands:"
-	@echo "  make install    - Install dependencies"
-	@echo "  make run        - Run the development server"
-	@echo "  make test       - Run tests"
-	@echo "  make lint       - Run linting"
-	@echo "  make format     - Format code"
-	@echo "  make migrate    - Run database migrations"
-	@echo "  make docker-up  - Start Docker containers"
+	@echo "  make install     - Install dependencies"
+	@echo "  make run         - Run the development server"
+	@echo "  make test        - Run tests"
+	@echo "  make lint        - Run linting"
+	@echo "  make format      - Format code"
+	@echo "  make migrate     - Run database migrations"
+	@echo "  make init-db     - Initialize database with RLS and seed data"
+	@echo "  make seed-db     - Seed database with enhanced data"
+	@echo "  make test-rls    - Test Row Level Security"
+	@echo "  make docker-up   - Start Docker containers"
 	@echo "  make docker-down - Stop Docker containers"
-	@echo "  make clean      - Clean up generated files"
+	@echo "  make clean       - Clean up generated files"
 
 install:
 	pip install -r requirements.txt
@@ -47,6 +50,18 @@ docker-down:
 
 docker-logs:
 	docker-compose logs -f
+
+init-db:
+	@echo "Initializing database with RLS and seed data..."
+	python scripts/init_database_with_rls.py
+
+seed-db:
+	@echo "Seeding database with enhanced data..."
+	python scripts/seed_data_enhanced.py
+
+test-rls:
+	@echo "Testing Row Level Security..."
+	python scripts/test_rls.py
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +

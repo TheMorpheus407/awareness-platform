@@ -69,8 +69,7 @@ async def create_users(session: AsyncSession, companies: List[Company]) -> List[
     # Platform admin
     admin = User(
         email="admin@bootstrap-awareness.de",
-        username="admin",
-        hashed_password=get_password_hash("admin123"),
+        password_hash=get_password_hash("admin123"),
         first_name="Platform",
         last_name="Admin",
         role="admin",
@@ -87,8 +86,7 @@ async def create_users(session: AsyncSession, companies: List[Company]) -> List[
         # Company admin
         company_admin = User(
             email=f"admin@{company.domain}",
-            username=f"{company.name}-admin",
-            hashed_password=get_password_hash("password123"),
+            password_hash=get_password_hash("password123"),
             first_name="Company",
             last_name="Admin",
             company_id=company.id,
@@ -104,8 +102,7 @@ async def create_users(session: AsyncSession, companies: List[Company]) -> List[
         for i in range(5):
             employee = User(
                 email=f"user{i+1}@{company.domain}",
-                username=f"{company.name}-user{i+1}",
-                hashed_password=get_password_hash("password123"),
+                password_hash=get_password_hash("password123"),
                 first_name=f"User{i+1}",
                 last_name=company.display_name.split()[0],
                 company_id=company.id,

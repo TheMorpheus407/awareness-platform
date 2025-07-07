@@ -48,7 +48,8 @@ services:
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
       ENVIRONMENT: production
-      CORS_ORIGINS: "https://bootstrap-awareness.de"
+      FRONTEND_URL: https://bootstrap-awareness.de
+      CORS_ORIGINS: '["https://bootstrap-awareness.de", "https://www.bootstrap-awareness.de"]'
     volumes:
       - uploaded_files:/app/uploads
     healthcheck:

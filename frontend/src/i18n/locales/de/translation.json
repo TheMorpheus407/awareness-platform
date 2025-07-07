@@ -1,0 +1,165 @@
+{
+  "common": {
+    "loading": "Lädt...",
+    "error": "Fehler",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "create": "Erstellen",
+    "search": "Suchen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "logout": "Abmelden",
+    "welcome": "Willkommen",
+    "yes": "Ja",
+    "no": "Nein"
+  },
+  "branding": {
+    "appName": "CyberAware",
+    "title": "Cybersecurity Awareness Plattform",
+    "tagline": "Schützen Sie Ihre Organisation durch Schulung",
+    "description": "Umfassende Plattform für Cybersicherheits-Bewusstseinstraining"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "users": "Benutzer",
+    "companies": "Unternehmen",
+    "courses": "Kurse",
+    "phishing": "Phishing",
+    "reports": "Berichte",
+    "settings": "Einstellungen"
+  },
+  "auth": {
+    "login": {
+      "title": "Willkommen zurück",
+      "subtitle": "Melden Sie sich bei Ihrem Konto an",
+      "emailLabel": "E-Mail-Adresse",
+      "emailPlaceholder": "ihre@email.de",
+      "passwordLabel": "Passwort",
+      "passwordPlaceholder": "••••••••",
+      "rememberMe": "Angemeldet bleiben",
+      "forgotPassword": "Passwort vergessen?",
+      "signIn": "Anmelden",
+      "noAccount": "Noch kein Konto?",
+      "signUp": "Registrieren"
+    },
+    "register": {
+      "title": "Konto erstellen",
+      "subtitle": "Beginnen Sie Ihre Cybersicherheitsreise",
+      "fullNameLabel": "Vollständiger Name",
+      "fullNamePlaceholder": "Max Mustermann",
+      "emailLabel": "E-Mail-Adresse",
+      "emailPlaceholder": "ihre@email.de",
+      "passwordLabel": "Passwort",
+      "passwordPlaceholder": "••••••••",
+      "confirmPasswordLabel": "Passwort bestätigen",
+      "confirmPasswordPlaceholder": "••••••••",
+      "companyNameLabel": "Firmenname (Optional)",
+      "companyNamePlaceholder": "Musterfirma GmbH",
+      "createAccount": "Konto erstellen",
+      "hasAccount": "Haben Sie bereits ein Konto?",
+      "signIn": "Anmelden"
+    },
+    "errors": {
+      "emailRequired": "E-Mail ist erforderlich",
+      "invalidEmail": "Ungültige E-Mail-Adresse",
+      "passwordRequired": "Passwort ist erforderlich",
+      "passwordMinLength": "Das Passwort muss mindestens 6 Zeichen lang sein",
+      "passwordMinLength8": "Das Passwort muss mindestens 8 Zeichen lang sein",
+      "passwordPattern": "Passwort muss Groß- und Kleinbuchstaben, Zahlen und Sonderzeichen enthalten",
+      "nameRequired": "Name ist erforderlich",
+      "nameMinLength": "Name muss mindestens 2 Zeichen lang sein",
+      "passwordMismatch": "Passwörter stimmen nicht überein",
+      "confirmPasswordRequired": "Bitte bestätigen Sie Ihr Passwort"
+    },
+    "terms": {
+      "agree": "Ich stimme den",
+      "termsAndConditions": "Allgemeinen Geschäftsbedingungen",
+      "and": "und der",
+      "privacyPolicy": "Datenschutzerklärung"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Willkommen auf Ihrer Cybersicherheits-Bewusstseinsplattform",
+    "stats": {
+      "totalUsers": "Gesamtbenutzer",
+      "activeUsers": "Aktive Benutzer",
+      "companies": "Unternehmen",
+      "coursesCompleted": "Abgeschlossene Kurse",
+      "phishingCampaigns": "Phishing-Kampagnen",
+      "complianceScore": "Compliance-Bewertung"
+    },
+    "recentActivity": {
+      "title": "Letzte Aktivitäten",
+      "completedCourse": "Kurs abgeschlossen",
+      "failedPhishing": "Phishing-Test nicht bestanden",
+      "joinedPlatform": "Der Plattform beigetreten",
+      "completedQuiz": "Quiz abgeschlossen",
+      "hoursAgo": "vor {{hours}} Stunden"
+    },
+    "quickActions": {
+      "title": "Schnellaktionen",
+      "launchPhishing": "Phishing-Kampagne starten",
+      "createCourse": "Neuen Kurs erstellen",
+      "inviteUsers": "Benutzer einladen",
+      "generateReport": "Compliance-Bericht erstellen"
+    }
+  },
+  "users": {
+    "title": "Benutzerverwaltung",
+    "subtitle": "Benutzer und deren Berechtigungen verwalten",
+    "addUser": "Benutzer hinzufügen",
+    "searchPlaceholder": "Benutzer suchen...",
+    "table": {
+      "name": "Name",
+      "email": "E-Mail",
+      "role": "Rolle",
+      "company": "Unternehmen",
+      "status": "Status",
+      "actions": "Aktionen"
+    },
+    "status": {
+      "active": "Aktiv",
+      "inactive": "Inaktiv"
+    },
+    "roles": {
+      "admin": "Administrator",
+      "user": "Benutzer",
+      "manager": "Manager"
+    }
+  },
+  "companies": {
+    "title": "Unternehmensverwaltung",
+    "subtitle": "Organisationen und deren Einstellungen verwalten",
+    "addCompany": "Unternehmen hinzufügen",
+    "searchPlaceholder": "Unternehmen suchen...",
+    "table": {
+      "name": "Name",
+      "domain": "Domain",
+      "users": "Benutzer",
+      "status": "Status",
+      "created": "Erstellt",
+      "actions": "Aktionen"
+    }
+  },
+  "courses": {
+    "comingSoon": "Kurse (Demnächst verfügbar)"
+  },
+  "phishing": {
+    "comingSoon": "Phishing-Simulation (Demnächst verfügbar)"
+  },
+  "reports": {
+    "comingSoon": "Berichte (Demnächst verfügbar)"
+  },
+  "settings": {
+    "comingSoon": "Einstellungen (Demnächst verfügbar)"
+  },
+  "errors": {
+    "generic": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+    "networkError": "Netzwerkfehler. Bitte überprüfen Sie Ihre Verbindung.",
+    "unauthorized": "Sie sind nicht berechtigt, diese Aktion durchzuführen.",
+    "notFound": "Die angeforderte Ressource wurde nicht gefunden."
+  }
+}

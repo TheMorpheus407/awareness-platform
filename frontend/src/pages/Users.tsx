@@ -5,12 +5,14 @@ import type { User, PaginatedResponse } from '../types';
 import apiClient from '../services/api';
 import { LoadingSpinner, ErrorMessage } from '../components/Common';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 export const Users: React.FC = () => {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   
-  const { data, loading, error, refetch } = useApi<PaginatedResponse<User>>(
+  const { data, loading, error } = useApi<PaginatedResponse<User>>(
     () => apiClient.getUsers(page, 20),
     [page]
   );
@@ -32,8 +34,8 @@ export const Users: React.FC = () => {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-secondary-900">Users</h1>
-        <p className="text-secondary-600 mt-1">Manage your platform users</p>
+        <h1 className="text-2xl font-bold text-secondary-900">{t('users.title')}</h1>
+        <p className="text-secondary-600 mt-1">{t('users.subtitle')}</p>
       </div>
 
       <div className="card">
@@ -42,7 +44,7 @@ export const Users: React.FC = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary-400 w-5 h-5" />
             <input
               type="text"
-              placeholder="Search users..."
+              placeholder={t('users.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 input-field"
@@ -50,7 +52,7 @@ export const Users: React.FC = () => {
           </div>
           <button className="btn-primary">
             <Plus className="w-5 h-5 mr-2" />
-            Add User
+            {t('users.addUser')}
           </button>
         </div>
 
@@ -58,12 +60,12 @@ export const Users: React.FC = () => {
           <table className="w-full">
             <thead>
               <tr className="border-b border-secondary-200">
-                <th className="text-left py-3 px-4 font-semibold text-sm text-secondary-700">Name</th>
-                <th className="text-left py-3 px-4 font-semibold text-sm text-secondary-700">Email</th>
-                <th className="text-left py-3 px-4 font-semibold text-sm text-secondary-700">Role</th>
-                <th className="text-left py-3 px-4 font-semibold text-sm text-secondary-700">Status</th>
-                <th className="text-left py-3 px-4 font-semibold text-sm text-secondary-700">Created</th>
-                <th className="text-right py-3 px-4 font-semibold text-sm text-secondary-700">Actions</th>
+                <th className="text-left py-3 px-4 font-semibold text-sm text-secondary-700">{t('users.table.name')}</th>
+                <th className="text-left py-3 px-4 font-semibold text-sm text-secondary-700">{t('users.table.email')}</th>
+                <th className="text-left py-3 px-4 font-semibold text-sm text-secondary-700">{t('users.table.role')}</th>
+                <th className="text-left py-3 px-4 font-semibold text-sm text-secondary-700">{t('users.table.status')}</th>
+                <th className="text-left py-3 px-4 font-semibold text-sm text-secondary-700">{t('users.table.created')}</th>
+                <th className="text-right py-3 px-4 font-semibold text-sm text-secondary-700">{t('users.table.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -95,7 +97,7 @@ export const Users: React.FC = () => {
                         ? 'bg-green-100 text-green-800' 
                         : 'bg-red-100 text-red-800'
                     }`}>
-                      {user.is_active ? 'Active' : 'Inactive'}
+                      {user.is_active ? t('users.status.active') : t('users.status.inactive')}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-secondary-600">
@@ -131,14 +133,14 @@ export const Users: React.FC = () => {
                 disabled={page === 1}
                 className="px-3 py-1 border border-secondary-300 rounded text-sm font-medium disabled:opacity-50"
               >
-                Previous
+                {t('common.back')}
               </button>
               <button
                 onClick={() => setPage(p => p + 1)}
                 disabled={page === data.pages}
                 className="px-3 py-1 border border-secondary-300 rounded text-sm font-medium disabled:opacity-50"
               >
-                Next
+                {t('common.next')}
               </button>
             </div>
           </div>
