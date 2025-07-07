@@ -1,0 +1,63 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git
+.mypy_cache
+.pytest_cache
+.hypothesis
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+.env
+.env.*
+logs/
+uploads/
+*.db
+*.sqlite
+*.sqlite3
+
+# Documentation
+docs/
+*.md
+
+# Tests
+tests/
+pytest.ini
+.pytest_cache/
+
+# CI
+.github/
+.gitlab-ci.yml
+.travis.yml
