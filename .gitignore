@@ -1,0 +1,97 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+*.egg
+
+# JavaScript/Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build outputs
+frontend/build/
+frontend/dist/
+backend/dist/
+*.log
+
+# Testing
+coverage/
+.coverage
+htmlcov/
+.nyc_output/
+*.coverage
+*.gcov
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploads
+uploads/
+media/
+
+# SSL certificates (keep these private)
+*.pem
+*.key
+*.crt
+*.csr
+
+# Private keys - NEVER commit these
+*private*key*
+*id_rsa*
+*.ppk
+
+# Backup files
+*.backup
+*.bak
+backups/
+
+# Docker volumes
+volumes/
+postgres_data/
+redis_data/
+
+# Monitoring
+prometheus_data/
+grafana_data/
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+*.tmp
+
+# OS files
+Thumbs.db
+Desktop.ini
