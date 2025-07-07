@@ -36,7 +36,7 @@ A slave could be for
 
 Remember we're using 
 - venv
-- git, including branches, which you can HEAVILY use for your slaves
+- git via gh in the commandline, including branches, which you can HEAVILY use for your slaves
 - The coder slaves can use pull requests, a reviewer slave can review it, you will merge it etc
 - You have FULL access to the Server via SSH (you may even use sudo). The keys are in bootstrap-awareness private key.txt and bootstrap awareness public key.txt
 - You can and will use Github Actions. You have the permission to push AND deploy, since this project is NOT yet in production. 
