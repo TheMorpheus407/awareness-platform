@@ -48,6 +48,6 @@ videos/
 build
 
 # Package manager
-package-lock.json
+# package-lock.json should be committed for reproducible builds
 yarn.lock
 pnpm-lock.yaml
