@@ -67,7 +67,7 @@ jobs:
         SECRET_KEY=test-secret-key-for-ci
         FRONTEND_URL=http://localhost:5173
         BACKEND_URL=http://localhost:8000
-        CORS_ORIGINS=http://localhost:5173,http://localhost:3000
+        CORS_ORIGINS=["http://localhost:5173","http://localhost:3000"]
         ENVIRONMENT=test
         EMAIL_FROM=test@example.com
         EMAIL_PASSWORD=test-password
@@ -86,7 +86,7 @@ jobs:
         SECRET_KEY: test-secret-key-for-ci
         FRONTEND_URL: http://localhost:5173
         BACKEND_URL: http://localhost:8000
-        CORS_ORIGINS: http://localhost:5173,http://localhost:3000
+        CORS_ORIGINS: '["http://localhost:5173","http://localhost:3000"]'
         ENVIRONMENT: test
         EMAIL_FROM: test@example.com
         SMTP_FROM_EMAIL: test@example.com
@@ -129,7 +129,7 @@ jobs:
         SECRET_KEY: test-secret-key-for-ci
         FRONTEND_URL: http://localhost:5173
         BACKEND_URL: http://localhost:8000
-        CORS_ORIGINS: http://localhost:5173,http://localhost:3000
+        CORS_ORIGINS: '["http://localhost:5173","http://localhost:3000"]'
         ENVIRONMENT: test
         EMAIL_FROM: test@example.com
         EMAIL_PASSWORD: test-password

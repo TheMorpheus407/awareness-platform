@@ -7,7 +7,7 @@ from sqlalchemy.exc import OperationalError
 import asyncio
 from unittest.mock import patch, MagicMock, AsyncMock
 
-from core.database import get_db, AsyncSessionLocal, engine
+from db.session import get_db, AsyncSessionLocal, engine
 
 
 @pytest.mark.asyncio
@@ -133,7 +133,7 @@ class TestDatabaseSession:
         await asyncio.gather(*tasks)
         assert len(sessions) == 20
 
-    @patch('core.database.create_async_engine')
+    @patch('db.session.create_async_engine')
     async def test_database_connection_retry(self, mock_create_engine) -> None:
         """Test database connection retry logic."""
         # Mock engine that fails first 2 times, then succeeds
