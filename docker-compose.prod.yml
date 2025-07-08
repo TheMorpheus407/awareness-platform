@@ -39,7 +39,7 @@ services:
       redis:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://${DB_USER:-awareness}:${DB_PASSWORD}@postgres:5432/awareness_platform
+      DATABASE_URL: postgresql+asyncpg://${DB_USER:-awareness}:${DB_PASSWORD}@postgres:5432/awareness_platform
       REDIS_URL: redis://default:${REDIS_PASSWORD}@redis:6379
       SECRET_KEY: ${SECRET_KEY}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
