@@ -214,26 +214,24 @@ def upgrade() -> None:
     op.create_index('ix_analytics_events_created_at', 'analytics_events', ['created_at'])
 
     # Add indexes to existing tables
-    op.create_index('ix_users_company_id', 'users', ['company_id'])
     op.create_index('ix_users_role', 'users', ['role'])
     op.create_index('ix_users_is_active', 'users', ['is_active'])
     op.create_index('ix_users_created_at', 'users', ['created_at'])
     
     op.create_index('ix_companies_is_active', 'companies', ['is_active'])
-    op.create_index('ix_companies_subscription_plan', 'companies', ['subscription_plan'])
+    op.create_index('ix_companies_subscription_tier', 'companies', ['subscription_tier'])
     op.create_index('ix_companies_created_at', 'companies', ['created_at'])
 
 
 def downgrade() -> None:
     # Drop indexes
     op.drop_index('ix_companies_created_at', 'companies')
-    op.drop_index('ix_companies_subscription_plan', 'companies')
+    op.drop_index('ix_companies_subscription_tier', 'companies')
     op.drop_index('ix_companies_is_active', 'companies')
     
     op.drop_index('ix_users_created_at', 'users')
     op.drop_index('ix_users_is_active', 'users')
     op.drop_index('ix_users_role', 'users')
-    op.drop_index('ix_users_company_id', 'users')
     
     # Drop tables
     op.drop_table('analytics_events')

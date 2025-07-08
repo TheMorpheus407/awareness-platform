@@ -1,7 +1,7 @@
 """Add 2FA support
 
-Revision ID: 003
-Revises: 002_add_core_tables
+Revision ID: 3c4d5e6f7a8b
+Revises: 2b3c4d5e6f7a
 Create Date: 2025-01-07
 
 """
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = '003'
-down_revision = '002_add_core_tables'
+revision = '3c4d5e6f7a8b'
+down_revision = '2b3c4d5e6f7a'
 branch_labels = None
 depends_on = None
 
@@ -20,7 +20,7 @@ def upgrade() -> None:
     # Add 2FA fields to users table
     op.add_column('users', sa.Column('totp_secret', sa.String(255), nullable=True))
     op.add_column('users', sa.Column('totp_enabled', sa.Boolean(), nullable=False, server_default='false'))
-    op.add_column('users', sa.Column('totp_verified_at', sa.DateTime(timezone=True), nullable=True))
+    op.add_column('users', sa.Column('totp_verified_at', sa.DateTime(), nullable=True))
     op.add_column('users', sa.Column('backup_codes', sa.Text(), nullable=True))
     op.add_column('users', sa.Column('two_fa_recovery_codes_used', sa.Integer(), nullable=False, server_default='0'))
     
@@ -29,14 +29,14 @@ def upgrade() -> None:
     
     # Create table for 2FA verification attempts (for rate limiting)
     op.create_table('two_fa_attempts',
-        sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('user_id', sa.Integer(), nullable=False),
         sa.Column('attempt_type', sa.String(50), nullable=False),  # 'totp', 'backup_code'
         sa.Column('success', sa.Boolean(), nullable=False),
         sa.Column('ip_address', sa.String(45), nullable=True),
         sa.Column('user_agent', sa.Text(), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
+        sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+        sa.Column('updated_at', sa.DateTime(), nullable=True),
         sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
         sa.PrimaryKeyConstraint('id')
     )
