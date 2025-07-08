@@ -13,12 +13,16 @@ from core.config import settings
 
 def fix_migration_types():
     """Drop and recreate custom types to avoid conflicts."""
-    engine = create_engine(settings.DATABASE_URL)
+    # Convert MultiHostUrl to string and handle postgresql+asyncpg
+    database_url = str(settings.DATABASE_URL)
+    if database_url.startswith("postgresql+asyncpg://"):
+        database_url = database_url.replace("postgresql+asyncpg://", "postgresql://")
+    engine = create_engine(database_url)
     
     types_to_recreate = [
         ('companysize', ['small', 'medium', 'large', 'enterprise']),
-        ('subscriptiontier', ['free', 'basic', 'professional', 'enterprise']),
-        ('userrole', ['admin', 'instructor', 'user']),
+        ('subscriptiontier', ['free', 'starter', 'professional', 'enterprise']),
+        ('userrole', ['user', 'company_admin', 'admin']),
         ('companystatus', ['active', 'inactive', 'suspended']),
     ]
     

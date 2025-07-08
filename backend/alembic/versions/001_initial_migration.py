@@ -17,15 +17,15 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Create custom enums
+    # Create custom enums with checkfirst=True to avoid conflicts
     user_role_enum = postgresql.ENUM('user', 'company_admin', 'admin', name='userrole')
-    user_role_enum.create(op.get_bind())
+    user_role_enum.create(op.get_bind(), checkfirst=True)
     
     company_size_enum = postgresql.ENUM('small', 'medium', 'large', 'enterprise', name='companysize')
-    company_size_enum.create(op.get_bind())
+    company_size_enum.create(op.get_bind(), checkfirst=True)
     
     subscription_tier_enum = postgresql.ENUM('free', 'starter', 'professional', 'enterprise', name='subscriptiontier')
-    subscription_tier_enum.create(op.get_bind())
+    subscription_tier_enum.create(op.get_bind(), checkfirst=True)
     
     # Create companies table
     op.create_table('companies',

@@ -152,7 +152,7 @@ def db_session():
 def client(db_session) -> TestClient:
     """Create a test client."""
     app.dependency_overrides[get_db] = lambda: db_session
-    with TestClient(app) as c:
+    with TestClient(app, base_url="http://localhost") as c:
         yield c
     app.dependency_overrides.clear()
 
