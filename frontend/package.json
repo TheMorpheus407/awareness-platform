@@ -23,6 +23,7 @@
     "e2e:update-snapshots": "playwright test --update-snapshots"
   },
   "dependencies": {
+    "@heroicons/react": "^2.1.1",
     "@tanstack/react-query": "^5.17.19",
     "axios": "^1.6.5",
     "clsx": "^2.1.1",
