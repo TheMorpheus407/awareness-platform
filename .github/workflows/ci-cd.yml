@@ -163,6 +163,8 @@ jobs:
         FRONTEND_URL: http://localhost:5173
       run: |
         cd backend
+        # Clean up any existing types
+        python scripts/fix_migration_types.py || true
         alembic upgrade head
         
     - name: Seed E2E data

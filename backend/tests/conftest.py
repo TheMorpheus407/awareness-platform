@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 from typing import AsyncGenerator, Generator
 import pytest
+import uuid
 
 # Add backend directory to sys.path
 backend_dir = Path(__file__).parent.parent
@@ -15,18 +16,59 @@ os.environ["SECRET_KEY"] = "test-secret-key"
 os.environ["FRONTEND_URL"] = "http://localhost:5173"
 
 from httpx import AsyncClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event, TypeDecorator, CHAR
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 from fastapi.testclient import TestClient
+from sqlalchemy.dialects.postgresql import UUID as PostgreSQLUUID
 
-from main import app
+# Create a UUID type that works with SQLite
+class UUID(TypeDecorator):
+    """Platform-independent UUID type.
+    
+    Uses PostgreSQL's UUID type, otherwise uses CHAR(36), storing as stringified hex values.
+    """
+    impl = CHAR
+    cache_ok = True
+
+    def load_dialect_impl(self, dialect):
+        if dialect.name == "postgresql":
+            return dialect.type_descriptor(PostgreSQLUUID(as_uuid=True))
+        else:
+            return dialect.type_descriptor(CHAR(36))
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return value
+        if dialect.name == "postgresql":
+            return value
+        else:
+            if isinstance(value, uuid.UUID):
+                return str(value)
+            else:
+                return value
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return value
+        if dialect.name == "postgresql":
+            return value
+        else:
+            return uuid.UUID(value)
+
+
+# Monkey-patch the UUID type for SQLite compatibility in tests BEFORE importing models
+import sqlalchemy.dialects.postgresql
+sqlalchemy.dialects.postgresql.UUID = UUID
+
+# Now import models and app after patching UUID
 from db.base import Base
 from db.session import get_db
 from core.config import settings
 from models.user import User
 from models.company import Company
 from core.security import get_password_hash
+from main import app
 
 # Test database URL
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"

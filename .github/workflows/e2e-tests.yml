@@ -76,6 +76,8 @@ jobs:
         SECRET_KEY: test-secret-key-for-ci
         FRONTEND_URL: http://localhost:5173
       run: |
+        # Clean up any existing types
+        python scripts/fix_migration_types.py || true
         alembic upgrade head
         python scripts/seed_data.py
     
