@@ -31,6 +31,7 @@ A slave could be for
 - course creation via LATEX
 - ...
 [You may update more Slave ideas here, that you found worked well; You really dont need to do everything yourself :)]
+These slaves will often take more than 10 minutes to complete, thats normal.
 
 ## 📁 PROJECT STRUCTURE
 

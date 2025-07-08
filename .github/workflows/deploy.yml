@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - master
   workflow_dispatch:
 
 env:
@@ -27,32 +26,27 @@ jobs:
         with:
           node-version: '20'
       
-      - name: Install Python dependencies
+      - name: Install backend dependencies
         run: |
+          cd backend
           python -m pip install --upgrade pip
-          pip install pytest pytest-cov black flake8
-          if [ -f backend/requirements.txt ]; then pip install -r backend/requirements.txt; fi
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
       
-      - name: Install Node dependencies
+      - name: Install frontend dependencies
         run: |
-          if [ -d frontend ]; then
-            cd frontend
-            npm ci || npm install
-          fi
+          cd frontend
+          npm ci
       
-      - name: Run Python tests
+      - name: Run backend tests
         run: |
-          if [ -d backend ]; then
-            cd backend
-            pytest --cov=. --cov-report=xml || true
-          fi
+          cd backend
+          pytest --cov=. --cov-report=xml
       
-      - name: Run Frontend tests
+      - name: Run frontend tests
         run: |
-          if [ -d frontend ]; then
-            cd frontend
-            npm test -- --passWithNoTests || true
-          fi
+          cd frontend
+          npm test -- --passWithNoTests
 
   build:
     needs: test
@@ -77,6 +71,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./backend
+          file: ./backend/Dockerfile.prod
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
           cache-from: type=gha
@@ -86,6 +81,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
+          file: ./frontend/Dockerfile.prod
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
           cache-from: type=gha
@@ -102,14 +98,82 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H bootstrap-awareness.de >> ~/.ssh/known_hosts || true
+          ssh-keyscan -H 83.228.205.20 >> ~/.ssh/known_hosts
       
-      - name: Deploy to server
+      - name: Create deployment directory on server
         run: |
-          scp -r deployment/* root@bootstrap-awareness.de:/opt/awareness/
-          ssh root@bootstrap-awareness.de 'cd /opt/awareness && chmod +x scripts/deploy.sh && ./scripts/deploy.sh'
+          ssh root@83.228.205.20 "mkdir -p /opt/awareness/{backend,frontend,scripts,nginx}"
+      
+      - name: Copy deployment files
+        run: |
+          scp docker-compose.prod.yml root@83.228.205.20:/opt/awareness/docker-compose.yml
+          scp deployment/scripts/deploy-production.sh root@83.228.205.20:/opt/awareness/scripts/
+          scp deployment/nginx/sites-enabled/awareness-platform.conf root@83.228.205.20:/opt/awareness/nginx/
+      
+      - name: Deploy application
+        run: |
+          ssh root@83.228.205.20 << 'EOF'
+            cd /opt/awareness
+            
+            # Create .env file
+            cat > .env << 'ENVFILE'
+            # Database
+            DATABASE_URL=postgresql://awareness_user:${DB_PASSWORD}@postgres:5432/awareness_db
+            POSTGRES_USER=awareness_user
+            POSTGRES_PASSWORD=${DB_PASSWORD}
+            POSTGRES_DB=awareness_db
+            
+            # Application
+            SECRET_KEY=${SECRET_KEY}
+            ALGORITHM=HS256
+            ACCESS_TOKEN_EXPIRE_MINUTES=30
+            REFRESH_TOKEN_EXPIRE_DAYS=7
+            
+            # Email
+            SMTP_HOST=smtp.sendgrid.net
+            SMTP_PORT=587
+            SMTP_USER=apikey
+            SMTP_PASSWORD=${SENDGRID_API_KEY}
+            EMAIL_FROM=noreply@bootstrap-awareness.de
+            
+            # Frontend
+            VITE_API_URL=https://bootstrap-awareness.de/api
+            
+            # Redis
+            REDIS_URL=redis://redis:6379
+            ENVFILE
+            
+            # Pull latest images
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
+            
+            # Update docker-compose.yml with correct image names
+            sed -i "s|backend:latest|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest|g" docker-compose.yml
+            sed -i "s|frontend:latest|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest|g" docker-compose.yml
+            
+            # Stop existing containers
+            docker-compose down
+            
+            # Start new containers
+            docker-compose up -d
+            
+            # Wait for services to be ready
+            sleep 30
+            
+            # Run database migrations
+            docker-compose exec -T backend alembic upgrade head
+            
+            # Create superuser if not exists
+            docker-compose exec -T backend python scripts/create_superuser.py || true
+          EOF
       
       - name: Health check
         run: |
-          sleep 30
-          curl -f https://bootstrap-awareness.de/health || exit 1
+          sleep 10
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://bootstrap-awareness.de/api/health)
+          if [ $response -eq 200 ]; then
+            echo "Health check passed"
+          else
+            echo "Health check failed with status $response"
+            exit 1
+          fi
