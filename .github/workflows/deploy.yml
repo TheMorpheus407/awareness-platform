@@ -200,3 +200,9 @@ jobs:
           done
           echo "::error::Health check failed after $MAX_RETRIES attempts"
           exit 1
+      
+      - name: Create admin user
+        run: |
+          echo "Creating admin user on production..."
+          scp backend/scripts/create_production_admin.py ubuntu@83.228.205.20:/tmp/
+          ssh ubuntu@83.228.205.20 "sudo docker cp /tmp/create_production_admin.py awareness-backend-1:/tmp/ && sudo docker exec awareness-backend-1 python /tmp/create_production_admin.py" || true
