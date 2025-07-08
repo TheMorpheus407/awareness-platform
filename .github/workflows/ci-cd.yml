@@ -158,6 +158,9 @@ jobs:
     - name: Run migrations
       env:
         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e_db
+        REDIS_URL: redis://localhost:6379
+        SECRET_KEY: test-secret-key-for-e2e
+        FRONTEND_URL: http://localhost:5173
       run: |
         cd backend
         alembic upgrade head
@@ -165,6 +168,9 @@ jobs:
     - name: Seed E2E data
       env:
         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e_db
+        REDIS_URL: redis://localhost:6379
+        SECRET_KEY: test-secret-key-for-e2e
+        FRONTEND_URL: http://localhost:5173
       run: |
         cd backend
         python scripts/seed_e2e_data.py

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, Building, GraduationCap, Mail, Shield, TrendingUp } from 'lucide-react';
+import { Users, Building2, GraduationCap, Mail, Shield, TrendingUp } from 'lucide-react';
 import { StatsCard } from '../components/Dashboard';
 import { useApi, useDocumentTitle } from '../hooks';
 import type { DashboardStats } from '../types';
@@ -49,7 +49,7 @@ export const Dashboard: React.FC = () => {
         <StatsCard
           title={t('dashboard.stats.companies')}
           value={stats?.total_companies || 0}
-          icon={Building}
+          icon={Building2}
           color="warning"
         />
         <StatsCard
