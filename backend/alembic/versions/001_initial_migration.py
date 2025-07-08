@@ -1,14 +1,14 @@
-"""Initial migration with users and companies
+"""Initial migration with users and companies - Fixed enum handling
 
 Revision ID: 1a2b3c4d5e6f
 Revises: 
-Create Date: 2025-01-07 16:00:00.000000
+Create Date: 2024-01-01 00:00:00.000000
 
 """
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
-from sqlalchemy.sql import text
+from sqlalchemy import text
 
 # revision identifiers, used by Alembic.
 revision = '1a2b3c4d5e6f'
@@ -18,63 +18,29 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Create custom enums separately to avoid conflicts
-    # Using sa.Enum in column definitions to prevent duplicate creation attempts
-    
-    # First, create the ENUM types if they don't exist
+    # Get connection for raw SQL execution
     connection = op.get_bind()
     
-    # Get current schema
-    current_schema = connection.execute(text("SELECT current_schema()")).scalar()
+    # Drop all existing enums first to ensure clean state
+    connection.execute(text("DROP TYPE IF EXISTS userrole CASCADE"))
+    connection.execute(text("DROP TYPE IF EXISTS companysize CASCADE"))
+    connection.execute(text("DROP TYPE IF EXISTS subscriptiontier CASCADE"))
+    connection.execute(text("DROP TYPE IF EXISTS companystatus CASCADE"))
     
-    # Helper function to safely create enum types
-    def create_enum_type_if_not_exists(type_name, values):
-        # Check if type exists in any schema
-        result = connection.execute(
-            text(f"""
-                SELECT n.nspname, t.typname 
-                FROM pg_type t 
-                JOIN pg_namespace n ON t.typnamespace = n.oid 
-                WHERE t.typname = '{type_name}'
-            """)
-        ).fetchone()
-        
-        if result:
-            schema_name = result[0]
-            if schema_name != current_schema:
-                # Type exists in different schema, drop and recreate in current schema
-                try:
-                    connection.execute(text(f"DROP TYPE IF EXISTS {schema_name}.{type_name} CASCADE"))
-                except Exception:
-                    pass
-            else:
-                # Type already exists in current schema, skip creation
-                return
-        
-        # Create the type in current schema
-        try:
-            values_str = ', '.join([f"'{v}'" for v in values])
-            connection.execute(text(f"CREATE TYPE {type_name} AS ENUM ({values_str})"))
-        except Exception as e:
-            # If it still fails, try to drop and recreate
-            if "already exists" in str(e):
-                connection.execute(text(f"DROP TYPE IF EXISTS {type_name} CASCADE"))
-                connection.execute(text(f"CREATE TYPE {type_name} AS ENUM ({values_str})"))
-    
-    # Create all enum types
-    create_enum_type_if_not_exists('userrole', ['system_admin', 'company_admin', 'manager', 'employee'])
-    create_enum_type_if_not_exists('companysize', ['small', 'medium', 'large', 'enterprise'])
-    create_enum_type_if_not_exists('subscriptiontier', ['free', 'starter', 'professional', 'enterprise'])
-    create_enum_type_if_not_exists('companystatus', ['trial', 'active', 'suspended', 'cancelled'])
+    # Create enum types using raw SQL to avoid SQLAlchemy auto-creation
+    connection.execute(text("CREATE TYPE userrole AS ENUM ('system_admin', 'company_admin', 'manager', 'employee')"))
+    connection.execute(text("CREATE TYPE companysize AS ENUM ('small', 'medium', 'large', 'enterprise')"))
+    connection.execute(text("CREATE TYPE subscriptiontier AS ENUM ('free', 'starter', 'professional', 'enterprise')"))
+    connection.execute(text("CREATE TYPE companystatus AS ENUM ('trial', 'active', 'suspended', 'cancelled')"))
     
     # Create companies table
     op.create_table('companies',
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('name', sa.String(length=255), nullable=False),
         sa.Column('domain', sa.String(length=255), nullable=False),
-        sa.Column('size', sa.Enum('small', 'medium', 'large', 'enterprise', name='companysize', create_type=False), nullable=False, server_default='small'),
-        sa.Column('status', sa.Enum('trial', 'active', 'suspended', 'cancelled', name='companystatus', create_type=False), nullable=False, server_default='trial'),
-        sa.Column('subscription_tier', sa.Enum('free', 'starter', 'professional', 'enterprise', name='subscriptiontier', create_type=False), nullable=False, server_default='free'),
+        sa.Column('size', postgresql.ENUM('small', 'medium', 'large', 'enterprise', name='companysize', create_type=False), nullable=False, server_default='small'),
+        sa.Column('status', postgresql.ENUM('trial', 'active', 'suspended', 'cancelled', name='companystatus', create_type=False), nullable=False, server_default='trial'),
+        sa.Column('subscription_tier', postgresql.ENUM('free', 'starter', 'professional', 'enterprise', name='subscriptiontier', create_type=False), nullable=False, server_default='free'),
         sa.Column('max_users', sa.Integer(), nullable=False, server_default='10'),
         sa.Column('industry', sa.String(length=100), nullable=True),
         sa.Column('country', sa.String(length=100), nullable=True),
@@ -102,7 +68,7 @@ def upgrade() -> None:
         sa.Column('first_name', sa.String(length=100), nullable=False),
         sa.Column('last_name', sa.String(length=100), nullable=False),
         sa.Column('phone', sa.String(length=20), nullable=True),
-        sa.Column('role', sa.Enum('system_admin', 'company_admin', 'manager', 'employee', name='userrole', create_type=False), nullable=False, server_default='employee'),
+        sa.Column('role', postgresql.ENUM('system_admin', 'company_admin', 'manager', 'employee', name='userrole', create_type=False), nullable=False, server_default='employee'),
         sa.Column('is_active', sa.Boolean(), nullable=False, server_default='true'),
         sa.Column('is_verified', sa.Boolean(), nullable=False, server_default='false'),
         sa.Column('verified_at', sa.DateTime(), nullable=True),
@@ -159,19 +125,13 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_users_company_id'), table_name='users')
     op.drop_index(op.f('ix_users_email'), table_name='users')
     op.drop_table('users')
-    
     op.drop_index(op.f('ix_companies_name'), table_name='companies')
     op.drop_index(op.f('ix_companies_domain'), table_name='companies')
     op.drop_table('companies')
     
-    # Drop enums - using raw SQL with proper schema handling
+    # Drop enum types with CASCADE to handle dependencies
     connection = op.get_bind()
-    
-    # Get current schema
-    current_schema = connection.execute(text("SELECT current_schema()")).scalar()
-    
-    # Drop ENUMs if they exist in the current schema
-    connection.execute(text(f"DROP TYPE IF EXISTS {current_schema}.subscriptiontier CASCADE;"))
-    connection.execute(text(f"DROP TYPE IF EXISTS {current_schema}.companystatus CASCADE;"))
-    connection.execute(text(f"DROP TYPE IF EXISTS {current_schema}.companysize CASCADE;"))
-    connection.execute(text(f"DROP TYPE IF EXISTS {current_schema}.userrole CASCADE;"))
+    connection.execute(text("DROP TYPE IF EXISTS userrole CASCADE"))
+    connection.execute(text("DROP TYPE IF EXISTS companysize CASCADE"))
+    connection.execute(text("DROP TYPE IF EXISTS subscriptiontier CASCADE"))
+    connection.execute(text("DROP TYPE IF EXISTS companystatus CASCADE"))
