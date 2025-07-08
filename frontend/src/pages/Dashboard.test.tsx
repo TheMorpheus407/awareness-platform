@@ -11,16 +11,6 @@ vi.mock('../services/api', () => ({
   },
 }));
 
-// Mock lucide-react icons
-vi.mock('lucide-react', () => ({
-  Users: () => <div data-testid="users-icon">Users Icon</div>,
-  UserCheck: () => <div data-testid="user-check-icon">UserCheck Icon</div>,
-  Building2: () => <div data-testid="building2-icon">Building2 Icon</div>,
-  GraduationCap: () => <div data-testid="graduation-cap-icon">GraduationCap Icon</div>,
-  Mail: () => <div data-testid="mail-icon">Mail Icon</div>,
-  Shield: () => <div data-testid="shield-icon">Shield Icon</div>,
-}));
-
 describe('Dashboard Component', () => {
   const mockStats = {
     total_users: 150,
