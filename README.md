@@ -1,5 +1,8 @@
 # Cybersecurity Awareness Platform
 
+[![CI/CD Pipeline](https://github.com/TheMorpheus407/awareness-platform/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/TheMorpheus407/awareness-platform/actions/workflows/ci-cd.yml)
+[![Security Scan](https://github.com/TheMorpheus407/awareness-platform/actions/workflows/security-scan.yml/badge.svg)](https://github.com/TheMorpheus407/awareness-platform/actions/workflows/security-scan.yml)
+
 A comprehensive, automated cybersecurity training platform designed to enhance organizational security awareness through interactive courses, phishing simulations, and compliance reporting.
 
 ## 🎯 Overview
