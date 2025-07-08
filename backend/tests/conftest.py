@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 from typing import AsyncGenerator, Generator
 import pytest
+import pytest_asyncio
 
 # Add backend directory to Python path
 backend_dir = Path(__file__).parent.parent
@@ -80,7 +81,7 @@ def client(db_session) -> Generator:
     app.dependency_overrides.clear()
 
 
-@pytest.fixture(scope="function")
+@pytest_asyncio.fixture(scope="function")
 async def async_client(db_session) -> AsyncGenerator:
     """Create an async test client."""
     app.dependency_overrides[get_db] = lambda: db_session
