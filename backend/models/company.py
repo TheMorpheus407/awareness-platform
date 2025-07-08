@@ -28,6 +28,14 @@ class CompanyStatus(str, enum.Enum):
     CANCELLED = "cancelled"
 
 
+class SubscriptionTier(str, enum.Enum):
+    """Subscription tier enumeration."""
+    FREE = "free"
+    STARTER = "starter"
+    PROFESSIONAL = "professional"
+    ENTERPRISE = "enterprise"
+
+
 class Company(Base):
     """Company model for multi-tenant support."""
     
@@ -38,6 +46,10 @@ class Company(Base):
     domain = Column(String(255), nullable=False, unique=True, index=True)
     size = Column(Enum(CompanySize), nullable=False, default=CompanySize.SMALL)
     status = Column(Enum(CompanyStatus), nullable=False, default=CompanyStatus.TRIAL)
+    
+    # Subscription
+    subscription_tier = Column(Enum(SubscriptionTier), nullable=False, default=SubscriptionTier.FREE)
+    max_users = Column(Integer, nullable=False, default=10)
     
     # Company details
     industry = Column(String(100), nullable=True)
