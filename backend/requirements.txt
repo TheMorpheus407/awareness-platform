@@ -28,6 +28,7 @@ python-dateutil==2.8.2
 # Logging and Monitoring
 loguru==0.7.2
 sentry-sdk[fastapi]==1.39.2
+prometheus-client==0.19.0
 
 # Additional utilities
 pytz==2023.3.post1
@@ -42,3 +43,13 @@ pillow==10.2.0
 
 # Payment Processing
 stripe==7.8.0
+
+# Content Delivery and Storage
+boto3==1.34.11
+botocore==1.34.11
+
+# PDF Generation
+reportlab==4.0.8
+
+# JWT for content access tokens
+pyjwt==2.8.0

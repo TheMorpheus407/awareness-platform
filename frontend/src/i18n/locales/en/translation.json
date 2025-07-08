@@ -13,7 +13,8 @@
     "logout": "Logout",
     "welcome": "Welcome",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "refresh": "Refresh"
   },
   "branding": {
     "appName": "CyberAware",
@@ -27,6 +28,7 @@
     "companies": "Companies",
     "courses": "Courses",
     "phishing": "Phishing",
+    "analytics": "Analytics",
     "reports": "Reports",
     "settings": "Settings"
   },
@@ -388,6 +390,111 @@
       "title": "Cancel Subscription",
       "message": "Are you sure you want to cancel your subscription? You will continue to have access until the end of your current billing period.",
       "confirm": "Yes, Cancel Subscription"
+    }
+  },
+  "analytics": {
+    "dashboard": {
+      "title": "Analytics Dashboard"
+    },
+    "metrics": {
+      "totalUsers": "Total Users",
+      "courseCompletions": "Course Completions",
+      "avgEngagement": "Avg. Engagement",
+      "monthlyRevenue": "Monthly Revenue",
+      "totalEnrollments": "Total Enrollments",
+      "completions": "Completions",
+      "avgCompletionRate": "Avg. Completion Rate",
+      "avgScore": "Average Score",
+      "totalLogins": "Total Logins",
+      "avgTimePerSession": "Avg. Time/Session",
+      "coursesCompleted": "Courses Completed",
+      "avgQuizScore": "Avg. Quiz Score",
+      "engagement": "Engagement",
+      "completion": "Completion",
+      "score": "Score",
+      "timeInvestment": "Time Investment",
+      "participation": "Participation"
+    },
+    "charts": {
+      "userTrend": "User Activity Trend",
+      "courseProgress": "Course Progress Overview",
+      "engagementOverTime": "Engagement Over Time",
+      "revenueGrowth": "Revenue Growth",
+      "topCourses": "Top Performing Courses",
+      "progressOverTime": "Progress Over Time",
+      "courseComparison": "Course Comparison",
+      "coursePerformance": "Course Performance Metrics",
+      "engagementTrend": "Engagement Trend",
+      "learningProgress": "Learning Progress",
+      "activityDistribution": "Activity Distribution",
+      "engagementVsPerformance": "Engagement vs Performance"
+    },
+    "labels": {
+      "activeUsers": "Active Users",
+      "newUsers": "New Users",
+      "enrollments": "Enrollments",
+      "completions": "Completions",
+      "timeSpent": "Time Spent",
+      "pageViews": "Page Views",
+      "revenue": "Revenue",
+      "mrr": "MRR",
+      "avgProgress": "Avg Progress",
+      "logins": "Logins",
+      "hoursSpent": "Hours Spent",
+      "coursesStarted": "Courses Started",
+      "coursesCompleted": "Courses Completed",
+      "quizzesTaken": "Quizzes Taken",
+      "users": "Users",
+      "performance": "Performance",
+      "score": "Score"
+    },
+    "dateRange": {
+      "today": "Today",
+      "last7Days": "Last 7 Days",
+      "last30Days": "Last 30 Days",
+      "last90Days": "Last 90 Days",
+      "lastYear": "Last Year",
+      "custom": "Custom Range"
+    },
+    "actions": {
+      "export": "Export",
+      "refresh": "Refresh"
+    },
+    "export": {
+      "csv": "Export as CSV",
+      "excel": "Export as Excel",
+      "pdf": "Export as PDF"
+    },
+    "tables": {
+      "topCourses": "Top Performing Courses",
+      "courseDetails": "Course Analytics Details",
+      "topPerformers": "Top Performers"
+    },
+    "columns": {
+      "courseName": "Course Name",
+      "enrollments": "Enrollments",
+      "completions": "Completions",
+      "avgProgress": "Avg Progress",
+      "avgScore": "Avg Score",
+      "timeSpent": "Time Spent",
+      "date": "Date",
+      "rank": "Rank",
+      "user": "User",
+      "coursesCompleted": "Courses Completed"
+    },
+    "activities": {
+      "learning": "Learning",
+      "assessments": "Assessments",
+      "browsing": "Browsing",
+      "other": "Other"
+    },
+    "courseAnalytics": {
+      "title": "Course Analytics",
+      "allCourses": "All Courses"
+    },
+    "userEngagement": {
+      "title": "User Engagement Analytics",
+      "allUsers": "All Users"
     }
   }
 }

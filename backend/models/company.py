@@ -80,6 +80,14 @@ class Company(Base):
     payments = relationship("Payment", back_populates="company", lazy="dynamic", cascade="all, delete-orphan")
     usage_records = relationship("SubscriptionUsage", back_populates="company", lazy="dynamic", cascade="all, delete-orphan")
     
+    # Analytics relationships
+    analytics_events = relationship("AnalyticsEvent", back_populates="company", lazy="dynamic")
+    course_analytics = relationship("CourseAnalytics", back_populates="company", lazy="dynamic")
+    user_engagement = relationship("UserEngagement", back_populates="company", lazy="dynamic")
+    revenue_analytics = relationship("RevenueAnalytics", back_populates="company", lazy="dynamic")
+    phishing_analytics = relationship("PhishingAnalytics", back_populates="company", lazy="dynamic")
+    realtime_metrics = relationship("RealtimeMetric", back_populates="company", lazy="dynamic")
+    
     def __repr__(self) -> str:
         return f"<Company {self.name}>"
     

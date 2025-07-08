@@ -3,7 +3,14 @@
 from .user import User, UserRole
 from .company import Company, CompanySize, CompanyStatus, SubscriptionTier
 from .password_reset_token import PasswordResetToken
-from .course import Course, Quiz, QuizQuestion, UserCourseProgress
+from .course import (
+    Course, Module, Lesson, CourseContent,
+    Quiz, QuizQuestion, QuizAttempt, QuizAnswer,
+    CourseEnrollment, ModuleProgress, LessonProgress,
+    CourseReview, CourseAnnouncement,
+    UserCourseProgress,  # Backward compatibility
+    ContentType, DifficultyLevel, CourseStatus, ProgressStatus
+)
 from .phishing import PhishingCampaign, PhishingTemplate, PhishingResult
 from .audit import AuditLog, AnalyticsEvent
 from .two_fa_attempt import TwoFAAttempt
@@ -13,6 +20,11 @@ from .payment import (
     Invoice, InvoiceStatus,
     Payment, PaymentStatus,
     SubscriptionUsage
+)
+from .analytics import (
+    AnalyticsEvent as AnalyticsEventNew,
+    CourseAnalytics, UserEngagement, RevenueAnalytics,
+    PhishingAnalytics, RealtimeMetric
 )
 
 __all__ = [
@@ -24,9 +36,23 @@ __all__ = [
     "SubscriptionTier",
     "PasswordResetToken",
     "Course",
+    "Module",
+    "Lesson",
+    "CourseContent",
     "Quiz",
     "QuizQuestion",
+    "QuizAttempt",
+    "QuizAnswer",
+    "CourseEnrollment",
+    "ModuleProgress",
+    "LessonProgress",
+    "CourseReview",
+    "CourseAnnouncement",
     "UserCourseProgress",
+    "ContentType",
+    "DifficultyLevel",
+    "CourseStatus",
+    "ProgressStatus",
     "PhishingCampaign",
     "PhishingTemplate",
     "PhishingResult",
@@ -43,4 +69,9 @@ __all__ = [
     "Payment",
     "PaymentStatus",
     "SubscriptionUsage",
+    "CourseAnalytics",
+    "UserEngagement",
+    "RevenueAnalytics",
+    "PhishingAnalytics",
+    "RealtimeMetric",
 ]

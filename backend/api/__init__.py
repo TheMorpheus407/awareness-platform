@@ -2,7 +2,12 @@
 
 from fastapi import APIRouter
 
-from .routes import auth, users, companies, health, email_verification, password_reset, two_factor, payments
+from .routes import (
+    auth, users, companies, health, email_verification,
+    password_reset, two_factor, payments, monitoring,
+    courses, enrollments, quizzes, certificates, content,
+    analytics
+)
 
 api_router = APIRouter(prefix="/v1")
 
@@ -15,5 +20,12 @@ api_router.include_router(two_factor.router, prefix="/auth/2fa", tags=["two-fact
 api_router.include_router(users.router, prefix="/users", tags=["users"])
 api_router.include_router(companies.router, prefix="/companies", tags=["companies"])
 api_router.include_router(payments.router, prefix="/payments", tags=["payments"])
+api_router.include_router(monitoring.router, prefix="/monitoring", tags=["monitoring"])
+api_router.include_router(courses.router, prefix="/courses", tags=["courses"])
+api_router.include_router(enrollments.router, prefix="/enrollments", tags=["enrollments"])
+api_router.include_router(quizzes.router, prefix="/quizzes", tags=["quizzes"])
+api_router.include_router(certificates.router, prefix="/certificates", tags=["certificates"])
+api_router.include_router(content.router, prefix="/content", tags=["content"])
+api_router.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
 
 __all__ = ["api_router"]

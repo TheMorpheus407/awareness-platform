@@ -10,6 +10,7 @@ import {
   Settings,
   Shield,
   X,
+  BarChart3,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useTranslation } from 'react-i18next';
@@ -30,6 +31,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { nameKey: 'navigation.companies', href: '/companies', icon: Building, adminOnly: true },
     { nameKey: 'navigation.courses', href: '/courses', icon: GraduationCap },
     { nameKey: 'navigation.phishing', href: '/phishing', icon: Mail },
+    { nameKey: 'navigation.analytics', href: '/analytics', icon: BarChart3 },
     { nameKey: 'navigation.reports', href: '/reports', icon: FileBarChart },
     { nameKey: 'navigation.settings', href: '/settings', icon: Settings },
   ];

@@ -13,20 +13,16 @@ from loguru import logger
 from api import api_router
 from core.config import settings
 from core.middleware import SecurityHeadersMiddleware, RequestIdMiddleware, limiter
+from core.monitoring import init_sentry, MonitoringMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+from core.logging import setup_logging
+setup_logging()
 
-# Configure loguru
-logger.add(
-    "logs/app.log",
-    rotation="500 MB",
-    retention="10 days",
-    level=settings.LOG_LEVEL,
-    format="{time} {level} {message}",
-)
+# Initialize Sentry
+init_sentry()
 
 
 @asynccontextmanager
@@ -58,6 +54,9 @@ app = FastAPI(
 # Add security middleware
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RequestIdMiddleware)
+
+# Add monitoring middleware
+app.add_middleware(MonitoringMiddleware)
 
 # Add rate limiter
 app.state.limiter = limiter

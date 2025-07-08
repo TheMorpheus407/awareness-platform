@@ -44,6 +44,7 @@ class PhishingCampaign(Base):
     created_by = relationship("User", backref="created_campaigns")
     template = relationship("PhishingTemplate", backref="campaigns")
     results = relationship("PhishingResult", back_populates="campaign", cascade="all, delete-orphan")
+    analytics = relationship("PhishingAnalytics", back_populates="campaign")
     
     def __repr__(self) -> str:
         return f"<PhishingCampaign {self.name}>"

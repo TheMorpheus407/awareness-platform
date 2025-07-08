@@ -3,7 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { ProtectedRoute } from './components/Auth';
 import { MainLayout } from './components/Layout';
-import { Login, Register, Dashboard, Users, Companies, Landing } from './pages';
+import { Login, Register, Dashboard, Users, Companies, Landing, Analytics } from './pages';
 import { PricingPage, CheckoutForm, BillingDashboard } from './components/Payment';
 
 function App() {
@@ -47,6 +47,7 @@ function App() {
             <Route path="/companies" element={<Companies />} />
             <Route path="/courses" element={<div className="text-2xl font-bold">{t('courses.comingSoon')}</div>} />
             <Route path="/phishing" element={<div className="text-2xl font-bold">{t('phishing.comingSoon')}</div>} />
+            <Route path="/analytics" element={<Analytics />} />
             <Route path="/reports" element={<div className="text-2xl font-bold">{t('reports.comingSoon')}</div>} />
             <Route path="/settings" element={<div className="text-2xl font-bold">{t('settings.comingSoon')}</div>} />
             <Route path="/checkout" element={<CheckoutForm />} />

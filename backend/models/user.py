@@ -73,6 +73,10 @@ class User(Base):
     password_reset_tokens = relationship("PasswordResetToken", back_populates="user", cascade="all, delete-orphan")
     two_fa_attempts = relationship("TwoFAAttempt", back_populates="user", cascade="all, delete-orphan")
     
+    # Analytics relationships
+    analytics_events = relationship("AnalyticsEvent", back_populates="user", lazy="dynamic")
+    engagement_metrics = relationship("UserEngagement", back_populates="user", lazy="dynamic")
+    
     def __repr__(self) -> str:
         return f"<User {self.email}>"
     
