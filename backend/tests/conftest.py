@@ -119,8 +119,8 @@ from main import app
 from db.base import Base
 from db.session import get_db
 from core.config import settings
-from models.user import User
-from models.company import Company
+from models.user import User, UserRole
+from models.company import Company, CompanySize, CompanyStatus
 from core.security import get_password_hash
 
 
@@ -173,8 +173,8 @@ def test_company(db_session) -> Company:
         name="Test Company",
         domain="testcompany.com",
         industry="Technology",
-        size="50-100",
-        is_active=True
+        size=CompanySize.MEDIUM,
+        status=CompanyStatus.ACTIVE
     )
     db_session.add(company)
     db_session.commit()
@@ -192,8 +192,7 @@ def test_user(db_session, test_company) -> User:
         last_name="User",
         company_id=test_company.id,
         is_active=True,
-        is_superuser=False,
-        role="user"
+        role=UserRole.EMPLOYEE
     )
     db_session.add(user)
     db_session.commit()
@@ -211,8 +210,7 @@ def test_admin(db_session, test_company) -> User:
         last_name="User",
         company_id=test_company.id,
         is_active=True,
-        is_superuser=True,
-        role="admin"
+        role=UserRole.COMPANY_ADMIN
     )
     db_session.add(admin)
     db_session.commit()

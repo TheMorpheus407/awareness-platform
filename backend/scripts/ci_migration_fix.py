@@ -23,21 +23,45 @@ def fix_enums_simple():
         engine = create_engine(database_url)
         
         # Define enum types to handle
-        enums_to_drop = [
-            'userrole',
-            'companysize', 
-            'subscriptiontier',
-            'companystatus'
-        ]
+        enum_definitions = {
+            'companysize': ['small', 'medium', 'large', 'enterprise'],
+            'subscriptiontier': ['free', 'starter', 'professional', 'enterprise'],
+            'userrole': ['system_admin', 'company_admin', 'manager', 'employee'],
+            'companystatus': ['trial', 'active', 'suspended', 'cancelled']
+        }
         
         with engine.begin() as conn:
-            # Drop existing enums if they exist
-            for enum_name in enums_to_drop:
-                try:
-                    conn.execute(text(f"DROP TYPE IF EXISTS {enum_name} CASCADE"))
-                    print(f"Dropped enum: {enum_name}")
-                except Exception as e:
-                    print(f"Warning dropping {enum_name}: {e}")
+            # Get current schema
+            current_schema = conn.execute(text("SELECT current_schema()")).scalar()
+            print(f"Current schema: {current_schema}")
+            
+            for type_name, values in enum_definitions.items():
+                # Check if type exists in any schema
+                result = conn.execute(
+                    text(f"""
+                        SELECT n.nspname, t.typname 
+                        FROM pg_type t 
+                        JOIN pg_namespace n ON t.typnamespace = n.oid 
+                        WHERE t.typname = '{type_name}'
+                    """)
+                ).fetchall()
+                
+                if result:
+                    for schema_name, _ in result:
+                        if schema_name != current_schema:
+                            # Drop type from other schemas
+                            try:
+                                conn.execute(text(f"DROP TYPE IF EXISTS {schema_name}.{type_name} CASCADE"))
+                                print(f"Dropped {type_name} from schema: {schema_name}")
+                            except Exception as e:
+                                print(f"Warning: Could not drop {type_name} from {schema_name}: {e}")
+                        else:
+                            # Drop from current schema to recreate with correct values
+                            try:
+                                conn.execute(text(f"DROP TYPE IF EXISTS {type_name} CASCADE"))
+                                print(f"Dropped {type_name} from current schema")
+                            except Exception as e:
+                                print(f"Warning dropping {type_name}: {e}")
         
         print("Enum cleanup completed successfully")
         return True

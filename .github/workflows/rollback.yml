@@ -1,0 +1,136 @@
+name: Rollback Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for rollback'
+        required: true
+        type: string
+      auto_rollback:
+        description: 'Triggered by automated system'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H 83.228.205.20 >> ~/.ssh/known_hosts
+      
+      - name: Create rollback log entry
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🔄 Deployment Rollback - ${new Date().toISOString()}`,
+              body: `## Rollback Initiated
+              
+              **Reason:** ${{ github.event.inputs.reason }}
+              **Triggered by:** ${{ github.event.inputs.auto_rollback == 'true' ? 'Automated System' : github.actor }}
+              **Time:** ${new Date().toISOString()}
+              
+              **Status:** In Progress...`,
+              labels: ['rollback', 'deployment', 'production']
+            });
+            
+            core.setOutput('issue_number', issue.data.number);
+      
+      - name: Execute rollback
+        id: rollback
+        run: |
+          set +e  # Don't exit on error
+          
+          ssh ubuntu@83.228.205.20 << 'EOF'
+            cd /opt/awareness
+            
+            # Check if backup exists
+            if [ ! -d "/opt/awareness-backup" ]; then
+              echo "::error::No backup found for rollback"
+              exit 1
+            fi
+            
+            # Stop current deployment
+            sudo docker compose -f docker-compose.prod.ghcr.yml down
+            
+            # Backup current failed deployment for investigation
+            sudo cp -r /opt/awareness /opt/awareness-failed-$(date +%Y%m%d-%H%M%S)
+            
+            # Restore from backup
+            sudo rm -rf /opt/awareness
+            sudo cp -r /opt/awareness-backup /opt/awareness
+            
+            cd /opt/awareness
+            
+            # Start previous version
+            sudo docker compose -f docker-compose.prod.ghcr.yml up -d
+            
+            # Wait for services
+            sleep 30
+            
+            # Verify rollback
+            curl -f http://localhost:8000/api/health || exit 1
+          EOF
+          
+          ROLLBACK_STATUS=$?
+          echo "rollback_status=$ROLLBACK_STATUS" >> $GITHUB_OUTPUT
+      
+      - name: Update rollback status
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = ${{ steps.rollback.outputs.issue_number }};
+            const rollbackStatus = ${{ steps.rollback.outputs.rollback_status || 1 }};
+            const success = rollbackStatus === 0;
+            
+            const status = success ? '✅ Success' : '❌ Failed';
+            const message = success 
+              ? 'Rollback completed successfully. Previous version is now running.'
+              : 'Rollback failed. Manual intervention required.';
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: `## Rollback Status: ${status}
+              
+              ${message}
+              
+              **Completed at:** ${new Date().toISOString()}`
+            });
+            
+            if (!success) {
+              core.setFailed('Rollback failed');
+            }
+      
+      - name: Post-rollback health check
+        if: success()
+        run: |
+          MAX_RETRIES=3
+          RETRY_DELAY=10
+          
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "Health check attempt $i/$MAX_RETRIES"
+            
+            if curl -f https://bootstrap-awareness.de/api/health; then
+              echo "Production health check passed"
+              exit 0
+            fi
+            
+            sleep $RETRY_DELAY
+          done
+          
+          echo "::warning::Production health check failed after rollback"

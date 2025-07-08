@@ -59,6 +59,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
+        pip install pytest-asyncio
         
     - name: Run tests
       env:
@@ -67,6 +68,14 @@ jobs:
         SECRET_KEY: test-secret-key-for-ci
         FRONTEND_URL: http://localhost:3000
         ENVIRONMENT: test
+        CORS_ORIGINS: http://localhost:3000,http://localhost:5173
+        EMAIL_FROM: test@example.com
+        EMAIL_PASSWORD: test-password
+        SMTP_HOST: smtp.test.com
+        SMTP_PORT: 587
+        SMTP_USERNAME: test@example.com
+        SMTP_FROM_EMAIL: test@example.com
+        SMTP_FROM_NAME: Test Platform
       run: |
         cd backend
         pytest -v --cov=. --cov-report=xml --cov-report=html
@@ -162,11 +171,32 @@ jobs:
         REDIS_URL: redis://localhost:6379
         SECRET_KEY: test-secret-key-for-e2e
         FRONTEND_URL: http://localhost:5173
+        BACKEND_URL: http://localhost:8000
+        CORS_ORIGINS: http://localhost:5173,http://localhost:3000
+        ENVIRONMENT: test
+        EMAIL_FROM: test@example.com
+        SMTP_FROM_EMAIL: test@example.com
       run: |
         cd backend
-        # Clean up any existing types
-        python scripts/fix_migration_types.py || true
-        alembic upgrade head
+        # Fix enum conflicts before migration
+        python scripts/ci_migration_fix.py || echo "Warning: Failed to fix migration types"
+        # Run migrations with retry logic
+        max_retries=3
+        retry_count=0
+        while [ $retry_count -lt $max_retries ]; do
+          if alembic upgrade head; then
+            echo "Migrations completed successfully"
+            break
+          else
+            retry_count=$((retry_count + 1))
+            echo "Migration failed, attempt $retry_count of $max_retries"
+            if [ $retry_count -eq $max_retries ]; then
+              echo "ERROR: Failed to run migrations after $max_retries attempts"
+              exit 1
+            fi
+            sleep 5
+          fi
+        done
         
     - name: Seed E2E data
       env:
@@ -174,6 +204,11 @@ jobs:
         REDIS_URL: redis://localhost:6379
         SECRET_KEY: test-secret-key-for-e2e
         FRONTEND_URL: http://localhost:5173
+        BACKEND_URL: http://localhost:8000
+        CORS_ORIGINS: http://localhost:5173,http://localhost:3000
+        ENVIRONMENT: test
+        EMAIL_FROM: test@example.com
+        SMTP_FROM_EMAIL: test@example.com
       run: |
         cd backend
         python scripts/seed_e2e_data.py
@@ -184,8 +219,16 @@ jobs:
         REDIS_URL: redis://localhost:6379
         SECRET_KEY: test-secret-key-for-e2e
         FRONTEND_URL: http://localhost:5173
+        BACKEND_URL: http://localhost:8000
         CORS_ORIGINS: http://localhost:5173,http://localhost:3000
         ENVIRONMENT: test
+        EMAIL_FROM: test@example.com
+        EMAIL_PASSWORD: test-password
+        SMTP_HOST: smtp.test.com
+        SMTP_PORT: 587
+        SMTP_USERNAME: test@example.com
+        SMTP_FROM_EMAIL: test@example.com
+        SMTP_FROM_NAME: Test Platform
       run: |
         cd backend
         uvicorn main:app --host 0.0.0.0 --port 8000 &

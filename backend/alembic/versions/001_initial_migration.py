@@ -24,49 +24,48 @@ def upgrade() -> None:
     # First, create the ENUM types if they don't exist
     connection = op.get_bind()
     
-    # Check and create user_role enum
-    result = connection.execute(
-        text("SELECT 1 FROM pg_type WHERE typname = 'userrole'")
-    ).fetchone()
-    if not result:
-        user_role_enum = postgresql.ENUM(
-            'system_admin', 'company_admin', 'manager', 'employee',
-            name='userrole'
-        )
-        user_role_enum.create(connection)
+    # Get current schema
+    current_schema = connection.execute(text("SELECT current_schema()")).scalar()
     
-    # Check and create company_size enum
-    result = connection.execute(
-        text("SELECT 1 FROM pg_type WHERE typname = 'companysize'")
-    ).fetchone()
-    if not result:
-        company_size_enum = postgresql.ENUM(
-            'small', 'medium', 'large', 'enterprise',
-            name='companysize'
-        )
-        company_size_enum.create(connection)
+    # Helper function to safely create enum types
+    def create_enum_type_if_not_exists(type_name, values):
+        # Check if type exists in any schema
+        result = connection.execute(
+            text(f"""
+                SELECT n.nspname, t.typname 
+                FROM pg_type t 
+                JOIN pg_namespace n ON t.typnamespace = n.oid 
+                WHERE t.typname = '{type_name}'
+            """)
+        ).fetchone()
+        
+        if result:
+            schema_name = result[0]
+            if schema_name != current_schema:
+                # Type exists in different schema, drop and recreate in current schema
+                try:
+                    connection.execute(text(f"DROP TYPE IF EXISTS {schema_name}.{type_name} CASCADE"))
+                except Exception:
+                    pass
+            else:
+                # Type already exists in current schema, skip creation
+                return
+        
+        # Create the type in current schema
+        try:
+            values_str = ', '.join([f"'{v}'" for v in values])
+            connection.execute(text(f"CREATE TYPE {type_name} AS ENUM ({values_str})"))
+        except Exception as e:
+            # If it still fails, try to drop and recreate
+            if "already exists" in str(e):
+                connection.execute(text(f"DROP TYPE IF EXISTS {type_name} CASCADE"))
+                connection.execute(text(f"CREATE TYPE {type_name} AS ENUM ({values_str})"))
     
-    # Check and create subscription_tier enum
-    result = connection.execute(
-        text("SELECT 1 FROM pg_type WHERE typname = 'subscriptiontier'")
-    ).fetchone()
-    if not result:
-        subscription_tier_enum = postgresql.ENUM(
-            'free', 'starter', 'professional', 'enterprise',
-            name='subscriptiontier'
-        )
-        subscription_tier_enum.create(connection)
-    
-    # Check and create company_status enum
-    result = connection.execute(
-        text("SELECT 1 FROM pg_type WHERE typname = 'companystatus'")
-    ).fetchone()
-    if not result:
-        company_status_enum = postgresql.ENUM(
-            'trial', 'active', 'suspended', 'cancelled',
-            name='companystatus'
-        )
-        company_status_enum.create(connection)
+    # Create all enum types
+    create_enum_type_if_not_exists('userrole', ['system_admin', 'company_admin', 'manager', 'employee'])
+    create_enum_type_if_not_exists('companysize', ['small', 'medium', 'large', 'enterprise'])
+    create_enum_type_if_not_exists('subscriptiontier', ['free', 'starter', 'professional', 'enterprise'])
+    create_enum_type_if_not_exists('companystatus', ['trial', 'active', 'suspended', 'cancelled'])
     
     # Create companies table
     op.create_table('companies',
@@ -156,7 +155,7 @@ def downgrade() -> None:
     op.execute("DROP TRIGGER IF EXISTS update_companies_updated_at ON companies;")
     op.execute("DROP FUNCTION IF EXISTS update_updated_at_column();")
     
-    # Drop indexes
+    # Drop indexes and tables
     op.drop_index(op.f('ix_users_company_id'), table_name='users')
     op.drop_index(op.f('ix_users_email'), table_name='users')
     op.drop_table('users')
@@ -165,11 +164,14 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_companies_domain'), table_name='companies')
     op.drop_table('companies')
     
-    # Drop enums - using raw SQL to ensure they're dropped even if values have changed
+    # Drop enums - using raw SQL with proper schema handling
     connection = op.get_bind()
     
-    # Drop ENUMs if they exist
-    connection.execute(text("DROP TYPE IF EXISTS subscriptiontier CASCADE;"))
-    connection.execute(text("DROP TYPE IF EXISTS companystatus CASCADE;"))
-    connection.execute(text("DROP TYPE IF EXISTS companysize CASCADE;"))
-    connection.execute(text("DROP TYPE IF EXISTS userrole CASCADE;"))
+    # Get current schema
+    current_schema = connection.execute(text("SELECT current_schema()")).scalar()
+    
+    # Drop ENUMs if they exist in the current schema
+    connection.execute(text(f"DROP TYPE IF EXISTS {current_schema}.subscriptiontier CASCADE;"))
+    connection.execute(text(f"DROP TYPE IF EXISTS {current_schema}.companystatus CASCADE;"))
+    connection.execute(text(f"DROP TYPE IF EXISTS {current_schema}.companysize CASCADE;"))
+    connection.execute(text(f"DROP TYPE IF EXISTS {current_schema}.userrole CASCADE;"))
