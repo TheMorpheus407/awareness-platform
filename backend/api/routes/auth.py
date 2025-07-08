@@ -1,6 +1,6 @@
 """Authentication endpoints."""
 
-from datetime import timedelta
+from datetime import timedelta, datetime
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request, BackgroundTasks
@@ -74,7 +74,7 @@ async def register(
         role=user_data.role,
         is_active=user_data.is_active,
         company_id=user_data.company_id,
-        email_verification_token=verification_token,
+        # TODO: Store email_verification_token separately
     )
     
     db.add(user)
@@ -155,7 +155,7 @@ async def login(
     )
     
     # Update last login
-    user.last_login = datetime.utcnow()
+    user.last_login_at = datetime.utcnow()
     await db.commit()
     
     return {
@@ -431,7 +431,7 @@ async def refresh_token(
     
     # Get user
     result = await db.execute(
-        select(User).where(User.id == int(user_id))
+        select(User).where(User.id == user_id)
     )
     user = result.scalar_one_or_none()
     

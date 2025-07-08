@@ -12,9 +12,9 @@ class TestAuthEndpoints:
     def test_login_success(self, client, test_user):
         """Test successful login."""
         response = client.post(
-            "/api/auth/login",
+            "/api/v1/auth/login",
             data={
-                "username": test_user.email,
+                "email": test_user.email,
                 "password": "testpassword123"
             }
         )
@@ -27,9 +27,9 @@ class TestAuthEndpoints:
     def test_login_invalid_credentials(self, client, test_user):
         """Test login with invalid credentials."""
         response = client.post(
-            "/api/auth/login",
+            "/api/v1/auth/login",
             data={
-                "username": test_user.email,
+                "email": test_user.email,
                 "password": "wrongpassword"
             }
         )
@@ -43,7 +43,7 @@ class TestAuthEndpoints:
         inactive_user = User(
             email="inactive@example.com",
             password_hash=get_password_hash("password123"),
-            full_name="Inactive User",
+            first_name="Inactive User",
             company_id=test_company.id,
             is_active=False,
             role="user"
@@ -52,9 +52,9 @@ class TestAuthEndpoints:
         db_session.commit()
 
         response = client.post(
-            "/api/auth/login",
+            "/api/v1/auth/login",
             data={
-                "username": inactive_user.email,
+                "email": inactive_user.email,
                 "password": "password123"
             }
         )
@@ -64,7 +64,7 @@ class TestAuthEndpoints:
     def test_register_success(self, client, test_company):
         """Test successful user registration."""
         response = client.post(
-            "/api/auth/register",
+            "/api/v1/auth/register",
             json={
                 "email": "newuser@example.com",
                 "password": "newpassword123",
@@ -82,7 +82,7 @@ class TestAuthEndpoints:
     def test_register_duplicate_email(self, client, test_user, test_company):
         """Test registration with duplicate email."""
         response = client.post(
-            "/api/auth/register",
+            "/api/v1/auth/register",
             json={
                 "email": test_user.email,
                 "password": "password123",
@@ -97,9 +97,9 @@ class TestAuthEndpoints:
         """Test successful token refresh."""
         # First login to get tokens
         login_response = client.post(
-            "/api/auth/login",
+            "/api/v1/auth/login",
             data={
-                "username": test_user.email,
+                "email": test_user.email,
                 "password": "testpassword123"
             }
         )
@@ -107,7 +107,7 @@ class TestAuthEndpoints:
 
         # Use refresh token
         response = client.post(
-            "/api/auth/refresh",
+            "/api/v1/auth/refresh",
             json={"refresh_token": refresh_token}
         )
         assert response.status_code == status.HTTP_200_OK
@@ -119,7 +119,7 @@ class TestAuthEndpoints:
     def test_refresh_token_invalid(self, client):
         """Test refresh with invalid token."""
         response = client.post(
-            "/api/auth/refresh",
+            "/api/v1/auth/refresh",
             json={"refresh_token": "invalid-token"}
         )
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -127,7 +127,7 @@ class TestAuthEndpoints:
     def test_logout_success(self, client, auth_headers):
         """Test successful logout."""
         response = client.post(
-            "/api/auth/logout",
+            "/api/v1/auth/logout",
             headers=auth_headers
         )
         assert response.status_code == status.HTTP_200_OK
@@ -136,7 +136,7 @@ class TestAuthEndpoints:
     def test_me_endpoint(self, client, test_user, auth_headers):
         """Test get current user endpoint."""
         response = client.get(
-            "/api/auth/me",
+            "/api/v1/auth/me",
             headers=auth_headers
         )
         assert response.status_code == status.HTTP_200_OK
@@ -147,13 +147,13 @@ class TestAuthEndpoints:
 
     def test_me_endpoint_unauthorized(self, client):
         """Test get current user without authentication."""
-        response = client.get("/api/auth/me")
+        response = client.get("/api/v1/auth/me")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_change_password_success(self, client, test_user, auth_headers, db_session):
         """Test successful password change."""
         response = client.post(
-            "/api/auth/change-password",
+            "/api/v1/auth/change-password",
             headers=auth_headers,
             json={
                 "current_password": "testpassword123",
@@ -169,7 +169,7 @@ class TestAuthEndpoints:
     def test_change_password_wrong_current(self, client, auth_headers):
         """Test password change with wrong current password."""
         response = client.post(
-            "/api/auth/change-password",
+            "/api/v1/auth/change-password",
             headers=auth_headers,
             json={
                 "current_password": "wrongpassword",
@@ -183,9 +183,9 @@ class TestAuthEndpoints:
     async def test_async_login(self, async_client: AsyncClient, test_user):
         """Test async login endpoint."""
         response = await async_client.post(
-            "/api/auth/login",
+            "/api/v1/auth/login",
             data={
-                "username": test_user.email,
+                "email": test_user.email,
                 "password": "testpassword123"
             }
         )

@@ -78,14 +78,14 @@ class TestCompanyModel:
             email="user1@relationship.com",
             username="user1",
             password_hash="hashed123",
-            full_name="User One",
+            first_name="User One",
             company_id=company.id
         )
         user2 = User(
             email="user2@relationship.com",
             username="user2",
             password_hash="hashed123",
-            full_name="User Two",
+            first_name="User Two",
             company_id=company.id
         )
         
@@ -144,7 +144,9 @@ class TestCompanyModel:
     async def test_subscription_tier_enum(self):
         """Test SubscriptionTier enum values."""
         assert SubscriptionTier.FREE.value == "free"
+        assert SubscriptionTier.BASIC.value == "basic"
         assert SubscriptionTier.STARTER.value == "starter"
+        assert SubscriptionTier.PREMIUM.value == "premium"
         assert SubscriptionTier.PROFESSIONAL.value == "professional"
         assert SubscriptionTier.ENTERPRISE.value == "enterprise"
     

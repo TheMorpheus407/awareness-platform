@@ -25,4 +25,44 @@
   .card {
     @apply bg-white rounded-lg shadow-sm border border-secondary-200 p-6;
   }
+  
+  /* Landing page animations */
+  .hero-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-size: 200% 200%;
+    animation: gradient-shift 15s ease infinite;
+  }
+  
+  @keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  
+  .feature-card {
+    @apply transform transition-all duration-300 hover:scale-105 hover:-translate-y-2;
+  }
+  
+  .pricing-card {
+    @apply transform transition-all duration-300 hover:scale-105;
+  }
+  
+  .floating {
+    animation: floating 3s ease-in-out infinite;
+  }
+  
+  @keyframes floating {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+    100% { transform: translateY(0px); }
+  }
+  
+  .fade-in {
+    animation: fadeIn 0.8s ease-in;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 }

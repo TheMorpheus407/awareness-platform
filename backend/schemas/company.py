@@ -39,7 +39,7 @@ class CompanyCreate(CompanyBase):
     
     subscription_plan: str = Field(
         default="free",
-        pattern="^(free|starter|professional|enterprise)$"
+        pattern="^(free|basic|starter|premium|professional|enterprise)$"
     )
 
 
@@ -72,7 +72,7 @@ class CompanyUpdate(BaseSchema):
     # Subscription
     subscription_plan: Optional[str] = Field(
         None,
-        pattern="^(free|starter|professional|enterprise)$"
+        pattern="^(free|basic|starter|premium|professional|enterprise)$"
     )
     is_active: Optional[bool] = None
     

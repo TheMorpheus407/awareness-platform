@@ -47,22 +47,26 @@ export default defineConfig({
   },
 
   /* Configure projects for major browsers */
-  projects: [
+  projects: process.env.CI ? [
+    // In CI, only run on Chromium for speed
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
-
+  ] : [
+    // Locally, test on all browsers
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
     },
-
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
     },
-
     /* Test against mobile viewports. */
     {
       name: 'Mobile Chrome',
@@ -72,31 +76,27 @@ export default defineConfig({
       name: 'Mobile Safari',
       use: { ...devices['iPhone 12'] },
     },
-
-    /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
-    // {
-    //   name: 'Google Chrome',
-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-    // },
   ],
 
   /* Run your local dev server before starting the tests */
-  webServer: [
+  webServer: process.env.CI ? undefined : [
     {
       command: 'npm run dev',
       port: 5173,
       timeout: 120 * 1000,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: true,
+      env: {
+        NODE_ENV: 'test',
+      },
     },
     {
-      command: 'cd ../backend && python -m uvicorn main:app --reload --port 8000',
+      command: 'cd ../backend && python3 -m uvicorn main:app --reload --port 8000',
       port: 8000,
       timeout: 120 * 1000,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: true,
+      env: {
+        ENVIRONMENT: 'test',
+      },
     },
   ],
 

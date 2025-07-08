@@ -4,3 +4,4 @@ export { Dashboard } from './Dashboard';
 export { Users } from './Users';
 export { Companies } from './Companies';
 export { UserSettings } from './UserSettings';
+export { default as Landing } from './Landing';

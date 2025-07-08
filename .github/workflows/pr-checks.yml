@@ -62,7 +62,10 @@ jobs:
       run: |
         cd backend
         pip install safety
-        safety check -r requirements.txt || true
+        # Allow safety check to fail but report vulnerabilities
+        if ! safety check -r requirements.txt; then
+          echo "::warning::Security vulnerabilities found in Python dependencies"
+        fi
 
   test-migrations:
     runs-on: ubuntu-latest

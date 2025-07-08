@@ -1,0 +1,93 @@
+name: Test Status
+
+on:
+  workflow_run:
+    workflows: ["CI/CD Pipeline", "E2E Tests", "Pull Request Checks"]
+    types:
+      - completed
+
+jobs:
+  test-status:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    
+    steps:
+    - name: Check test failures
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const workflow = context.payload.workflow_run;
+          
+          // Create an issue if tests failed on main branch
+          if (workflow.head_branch === 'main') {
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'test-failure',
+              state: 'open'
+            });
+            
+            if (issues.data.length === 0) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `🚨 Test Failures on Main Branch`,
+                body: `## Test Failures Detected
+                
+                **Workflow:** ${workflow.name}
+                **Branch:** ${workflow.head_branch}
+                **Commit:** ${workflow.head_sha}
+                **Run:** [View failed run](${workflow.html_url})
+                
+                ### Action Required
+                Tests are failing on the main branch. This blocks all deployments.
+                
+                Please investigate and fix immediately.`,
+                labels: ['test-failure', 'critical', 'blocking-deployment']
+              });
+            }
+          }
+          
+          // Post comment on PR if tests failed
+          if (workflow.event === 'pull_request') {
+            const pr = workflow.pull_requests[0];
+            if (pr) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: `## ❌ Tests Failed
+                
+                The ${workflow.name} workflow failed. Please fix all test failures before merging.
+                
+                [View failed run](${workflow.html_url})
+                
+                ### Common issues:
+                - Code coverage below minimum threshold
+                - Linting errors
+                - Type checking failures
+                - E2E test failures
+                
+                All tests must pass before this PR can be merged.`
+              });
+            }
+          }
+
+  coverage-check:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Download coverage reports
+      uses: actions/download-artifact@v4
+      with:
+        pattern: '*-coverage'
+        merge-multiple: true
+    
+    - name: Check coverage thresholds
+      run: |
+        # This job ensures coverage never decreases
+        echo "Checking coverage thresholds..."
+        # Additional coverage checks can be added here

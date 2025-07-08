@@ -1,148 +1,80 @@
-# Pre-commit hooks for code quality and consistency
-# Install with: pip install pre-commit && pre-commit install
-
 repos:
-  # Python formatting
+  # Python hooks
   - repo: https://github.com/psf/black
     rev: 23.12.1
     hooks:
       - id: black
         language_version: python3.11
-        args: ['--line-length=100']
-        files: ^(backend|scripts)/.*\.py$
-
-  # Python linting
+        files: ^backend/
+        
   - repo: https://github.com/pycqa/flake8
     rev: 7.0.0
     hooks:
       - id: flake8
-        args: ['--max-line-length=100', '--extend-ignore=E203,W503']
-        files: ^(backend|scripts)/.*\.py$
-        additional_dependencies:
-          - flake8-docstrings
-          - flake8-bugbear
-          - flake8-comprehensions
-          - flake8-simplify
-
-  # Python import sorting
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-        args: ['--profile=black', '--line-length=100']
-        files: ^(backend|scripts)/.*\.py$
-
-  # Python type checking
+        args: [--max-line-length=88, --extend-ignore=E203]
+        files: ^backend/
+        
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.8.0
     hooks:
       - id: mypy
-        files: ^backend/.*\.py$
-        additional_dependencies:
-          - types-redis
-          - types-passlib
-          - types-python-jose
-          - sqlalchemy[mypy]
-
-  # JavaScript/TypeScript formatting
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v3.1.0
+        args: [--ignore-missing-imports, --strict]
+        files: ^backend/
+        additional_dependencies: [types-all]
+        
+  - repo: https://github.com/pycqa/bandit
+    rev: 1.7.6
     hooks:
-      - id: prettier
-        types_or: [javascript, typescript, tsx, jsx, json, css, scss, yaml, markdown]
-        files: ^frontend/
-        args: ['--config=frontend/.prettierrc']
-
-  # JavaScript/TypeScript linting
+      - id: bandit
+        args: [-ll]
+        files: ^backend/
+        
+  # JavaScript/TypeScript hooks
   - repo: https://github.com/pre-commit/mirrors-eslint
     rev: v8.56.0
     hooks:
       - id: eslint
-        types_or: [javascript, typescript, tsx, jsx]
-        files: ^frontend/src/
-        args: ['--config=frontend/.eslintrc.js']
+        files: \.(js|jsx|ts|tsx)$
+        types: [file]
+        args: [--fix]
         additional_dependencies:
-          - eslint
-          - '@typescript-eslint/parser'
-          - '@typescript-eslint/eslint-plugin'
-          - 'eslint-plugin-react'
-          - 'eslint-plugin-react-hooks'
-
-  # Security checks
-  - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.6
+          - eslint@8.56.0
+          - eslint-config-prettier@9.1.0
+          - '@typescript-eslint/eslint-plugin@6.19.0'
+          - '@typescript-eslint/parser@6.19.0'
+          
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.1.0
     hooks:
-      - id: bandit
-        args: ['-r', 'backend/', '-ll']
-        files: ^backend/.*\.py$
-
-  # YAML validation
+      - id: prettier
+        files: \.(js|jsx|ts|tsx|json|css|md|yml|yaml)$
+        
+  # Security checks
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        
+  # General hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
-      - id: check-yaml
-        args: ['--unsafe']
-      - id: check-json
-      - id: check-toml
-      - id: check-xml
-      - id: end-of-file-fixer
       - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
       - id: check-added-large-files
         args: ['--maxkb=1000']
-      - id: check-case-conflict
+      - id: check-json
       - id: check-merge-conflict
-      - id: detect-private-key
+      - id: check-symlinks
+      - id: debug-statements
       - id: mixed-line-ending
         args: ['--fix=lf']
-
-  # Dockerfile linting
-  - repo: https://github.com/hadolint/hadolint
-    rev: v2.12.0
-    hooks:
-      - id: hadolint-docker
-        files: Dockerfile.*
-
-  # Shell script linting
-  - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.9.0.6
-    hooks:
-      - id: shellcheck
-        files: \.(sh|bash)$
-
-  # Markdown linting
-  - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.38.0
-    hooks:
-      - id: markdownlint
-        args: ['--config=.markdownlint.json']
-        files: \.(md|markdown)$
-
-  # Commit message linting
+        
+  # Commit message hook
   - repo: https://github.com/commitizen-tools/commitizen
     rev: v3.13.0
     hooks:
       - id: commitizen
         stages: [commit-msg]
-
-# Configuration for specific tools
-default_language_version:
-  python: python3.11
-  node: 20.11.0
-
-exclude: |
-  (?x)^(
-    .*\.min\.js|
-    .*\.min\.css|
-    frontend/node_modules/|
-    backend/venv/|
-    backend/alembic/versions/|
-    .*migrations/|
-    .*\.svg|
-    .*\.ico|
-    .*\.jpg|
-    .*\.jpeg|
-    .*\.png|
-    .*\.gif|
-    .*\.lock|
-    .*\.log
-  )$

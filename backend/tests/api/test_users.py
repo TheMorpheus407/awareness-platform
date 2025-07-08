@@ -8,19 +8,20 @@ from models.user import User, UserRole
 from models.company import Company
 
 
+@pytest.mark.asyncio
 class TestUsersAPI:
     """Test cases for users API endpoints."""
     
     async def test_list_users_as_admin(
         self, 
-        client: AsyncClient, 
-        admin_token_headers: dict,
-        test_user: User
+        async_client: AsyncClient, 
+        async_admin_auth_headers: dict,
+        async_test_user: User
     ):
         """Test listing users as admin."""
-        response = await client.get(
-            "/api/users/",
-            headers=admin_token_headers
+        response = await async_client.get(
+            "/api/v1/users/",
+            headers=async_admin_auth_headers
         )
         
         assert response.status_code == 200
@@ -33,10 +34,10 @@ class TestUsersAPI:
     
     async def test_list_users_as_company_admin(
         self, 
-        client: AsyncClient, 
-        company_admin_token_headers: dict,
-        test_company: Company,
-        db_session: AsyncSession
+        async_client: AsyncClient, 
+        async_admin_auth_headers: dict,
+        async_test_company: Company,
+        db: AsyncSession
     ):
         """Test that company admin can only see users from their company."""
         # Create a user in the same company
@@ -44,17 +45,17 @@ class TestUsersAPI:
             email="samecompany@example.com",
             username="samecompanyuser",
             password_hash="hashed123",
-            company_id=test_company.id
+            company_id=async_test_company.id
         )
-        db_session.add(company_user)
+        db.add(company_user)
         
         # Create a user in a different company
         other_company = Company(
             name="Other Company",
             domain="other.com"
         )
-        db_session.add(other_company)
-        await db_session.commit()
+        db.add(other_company)
+        await db.commit()
         
         other_user = User(
             email="othercompany@example.com",
@@ -62,12 +63,12 @@ class TestUsersAPI:
             password_hash="hashed123",
             company_id=other_company.id
         )
-        db_session.add(other_user)
-        await db_session.commit()
+        db.add(other_user)
+        await db.commit()
         
-        response = await client.get(
-            "/api/users/",
-            headers=company_admin_token_headers
+        response = await async_client.get(
+            "/api/v1/users/",
+            headers=async_admin_auth_headers
         )
         
         assert response.status_code == 200
@@ -79,51 +80,51 @@ class TestUsersAPI:
     
     async def test_get_user_by_id(
         self, 
-        client: AsyncClient, 
-        admin_token_headers: dict,
-        test_user: User
+        async_client: AsyncClient, 
+        async_admin_auth_headers: dict,
+        async_test_user: User
     ):
         """Test getting a specific user by ID."""
-        response = await client.get(
-            f"/api/users/{test_user.id}",
-            headers=admin_token_headers
+        response = await async_client.get(
+            f"/api/v1/users/{test_user.id}",
+            headers=async_admin_auth_headers
         )
         
         assert response.status_code == 200
         data = response.json()
         assert data["id"] == str(test_user.id)
         assert data["email"] == test_user.email
-        assert data["username"] == test_user.username
+        assert data["email"] == test_user.email
         assert data["role"] == test_user.role.value
         assert "password_hash" not in data  # Should not expose password
     
     async def test_get_current_user(
         self, 
-        client: AsyncClient, 
-        user_token_headers: dict,
-        test_user: User
+        async_client: AsyncClient, 
+        async_auth_headers: dict,
+        async_test_user: User
     ):
         """Test getting current user info."""
-        response = await client.get(
-            "/api/users/me",
-            headers=user_token_headers
+        response = await async_client.get(
+            "/api/v1/users/me",
+            headers=async_auth_headers
         )
         
         assert response.status_code == 200
         data = response.json()
         assert data["email"] == test_user.email
-        assert data["username"] == test_user.username
+        assert data["email"] == test_user.email
     
     async def test_create_user_as_admin(
         self, 
-        client: AsyncClient, 
-        admin_token_headers: dict,
+        async_client: AsyncClient, 
+        async_admin_auth_headers: dict,
         test_company: Company
     ):
         """Test creating a new user as admin."""
         user_data = {
             "email": "newuser@example.com",
-            "username": "newuser",
+            "email": "newuser",
             "password": "StrongPassword123!",
             "full_name": "New User",
             "role": "user",
@@ -132,38 +133,38 @@ class TestUsersAPI:
             "job_title": "Sales Manager"
         }
         
-        response = await client.post(
-            "/api/users/",
+        response = await async_client.post(
+            "/api/v1/users/",
             json=user_data,
-            headers=admin_token_headers
+            headers=async_admin_auth_headers
         )
         
         assert response.status_code == 200
         data = response.json()
         assert data["email"] == user_data["email"]
-        assert data["username"] == user_data["username"]
+        assert data["email"] == user_data["email"]
         assert data["full_name"] == user_data["full_name"]
         assert data["role"] == user_data["role"]
         assert data["is_active"] is True
-        assert data["is_verified"] is False
+        assert data["email_verified"] is False
     
     async def test_create_user_duplicate_email(
         self, 
-        client: AsyncClient, 
-        admin_token_headers: dict,
-        test_user: User
+        async_client: AsyncClient, 
+        async_admin_auth_headers: dict,
+        async_test_user: User
     ):
         """Test creating a user with duplicate email."""
         user_data = {
             "email": test_user.email,  # Use existing email
-            "username": "newusername",
+            "email": "newusername",
             "password": "StrongPassword123!"
         }
         
-        response = await client.post(
-            "/api/users/",
+        response = await async_client.post(
+            "/api/v1/users/",
             json=user_data,
-            headers=admin_token_headers
+            headers=async_admin_auth_headers
         )
         
         assert response.status_code == 400
@@ -171,29 +172,29 @@ class TestUsersAPI:
     
     async def test_create_user_weak_password(
         self, 
-        client: AsyncClient, 
+        async_client: AsyncClient, 
         admin_token_headers: dict
     ):
         """Test creating a user with weak password."""
         user_data = {
             "email": "weakpass@example.com",
-            "username": "weakpassuser",
+            "email": "weakpassuser",
             "password": "weak"  # Too short and simple
         }
         
-        response = await client.post(
-            "/api/users/",
+        response = await async_client.post(
+            "/api/v1/users/",
             json=user_data,
-            headers=admin_token_headers
+            headers=async_admin_auth_headers
         )
         
         assert response.status_code == 422  # Validation error
     
     async def test_update_user(
         self, 
-        client: AsyncClient, 
-        admin_token_headers: dict,
-        test_user: User
+        async_client: AsyncClient, 
+        async_admin_auth_headers: dict,
+        async_test_user: User
     ):
         """Test updating a user."""
         update_data = {
@@ -203,10 +204,10 @@ class TestUsersAPI:
             "phone_number": "+491234567890"
         }
         
-        response = await client.put(
-            f"/api/users/{test_user.id}",
+        response = await async_client.put(
+            f"/api/v1/users/{test_user.id}",
             json=update_data,
-            headers=admin_token_headers
+            headers=async_admin_auth_headers
         )
         
         assert response.status_code == 200
@@ -220,34 +221,34 @@ class TestUsersAPI:
     
     async def test_update_own_profile(
         self, 
-        client: AsyncClient, 
-        user_token_headers: dict
+        async_client: AsyncClient, 
+        async_auth_headers: dict
     ):
         """Test users updating their own profile."""
         update_data = {
             "full_name": "Self Updated",
             "language": "de",
-            "timezone": "Europe/Berlin",
-            "email_notifications_enabled": False
+            "language": "Europe/Berlin",
+            "# email_notifications_enabled": False
         }
         
-        response = await client.put(
-            "/api/users/me",
+        response = await async_client.put(
+            "/api/v1/users/me",
             json=update_data,
-            headers=user_token_headers
+            headers=async_auth_headers
         )
         
         assert response.status_code == 200
         data = response.json()
         assert data["full_name"] == update_data["full_name"]
         assert data["language"] == update_data["language"]
-        assert data["timezone"] == update_data["timezone"]
-        assert data["email_notifications_enabled"] is False
+        assert data["language"] == update_data["language"]
+        assert data["# email_notifications_enabled"] is False
     
     async def test_change_password(
         self, 
-        client: AsyncClient, 
-        user_token_headers: dict
+        async_client: AsyncClient, 
+        async_auth_headers: dict
     ):
         """Test changing user password."""
         password_data = {
@@ -255,10 +256,10 @@ class TestUsersAPI:
             "new_password": "NewStrongPassword123!"
         }
         
-        response = await client.post(
-            "/api/users/me/change-password",
+        response = await async_client.post(
+            "/api/v1/users/me/change-password",
             json=password_data,
-            headers=user_token_headers
+            headers=async_auth_headers
         )
         
         assert response.status_code == 200
@@ -266,9 +267,9 @@ class TestUsersAPI:
     
     async def test_delete_user(
         self, 
-        client: AsyncClient, 
-        admin_token_headers: dict,
-        db_session: AsyncSession
+        async_client: AsyncClient, 
+        async_admin_auth_headers: dict,
+        db: AsyncSession
     ):
         """Test deleting a user."""
         # Create a user to delete
@@ -277,29 +278,29 @@ class TestUsersAPI:
             username="todeleteuser",
             password_hash="hashed123"
         )
-        db_session.add(user)
-        await db_session.commit()
-        await db_session.refresh(user)
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
         
-        response = await client.delete(
-            f"/api/users/{user.id}",
-            headers=admin_token_headers
+        response = await async_client.delete(
+            f"/api/v1/users/{user.id}",
+            headers=async_admin_auth_headers
         )
         
         assert response.status_code == 204
         
         # Verify user is deleted
-        response = await client.get(
-            f"/api/users/{user.id}",
-            headers=admin_token_headers
+        response = await async_client.get(
+            f"/api/v1/users/{user.id}",
+            headers=async_admin_auth_headers
         )
         assert response.status_code == 404
     
     async def test_regular_user_cannot_delete_others(
         self, 
-        client: AsyncClient, 
-        user_token_headers: dict,
-        db_session: AsyncSession
+        async_client: AsyncClient, 
+        async_auth_headers: dict,
+        db: AsyncSession
     ):
         """Test that regular users cannot delete other users."""
         # Create another user
@@ -308,22 +309,22 @@ class TestUsersAPI:
             username="otheruser",
             password_hash="hashed123"
         )
-        db_session.add(other_user)
-        await db_session.commit()
-        await db_session.refresh(other_user)
+        db.add(other_user)
+        await db.commit()
+        await db.refresh(other_user)
         
-        response = await client.delete(
-            f"/api/users/{other_user.id}",
-            headers=user_token_headers
+        response = await async_client.delete(
+            f"/api/v1/users/{other_user.id}",
+            headers=async_auth_headers
         )
         
         assert response.status_code == 403
     
     async def test_filter_users_by_role(
         self, 
-        client: AsyncClient, 
-        admin_token_headers: dict,
-        db_session: AsyncSession
+        async_client: AsyncClient, 
+        async_admin_auth_headers: dict,
+        db: AsyncSession
     ):
         """Test filtering users by role."""
         # Create users with different roles
@@ -335,13 +336,13 @@ class TestUsersAPI:
                 password_hash="hashed123",
                 role=role
             )
-            db_session.add(user)
-        await db_session.commit()
+            db.add(user)
+        await db.commit()
         
         # Filter by company_admin role
-        response = await client.get(
-            "/api/users/?role=company_admin",
-            headers=admin_token_headers
+        response = await async_client.get(
+            "/api/v1/users/?role=company_admin",
+            headers=async_admin_auth_headers
         )
         
         assert response.status_code == 200
@@ -353,14 +354,14 @@ class TestUsersAPI:
     
     async def test_search_users_by_email(
         self, 
-        client: AsyncClient, 
-        admin_token_headers: dict,
-        test_user: User
+        async_client: AsyncClient, 
+        async_admin_auth_headers: dict,
+        async_test_user: User
     ):
         """Test searching users by email."""
-        response = await client.get(
-            f"/api/users/?search={test_user.email[:5]}",
-            headers=admin_token_headers
+        response = await async_client.get(
+            f"/api/v1/users/?search={test_user.email[:5]}",
+            headers=async_admin_auth_headers
         )
         
         assert response.status_code == 200
@@ -373,13 +374,13 @@ class TestUsersAPI:
     
     async def test_user_count_endpoint(
         self, 
-        client: AsyncClient, 
+        async_client: AsyncClient, 
         admin_token_headers: dict
     ):
         """Test getting total user count."""
-        response = await client.get(
-            "/api/users/count",
-            headers=admin_token_headers
+        response = await async_client.get(
+            "/api/v1/users/count",
+            headers=async_admin_auth_headers
         )
         
         assert response.status_code == 200

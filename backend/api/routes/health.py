@@ -1,5 +1,6 @@
 """Health check endpoints."""
 
+from datetime import datetime
 from typing import Dict
 
 from fastapi import APIRouter, Depends
@@ -24,6 +25,7 @@ async def health_check() -> Dict[str, str]:
         "status": "healthy",
         "service": settings.APP_NAME,
         "version": settings.APP_VERSION,
+        "timestamp": datetime.utcnow().isoformat(),
     }
 
 
@@ -48,10 +50,16 @@ async def database_health_check(
         return {
             "status": "healthy",
             "database": "connected",
+            "timestamp": datetime.utcnow().isoformat(),
         }
     except Exception as e:
-        return {
-            "status": "unhealthy",
-            "database": "disconnected",
-            "error": str(e),
-        }
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "status": "unhealthy",
+                "database": "disconnected",
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        )

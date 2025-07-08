@@ -102,3 +102,35 @@ def decode_token(token: str) -> Dict[str, Any]:
         JWTError: If the token is invalid
     """
     return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+
+
+def create_email_verification_token(email: str) -> str:
+    """
+    Create a JWT token for email verification.
+    
+    Args:
+        email: The email to verify
+        
+    Returns:
+        Encoded JWT token
+    """
+    expire = datetime.now(timezone.utc) + timedelta(hours=24)  # 24 hour expiry
+    to_encode = {"exp": expire, "sub": email, "type": "email_verification"}
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    return encoded_jwt
+
+
+def create_password_reset_token(email: str) -> str:
+    """
+    Create a JWT token for password reset.
+    
+    Args:
+        email: The email requesting password reset
+        
+    Returns:
+        Encoded JWT token
+    """
+    expire = datetime.now(timezone.utc) + timedelta(hours=1)  # 1 hour expiry
+    to_encode = {"exp": expire, "sub": email, "type": "password_reset"}
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    return encoded_jwt

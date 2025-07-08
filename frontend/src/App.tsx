@@ -1,9 +1,9 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { ProtectedRoute } from './components/Auth';
 import { MainLayout } from './components/Layout';
-import { Login, Register, Dashboard, Users, Companies } from './pages';
+import { Login, Register, Dashboard, Users, Companies, Landing } from './pages';
 
 function App() {
   const { t } = useTranslation();
@@ -33,6 +33,7 @@ function App() {
       
       <Routes>
         {/* Public routes */}
+        <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         
@@ -48,9 +49,6 @@ function App() {
             <Route path="/settings" element={<div className="text-2xl font-bold">{t('settings.comingSoon')}</div>} />
           </Route>
         </Route>
-        
-        {/* Default redirect */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
   );

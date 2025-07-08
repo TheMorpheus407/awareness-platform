@@ -4,7 +4,7 @@ from fastapi import APIRouter
 
 from .routes import auth, users, companies, health, email_verification, password_reset, two_factor
 
-api_router = APIRouter()
+api_router = APIRouter(prefix="/v1")
 
 # Include routers
 api_router.include_router(health.router, tags=["health"])

@@ -1,6 +1,6 @@
 """Company model."""
 
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 import enum
 
 from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, String, Text
@@ -10,6 +10,7 @@ from .base import Base
 
 if TYPE_CHECKING:
     from .user import User
+    from .payment import Subscription, PaymentMethod, Invoice, Payment, SubscriptionUsage
 
 
 class CompanySize(str, enum.Enum):
@@ -31,7 +32,9 @@ class CompanyStatus(str, enum.Enum):
 class SubscriptionTier(str, enum.Enum):
     """Subscription tier enumeration."""
     FREE = "free"
+    BASIC = "basic"
     STARTER = "starter"
+    PREMIUM = "premium"
     PROFESSIONAL = "professional"
     ENTERPRISE = "enterprise"
 
@@ -71,6 +74,11 @@ class Company(Base):
     
     # Relationships
     users = relationship("User", back_populates="company", lazy="dynamic")
+    subscriptions = relationship("Subscription", back_populates="company", lazy="dynamic", cascade="all, delete-orphan")
+    payment_methods = relationship("PaymentMethod", back_populates="company", lazy="dynamic", cascade="all, delete-orphan")
+    invoices = relationship("Invoice", back_populates="company", lazy="dynamic", cascade="all, delete-orphan")
+    payments = relationship("Payment", back_populates="company", lazy="dynamic", cascade="all, delete-orphan")
+    usage_records = relationship("SubscriptionUsage", back_populates="company", lazy="dynamic", cascade="all, delete-orphan")
     
     def __repr__(self) -> str:
         return f"<Company {self.name}>"
@@ -94,3 +102,21 @@ class Company(Base):
     def is_suspended(self) -> bool:
         """Check if company is suspended."""
         return self.status == CompanyStatus.SUSPENDED
+    
+    @property
+    def active_subscription(self) -> Optional["Subscription"]:
+        """Get the current active subscription."""
+        from .payment import SubscriptionStatus
+        return self.subscriptions.filter_by(
+            status=SubscriptionStatus.ACTIVE
+        ).order_by("created_at.desc()").first()
+    
+    @property
+    def has_active_subscription(self) -> bool:
+        """Check if company has an active subscription."""
+        return self.active_subscription is not None
+    
+    @property
+    def default_payment_method(self) -> Optional["PaymentMethod"]:
+        """Get the default payment method."""
+        return self.payment_methods.filter_by(is_default=True).first()

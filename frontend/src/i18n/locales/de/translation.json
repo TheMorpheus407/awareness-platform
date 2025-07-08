@@ -161,5 +161,141 @@
     "networkError": "Netzwerkfehler. Bitte überprüfen Sie Ihre Verbindung.",
     "unauthorized": "Sie sind nicht berechtigt, diese Aktion durchzuführen.",
     "notFound": "Die angeforderte Ressource wurde nicht gefunden."
+  },
+  "landing": {
+    "nav": {
+      "startFree": "Kostenlos testen"
+    },
+    "hero": {
+      "title": "Schützen Sie Ihr Unternehmen vor Cyber-Bedrohungen",
+      "subtitle": "Umfassende Cybersicherheits-Awareness-Schulungen, die Ihre Mitarbeiter zu Ihrer stärksten Verteidigung gegen Cyberangriffe machen.",
+      "cta": {
+        "primary": "Kostenlos testen",
+        "secondary": "Mehr erfahren"
+      },
+      "badge1": "14 Tage kostenlos",
+      "badge2": "Keine Kreditkarte erforderlich",
+      "badge3": "In Minuten eingerichtet"
+    },
+    "features": {
+      "title": "Alles was Sie für Cybersicherheitsschulungen benötigen",
+      "subtitle": "Unsere Plattform bietet umfassende Tools zur Schulung, Prüfung und zum Schutz Ihrer Organisation.",
+      "phishing": {
+        "title": "Phishing-Simulationen",
+        "description": "Realistische Phishing-Tests zur Identifizierung gefährdeter Mitarbeiter und gezielten Schulung."
+      },
+      "training": {
+        "title": "Interaktive Schulungen",
+        "description": "Ansprechende Kurse zu allen Aspekten des Sicherheitsbewusstseins und Best Practices."
+      },
+      "analytics": {
+        "title": "Detaillierte Analysen",
+        "description": "Verfolgen Sie Fortschritte, identifizieren Sie Trends und messen Sie die Wirksamkeit Ihres Sicherheitsprogramms."
+      },
+      "compliance": {
+        "title": "Compliance-Ready",
+        "description": "Erfüllen Sie regulatorische Anforderungen mit automatisierten Berichten und Zertifikatsverfolgung."
+      }
+    },
+    "benefits": {
+      "title": "Warum Organisationen Bootstrap Academy wählen",
+      "subtitle": "Schließen Sie sich Tausenden von Unternehmen an, die ihre Daten und ihren Ruf schützen.",
+      "reduce": {
+        "title": "Sicherheitsvorfälle reduzieren",
+        "description": "Rückgang erfolgreicher Phishing-Angriffe"
+      },
+      "improve": {
+        "title": "Sicherheitskultur verbessern",
+        "description": "Steigerung der Sicherheitsbewusstseinswerte"
+      },
+      "save": {
+        "title": "Kosten sparen",
+        "description": "Durchschnittliche Einsparungen durch verhinderte Datenschutzverletzungen"
+      }
+    },
+    "pricing": {
+      "title": "Einfache, transparente Preise",
+      "subtitle": "Wählen Sie den Plan, der zu den Bedürfnissen Ihrer Organisation passt.",
+      "popular": "Beliebteste Wahl",
+      "starter": {
+        "name": "Starter",
+        "price": "49€/Monat",
+        "description": "Perfekt für kleine Unternehmen",
+        "feature1": "Bis zu 50 Benutzer",
+        "feature2": "Basis-Phishing-Simulationen",
+        "feature3": "5 Schulungskurse",
+        "feature4": "Monatliche Berichte",
+        "cta": "Kostenlos testen"
+      },
+      "professional": {
+        "name": "Professional",
+        "price": "149€/Monat",
+        "description": "Ideal für wachsende Unternehmen",
+        "feature1": "Bis zu 250 Benutzer",
+        "feature2": "Erweiterte Phishing-Kampagnen",
+        "feature3": "15+ Schulungskurse",
+        "feature4": "Echtzeit-Analysen",
+        "feature5": "Prioritäts-Support",
+        "cta": "Kostenlos testen"
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "price": "Individuell",
+        "description": "Für große Organisationen",
+        "feature1": "Unbegrenzte Benutzer",
+        "feature2": "Individuelle Phishing-Szenarien",
+        "feature3": "Alle Schulungsinhalte",
+        "feature4": "API-Zugang",
+        "feature5": "Dedizierter Success Manager",
+        "cta": "Vertrieb kontaktieren"
+      }
+    },
+    "testimonials": {
+      "title": "Vertraut von sicherheitsbewussten Organisationen",
+      "subtitle": "Erfahren Sie, was unsere Kunden über ihre Erfahrungen zu sagen haben.",
+      "testimonial1": {
+        "content": "Bootstrap Academy hat unsere Sicherheitskultur transformiert. Unsere Phishing-Klickrate sank in sechs Monaten von 23% auf nur 4%.",
+        "author": "Sarah Johnson",
+        "role": "CISO",
+        "company": "TechCorp Solutions"
+      },
+      "testimonial2": {
+        "content": "Die Schulungsmodule sind ansprechend und effektiv. Unsere Mitarbeiter genießen jetzt tatsächlich die Sicherheitsschulungen.",
+        "author": "Michael Chen",
+        "role": "IT-Direktor",
+        "company": "Global Finance Ltd"
+      },
+      "testimonial3": {
+        "content": "Ausgezeichnete Plattform mit großartigen Berichtsfunktionen. Sie hat uns geholfen, unsere Compliance-Zertifizierungen zu erreichen und aufrechtzuerhalten.",
+        "author": "Emma Williams",
+        "role": "Compliance Manager",
+        "company": "Healthcare Plus"
+      }
+    },
+    "security": {
+      "title": "Sicherheit auf Unternehmensniveau",
+      "subtitle": "Ihre Daten werden durch branchenführende Sicherheitsstandards und Zertifizierungen geschützt."
+    },
+    "cta": {
+      "title": "Bereit, Ihre Sicherheit zu stärken?",
+      "subtitle": "Schließen Sie sich Tausenden von Organisationen an, die ihre wertvollsten Ressourcen schützen.",
+      "button": "Kostenlose Testversion starten"
+    },
+    "footer": {
+      "description": "Wir stärken Organisationen mit Cybersicherheitsbewusstsein.",
+      "product": "Produkt",
+      "features": "Funktionen",
+      "pricing": "Preise",
+      "login": "Anmelden",
+      "company": "Unternehmen",
+      "about": "Über uns",
+      "contact": "Kontakt",
+      "careers": "Karriere",
+      "legal": "Rechtliches",
+      "privacy": "Datenschutzerklärung",
+      "terms": "Nutzungsbedingungen",
+      "impressum": "Impressum",
+      "rights": "Alle Rechte vorbehalten."
+    }
   }
 }

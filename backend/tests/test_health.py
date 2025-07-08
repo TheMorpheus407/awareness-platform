@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 
 def test_health_check(client: TestClient):
     """Test basic health check endpoint."""
-    response = client.get("/api/health")
+    response = client.get("/api/v1/health")
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "healthy"
@@ -16,7 +16,7 @@ def test_health_check(client: TestClient):
 
 def test_database_health_check(client: TestClient):
     """Test database health check endpoint."""
-    response = client.get("/api/health/db")
+    response = client.get("/api/v1/health/db")
     assert response.status_code == 200
     data = response.json()
     # Database health might be unhealthy in test environment due to async/sync mismatch

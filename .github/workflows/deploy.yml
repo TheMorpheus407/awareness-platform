@@ -51,7 +51,19 @@ jobs:
       - name: Run frontend tests
         run: |
           cd frontend
-          npm test -- --passWithNoTests
+          npm test -- --run --coverage
+          
+      - name: Check frontend coverage
+        run: |
+          cd frontend
+          # Ensure minimum 60% coverage
+          if [ -f coverage/coverage-summary.json ]; then
+            coverage=$(cat coverage/coverage-summary.json | jq '.total.lines.pct')
+            if (( $(echo "$coverage < 60" | bc -l) )); then
+              echo "::error::Frontend coverage is $coverage%, minimum required is 60%"
+              exit 1
+            fi
+          fi
 
   build:
     needs: test
@@ -95,7 +107,7 @@ jobs:
 
   deploy:
     needs: build
-    if: always() && needs.build.result == 'success'
+    if: needs.build.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 30  # Add timeout to prevent exit code 137
     steps:

@@ -161,5 +161,141 @@
     "networkError": "Network error. Please check your connection.",
     "unauthorized": "You are not authorized to perform this action.",
     "notFound": "The requested resource was not found."
+  },
+  "landing": {
+    "nav": {
+      "startFree": "Start Free Trial"
+    },
+    "hero": {
+      "title": "Protect Your Business from Cyber Threats",
+      "subtitle": "Comprehensive cybersecurity awareness training that transforms your employees into your strongest defense against cyber attacks.",
+      "cta": {
+        "primary": "Start Free Trial",
+        "secondary": "Learn More"
+      },
+      "badge1": "14-day free trial",
+      "badge2": "No credit card required",
+      "badge3": "Setup in minutes"
+    },
+    "features": {
+      "title": "Everything You Need for Cybersecurity Training",
+      "subtitle": "Our platform provides comprehensive tools to educate, test, and protect your organization.",
+      "phishing": {
+        "title": "Phishing Simulations",
+        "description": "Realistic phishing tests to identify vulnerable employees and provide targeted training."
+      },
+      "training": {
+        "title": "Interactive Training",
+        "description": "Engaging courses covering all aspects of cybersecurity awareness and best practices."
+      },
+      "analytics": {
+        "title": "Detailed Analytics",
+        "description": "Track progress, identify trends, and measure the effectiveness of your security program."
+      },
+      "compliance": {
+        "title": "Compliance Ready",
+        "description": "Meet regulatory requirements with automated reporting and certification tracking."
+      }
+    },
+    "benefits": {
+      "title": "Why Organizations Choose Bootstrap Academy",
+      "subtitle": "Join thousands of companies protecting their data and reputation.",
+      "reduce": {
+        "title": "Reduce Security Incidents",
+        "description": "Decrease in successful phishing attacks"
+      },
+      "improve": {
+        "title": "Improve Security Culture",
+        "description": "Increase in security awareness scores"
+      },
+      "save": {
+        "title": "Save on Breach Costs",
+        "description": "Average savings from prevented breaches"
+      }
+    },
+    "pricing": {
+      "title": "Simple, Transparent Pricing",
+      "subtitle": "Choose the plan that fits your organization's needs.",
+      "popular": "Most Popular",
+      "starter": {
+        "name": "Starter",
+        "price": "€49/month",
+        "description": "Perfect for small businesses",
+        "feature1": "Up to 50 users",
+        "feature2": "Basic phishing simulations",
+        "feature3": "5 training courses",
+        "feature4": "Monthly reports",
+        "cta": "Start Free Trial"
+      },
+      "professional": {
+        "name": "Professional",
+        "price": "€149/month",
+        "description": "Ideal for growing companies",
+        "feature1": "Up to 250 users",
+        "feature2": "Advanced phishing campaigns",
+        "feature3": "15+ training courses",
+        "feature4": "Real-time analytics",
+        "feature5": "Priority support",
+        "cta": "Start Free Trial"
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "price": "Custom",
+        "description": "For large organizations",
+        "feature1": "Unlimited users",
+        "feature2": "Custom phishing scenarios",
+        "feature3": "All training content",
+        "feature4": "API access",
+        "feature5": "Dedicated success manager",
+        "cta": "Contact Sales"
+      }
+    },
+    "testimonials": {
+      "title": "Trusted by Security-Conscious Organizations",
+      "subtitle": "See what our customers have to say about their experience.",
+      "testimonial1": {
+        "content": "Bootstrap Academy transformed our security culture. Our phishing click rate dropped from 23% to just 4% in six months.",
+        "author": "Sarah Johnson",
+        "role": "CISO",
+        "company": "TechCorp Solutions"
+      },
+      "testimonial2": {
+        "content": "The training modules are engaging and effective. Our employees actually enjoy the security awareness training now.",
+        "author": "Michael Chen",
+        "role": "IT Director",
+        "company": "Global Finance Ltd"
+      },
+      "testimonial3": {
+        "content": "Excellent platform with great reporting features. It's helped us achieve and maintain our compliance certifications.",
+        "author": "Emma Williams",
+        "role": "Compliance Manager",
+        "company": "Healthcare Plus"
+      }
+    },
+    "security": {
+      "title": "Enterprise-Grade Security",
+      "subtitle": "Your data is protected by industry-leading security standards and certifications."
+    },
+    "cta": {
+      "title": "Ready to Strengthen Your Security?",
+      "subtitle": "Join thousands of organizations protecting their most valuable assets.",
+      "button": "Start Your Free Trial"
+    },
+    "footer": {
+      "description": "Empowering organizations with cybersecurity awareness.",
+      "product": "Product",
+      "features": "Features",
+      "pricing": "Pricing",
+      "login": "Login",
+      "company": "Company",
+      "about": "About Us",
+      "contact": "Contact",
+      "careers": "Careers",
+      "legal": "Legal",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "impressum": "Impressum",
+      "rights": "All rights reserved."
+    }
   }
 }

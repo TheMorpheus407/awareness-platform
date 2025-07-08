@@ -100,7 +100,7 @@ async def verify_email(
     
     # Verify the user
     user.is_verified = True
-    user.verified_at = datetime.utcnow()
+    user.email_verified_at = datetime.utcnow()
     user.email_verification_token = None  # Clear the token
     
     await db.commit()

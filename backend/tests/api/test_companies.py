@@ -8,19 +8,20 @@ from models.company import Company, CompanySize, SubscriptionTier
 from models.user import User, UserRole
 
 
+@pytest.mark.asyncio
 class TestCompaniesAPI:
     """Test cases for companies API endpoints."""
     
     async def test_list_companies_as_admin(
         self, 
-        client: AsyncClient, 
-        admin_token_headers: dict,
-        test_company: Company
+        async_client: AsyncClient, 
+        async_admin_auth_headers: dict,
+        async_test_company: Company
     ):
         """Test listing companies as admin."""
-        response = await client.get(
-            "/api/companies/",
-            headers=admin_token_headers
+        response = await async_client.get(
+            "/api/v1/companies/",
+            headers=async_admin_auth_headers
         )
         
         assert response.status_code == 200
@@ -33,56 +34,56 @@ class TestCompaniesAPI:
         
         # Check if test company is in the list
         company_ids = [item["id"] for item in data["items"]]
-        assert str(test_company.id) in company_ids
+        assert str(async_test_company.id) in company_ids
     
     async def test_list_companies_as_user_forbidden(
         self, 
-        client: AsyncClient, 
-        user_token_headers: dict
+        async_client: AsyncClient, 
+        async_auth_headers: dict
     ):
         """Test that regular users cannot list all companies."""
-        response = await client.get(
-            "/api/companies/",
-            headers=user_token_headers
+        response = await async_client.get(
+            "/api/v1/companies/",
+            headers=async_auth_headers
         )
         
         assert response.status_code == 403
     
     async def test_get_company_by_id(
         self, 
-        client: AsyncClient, 
-        admin_token_headers: dict,
-        test_company: Company
+        async_client: AsyncClient, 
+        async_admin_auth_headers: dict,
+        async_test_company: Company
     ):
         """Test getting a specific company by ID."""
-        response = await client.get(
-            f"/api/companies/{test_company.id}",
-            headers=admin_token_headers
+        response = await async_client.get(
+            f"/api/v1/companies/{async_test_company.id}",
+            headers=async_admin_auth_headers
         )
         
         assert response.status_code == 200
         data = response.json()
-        assert data["id"] == str(test_company.id)
-        assert data["name"] == test_company.name
-        assert data["domain"] == test_company.domain
-        assert data["size"] == test_company.size.value
+        assert data["id"] == str(async_test_company.id)
+        assert data["name"] == async_test_company.name
+        assert data["domain"] == async_test_company.domain
+        assert data["size"] == async_test_company.size.value
     
     async def test_get_nonexistent_company(
         self, 
-        client: AsyncClient, 
+        async_client: AsyncClient, 
         admin_token_headers: dict
     ):
         """Test getting a company that doesn't exist."""
-        response = await client.get(
-            "/api/companies/00000000-0000-0000-0000-000000000000",
-            headers=admin_token_headers
+        response = await async_client.get(
+            "/api/v1/companies/00000000-0000-0000-0000-000000000000",
+            headers=async_admin_auth_headers
         )
         
         assert response.status_code == 404
     
     async def test_create_company_as_admin(
         self, 
-        client: AsyncClient, 
+        async_client: AsyncClient, 
         admin_token_headers: dict
     ):
         """Test creating a new company as admin."""
@@ -97,10 +98,10 @@ class TestCompaniesAPI:
             "city": "Munich"
         }
         
-        response = await client.post(
-            "/api/companies/",
+        response = await async_client.post(
+            "/api/v1/companies/",
             json=company_data,
-            headers=admin_token_headers
+            headers=async_admin_auth_headers
         )
         
         assert response.status_code == 200
@@ -113,9 +114,9 @@ class TestCompaniesAPI:
     
     async def test_create_company_duplicate_domain(
         self, 
-        client: AsyncClient, 
-        admin_token_headers: dict,
-        test_company: Company
+        async_client: AsyncClient, 
+        async_admin_auth_headers: dict,
+        async_test_company: Company
     ):
         """Test creating a company with duplicate domain."""
         company_data = {
@@ -124,10 +125,10 @@ class TestCompaniesAPI:
             "size": "small"
         }
         
-        response = await client.post(
-            "/api/companies/",
+        response = await async_client.post(
+            "/api/v1/companies/",
             json=company_data,
-            headers=admin_token_headers
+            headers=async_admin_auth_headers
         )
         
         assert response.status_code == 400
@@ -135,9 +136,9 @@ class TestCompaniesAPI:
     
     async def test_update_company(
         self, 
-        client: AsyncClient, 
-        admin_token_headers: dict,
-        test_company: Company
+        async_client: AsyncClient, 
+        async_admin_auth_headers: dict,
+        async_test_company: Company
     ):
         """Test updating a company."""
         update_data = {
@@ -147,10 +148,10 @@ class TestCompaniesAPI:
             "max_users": 200
         }
         
-        response = await client.put(
-            f"/api/companies/{test_company.id}",
+        response = await async_client.put(
+            f"/api/v1/companies/{async_test_company.id}",
             json=update_data,
-            headers=admin_token_headers
+            headers=async_admin_auth_headers
         )
         
         assert response.status_code == 200
@@ -164,8 +165,8 @@ class TestCompaniesAPI:
     
     async def test_delete_company(
         self, 
-        client: AsyncClient, 
-        admin_token_headers: dict,
+        async_client: AsyncClient, 
+        async_admin_auth_headers: dict,
         db_session: AsyncSession
     ):
         """Test deleting a company."""
@@ -179,24 +180,24 @@ class TestCompaniesAPI:
         await db_session.commit()
         await db_session.refresh(company)
         
-        response = await client.delete(
-            f"/api/companies/{company.id}",
-            headers=admin_token_headers
+        response = await async_client.delete(
+            f"/api/v1/companies/{company.id}",
+            headers=async_admin_auth_headers
         )
         
         assert response.status_code == 204
         
         # Verify company is deleted
-        response = await client.get(
-            f"/api/companies/{company.id}",
-            headers=admin_token_headers
+        response = await async_client.get(
+            f"/api/v1/companies/{company.id}",
+            headers=async_admin_auth_headers
         )
         assert response.status_code == 404
     
     async def test_company_user_count(
         self, 
-        client: AsyncClient, 
-        admin_token_headers: dict,
+        async_client: AsyncClient, 
+        async_admin_auth_headers: dict,
         test_company: Company,
         db_session: AsyncSession
     ):
@@ -212,9 +213,9 @@ class TestCompaniesAPI:
             db_session.add(user)
         await db_session.commit()
         
-        response = await client.get(
-            f"/api/companies/{test_company.id}/users/count",
-            headers=admin_token_headers
+        response = await async_client.get(
+            f"/api/v1/companies/{test_company.id}/users/count",
+            headers=async_admin_auth_headers
         )
         
         assert response.status_code == 200
@@ -223,13 +224,13 @@ class TestCompaniesAPI:
     
     async def test_company_admin_can_view_own_company(
         self, 
-        client: AsyncClient, 
+        async_client: AsyncClient, 
         company_admin_token_headers: dict,
-        test_company: Company
+        async_test_company: Company
     ):
         """Test that company admin can view their own company."""
-        response = await client.get(
-            f"/api/companies/{test_company.id}",
+        response = await async_client.get(
+            f"/api/v1/companies/{async_test_company.id}",
             headers=company_admin_token_headers
         )
         
@@ -239,7 +240,7 @@ class TestCompaniesAPI:
     
     async def test_company_admin_cannot_view_other_companies(
         self, 
-        client: AsyncClient, 
+        async_client: AsyncClient, 
         company_admin_token_headers: dict,
         db_session: AsyncSession
     ):
@@ -254,8 +255,8 @@ class TestCompaniesAPI:
         await db_session.commit()
         await db_session.refresh(other_company)
         
-        response = await client.get(
-            f"/api/companies/{other_company.id}",
+        response = await async_client.get(
+            f"/api/v1/companies/{other_company.id}",
             headers=company_admin_token_headers
         )
         
@@ -263,8 +264,8 @@ class TestCompaniesAPI:
     
     async def test_filter_companies_by_size(
         self, 
-        client: AsyncClient, 
-        admin_token_headers: dict,
+        async_client: AsyncClient, 
+        async_admin_auth_headers: dict,
         db_session: AsyncSession
     ):
         """Test filtering companies by size."""
@@ -280,9 +281,9 @@ class TestCompaniesAPI:
         await db_session.commit()
         
         # Filter by medium size
-        response = await client.get(
-            "/api/companies/?size=medium",
-            headers=admin_token_headers
+        response = await async_client.get(
+            "/api/v1/companies/?size=medium",
+            headers=async_admin_auth_headers
         )
         
         assert response.status_code == 200
@@ -294,14 +295,14 @@ class TestCompaniesAPI:
     
     async def test_search_companies_by_name(
         self, 
-        client: AsyncClient, 
-        admin_token_headers: dict,
-        test_company: Company
+        async_client: AsyncClient, 
+        async_admin_auth_headers: dict,
+        async_test_company: Company
     ):
         """Test searching companies by name."""
-        response = await client.get(
-            f"/api/companies/?search={test_company.name[:5]}",
-            headers=admin_token_headers
+        response = await async_client.get(
+            f"/api/v1/companies/?search={test_company.name[:5]}",
+            headers=async_admin_auth_headers
         )
         
         assert response.status_code == 200

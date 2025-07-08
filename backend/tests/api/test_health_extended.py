@@ -9,10 +9,9 @@ from sqlalchemy.exc import OperationalError
 class TestHealthEndpoints:
     """Extended test cases for health endpoints."""
     
-    @pytest.mark.asyncio
-    async def test_health_endpoint_structure(self, client: AsyncClient):
+    def test_health_endpoint_structure(self, client):
         """Test health endpoint returns expected structure."""
-        response = await client.get("/api/health")
+        response = client.get("/api/v1/health")
         
         assert response.status_code == 200
         data = response.json()
@@ -29,10 +28,9 @@ class TestHealthEndpoints:
         assert isinstance(data["version"], str)
         assert isinstance(data["timestamp"], str)
     
-    @pytest.mark.asyncio
-    async def test_database_health_when_connected(self, client: AsyncClient):
+    def test_database_health_when_connected(self, client):
         """Test database health check when database is connected."""
-        response = await client.get("/api/health/db")
+        response = client.get("/api/v1/health/db")
         
         assert response.status_code == 200
         data = response.json()
@@ -41,18 +39,17 @@ class TestHealthEndpoints:
         assert data["database"] == "connected"
         assert "timestamp" in data
     
-    @pytest.mark.asyncio
-    async def test_database_health_when_disconnected(self, client: AsyncClient):
+    def test_database_health_when_disconnected(self, client):
         """Test database health check when database is disconnected."""
         # Mock database connection to fail
         with patch('api.routes.health.get_db') as mock_get_db:
-            async def mock_db_error():
+            def mock_db_error():
                 raise OperationalError("Connection failed", None, None)
                 yield
             
             mock_get_db.return_value = mock_db_error()
             
-            response = await client.get("/api/health/db")
+            response = client.get("/api/v1/health/db")
             
             # Should still return 200 but with unhealthy status
             assert response.status_code == 503
@@ -61,25 +58,23 @@ class TestHealthEndpoints:
             assert data["status"] == "unhealthy"
             assert data["database"] == "disconnected"
     
-    @pytest.mark.asyncio
-    async def test_health_endpoints_no_auth_required(self, client: AsyncClient):
+    def test_health_endpoints_no_auth_required(self, client):
         """Test that health endpoints don't require authentication."""
         # Test without any auth headers
-        endpoints = ["/api/health", "/api/health/db", "/"]
+        endpoints = ["/api/v1/health", "/api/v1/health/db", "/"]
         
         for endpoint in endpoints:
-            response = await client.get(endpoint)
+            response = client.get(endpoint)
             # Should not return 401 Unauthorized
             assert response.status_code != 401
             assert response.status_code in [200, 503]  # 503 for db when not connected
     
-    @pytest.mark.asyncio
-    async def test_health_endpoint_performance(self, client: AsyncClient):
+    def test_health_endpoint_performance(self, client):
         """Test that health endpoint responds quickly."""
         import time
         
         start_time = time.time()
-        response = await client.get("/api/health")
+        response = client.get("/api/v1/health")
         end_time = time.time()
         
         assert response.status_code == 200
@@ -88,11 +83,10 @@ class TestHealthEndpoints:
         response_time = (end_time - start_time) * 1000
         assert response_time < 100
     
-    @pytest.mark.asyncio
-    async def test_root_endpoint_debug_mode(self, client: AsyncClient):
+    def test_root_endpoint_debug_mode(self, client):
         """Test root endpoint shows different info based on debug mode."""
         with patch('core.config.settings.DEBUG', True):
-            response = await client.get("/")
+            response = client.get("/")
             data = response.json()
             
             # In debug mode, should show docs URL
@@ -100,17 +94,16 @@ class TestHealthEndpoints:
             assert "/api/docs" in data["docs"]
         
         with patch('core.config.settings.DEBUG', False):
-            response = await client.get("/")
+            response = client.get("/")
             data = response.json()
             
             # In production, docs should be disabled
             assert "docs" in data
             assert data["docs"] == "Disabled in production"
     
-    @pytest.mark.asyncio
-    async def test_health_endpoint_headers(self, client: AsyncClient):
+    def test_health_endpoint_headers(self, client):
         """Test that health endpoints return proper headers."""
-        response = await client.get("/api/health")
+        response = client.get("/api/v1/health")
         
         # Check content type
         assert response.headers["content-type"] == "application/json"
@@ -120,17 +113,14 @@ class TestHealthEndpoints:
         # but we check the response is valid JSON
         assert response.json() is not None
     
-    @pytest.mark.asyncio
-    async def test_concurrent_health_checks(self, client: AsyncClient):
+    def test_concurrent_health_checks(self, client):
         """Test multiple concurrent health checks."""
-        import asyncio
+        import concurrent.futures
         
         # Make 10 concurrent requests
-        tasks = []
-        for _ in range(10):
-            tasks.append(client.get("/api/health"))
-        
-        responses = await asyncio.gather(*tasks)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            futures = [executor.submit(client.get, "/api/v1/health") for _ in range(10)]
+            responses = [f.result() for f in concurrent.futures.as_completed(futures)]
         
         # All should succeed
         for response in responses:

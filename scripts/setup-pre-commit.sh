@@ -1,52 +1,37 @@
 #!/bin/bash
-# Setup pre-commit hooks for the project
 
-set -e
+echo "🚀 Setting up pre-commit hooks for strict quality enforcement..."
 
-echo "🔧 Setting up pre-commit hooks..."
-
-# Check if Python is installed
-if ! command -v python3 &> /dev/null; then
-    echo "❌ Error: Python 3 is not installed. Please install Python 3.11 or higher."
-    exit 1
-fi
-
-# Check Python version
-PYTHON_VERSION=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
-REQUIRED_VERSION="3.11"
-
-if [ "$(printf '%s\n' "$REQUIRED_VERSION" "$PYTHON_VERSION" | sort -V | head -n1)" != "$REQUIRED_VERSION" ]; then
-    echo "❌ Error: Python $REQUIRED_VERSION or higher is required. Found: $PYTHON_VERSION"
-    exit 1
-fi
-
-# Install pre-commit if not already installed
+# Check if pre-commit is installed
 if ! command -v pre-commit &> /dev/null; then
     echo "📦 Installing pre-commit..."
-    pip install --user pre-commit
-else
-    echo "✅ pre-commit is already installed"
+    pip install pre-commit
 fi
 
-# Install the git hook scripts
-echo "🪝 Installing git hooks..."
+# Install the pre-commit hooks
+echo "🔧 Installing pre-commit hooks..."
 pre-commit install
-
-# Install commit message hook
 pre-commit install --hook-type commit-msg
 
-# Run against all files (optional - can be slow on large repos)
-read -p "Do you want to run pre-commit against all files now? (y/N) " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    echo "🏃 Running pre-commit on all files..."
-    pre-commit run --all-files || true
-fi
+# Create baseline for detect-secrets
+echo "🔐 Creating secrets baseline..."
+detect-secrets scan > .secrets.baseline || true
 
-echo "✅ Pre-commit hooks successfully installed!"
+# Run pre-commit on all files to check current state
+echo "🔍 Running pre-commit on all files (this may take a while)..."
+pre-commit run --all-files || true
+
+echo "✅ Pre-commit hooks installed successfully!"
 echo ""
-echo "Pre-commit will now run automatically on git commit."
-echo "You can manually run it with: pre-commit run --all-files"
+echo "Pre-commit will now run automatically on every commit to ensure:"
+echo "  - ✓ Python code is formatted with Black"
+echo "  - ✓ Python code passes flake8 linting"
+echo "  - ✓ Python code passes mypy type checking"
+echo "  - ✓ Python code passes bandit security checks"
+echo "  - ✓ JavaScript/TypeScript code passes ESLint"
+echo "  - ✓ Code is formatted with Prettier"
+echo "  - ✓ No secrets are committed"
+echo "  - ✓ No large files are committed"
+echo "  - ✓ Commit messages follow conventional format"
 echo ""
-echo "To update hooks: pre-commit autoupdate"
-echo "To skip hooks (emergency only): git commit --no-verify"
+echo "To bypass pre-commit hooks (NOT RECOMMENDED), use: git commit --no-verify"

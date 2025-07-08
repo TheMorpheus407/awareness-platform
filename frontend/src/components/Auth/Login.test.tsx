@@ -4,11 +4,11 @@ import { vi } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LoginForm } from './LoginForm';
-import { useAuthStore } from '../../store/authStore';
+import { useAuth } from '../../hooks/useAuth';
 
-// Mock the auth store
-vi.mock('../../store/authStore', () => ({
-  useAuthStore: vi.fn(),
+// Mock the auth hook instead of store directly
+vi.mock('../../hooks/useAuth', () => ({
+  useAuth: vi.fn(),
 }));
 
 // Mock axios
@@ -47,9 +47,10 @@ describe('Login Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useAuthStore as any).mockReturnValue({
+    (useAuth as any).mockReturnValue({
       login: mockLogin,
       isAuthenticated: false,
+      isLoading: false,
       checkAuth: vi.fn(),
     });
   });
@@ -105,10 +106,7 @@ describe('Login Component', () => {
     await user.click(submitButton);
 
     await waitFor(() => {
-      expect(mockLogin).toHaveBeenCalledWith({
-        email: 'test@example.com',
-        password: 'password123',
-      });
+      expect(mockLogin).toHaveBeenCalledWith('test@example.com', 'password123');
     });
   });
 

@@ -82,16 +82,5 @@ global.ResizeObserver = class ResizeObserver {
   unobserve() {}
 };
 
-// Mock useAuthStore
-vi.mock('../store/authStore', () => ({
-  useAuthStore: vi.fn(() => ({
-    user: null,
-    token: null,
-    isAuthenticated: false,
-    isLoading: false,
-    login: vi.fn(),
-    register: vi.fn(),
-    logout: vi.fn(),
-    checkAuth: vi.fn(),
-  })),
-}));
+// Note: useAuthStore is mocked individually in component tests that need it
+// This allows the store tests to run properly without interference

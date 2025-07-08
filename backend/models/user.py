@@ -92,6 +92,11 @@ class User(Base):
         return self.role == UserRole.SYSTEM_ADMIN
     
     @property
+    def is_admin(self) -> bool:
+        """Check if user has admin privileges (system or company admin)."""
+        return self.role in [UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN]
+    
+    @property
     def is_manager(self) -> bool:
         """Check if user is a manager."""
         return self.role == UserRole.MANAGER

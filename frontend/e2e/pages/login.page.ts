@@ -11,10 +11,10 @@ export class LoginPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.emailInput = page.getByLabel(/email/i);
-    this.passwordInput = page.getByLabel(/password/i);
-    this.submitButton = page.getByRole('button', { name: /sign in|anmelden/i });
-    this.registerLink = page.getByRole('link', { name: /register|registrieren/i });
+    this.emailInput = page.getByPlaceholder(/you@example.com/i);
+    this.passwordInput = page.getByPlaceholder(/••••••••/);
+    this.submitButton = page.getByRole('button', { name: /sign in/i });
+    this.registerLink = page.getByRole('link', { name: /sign up/i });
     this.errorMessage = page.getByRole('alert');
     this.languageSwitcher = page.getByRole('button', { name: /EN|DE/i });
   }

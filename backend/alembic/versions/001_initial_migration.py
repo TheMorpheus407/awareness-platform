@@ -30,7 +30,7 @@ def upgrade() -> None:
     # Create enum types using raw SQL to avoid SQLAlchemy auto-creation
     connection.execute(text("CREATE TYPE userrole AS ENUM ('system_admin', 'company_admin', 'manager', 'employee')"))
     connection.execute(text("CREATE TYPE companysize AS ENUM ('small', 'medium', 'large', 'enterprise')"))
-    connection.execute(text("CREATE TYPE subscriptiontier AS ENUM ('free', 'starter', 'professional', 'enterprise')"))
+    connection.execute(text("CREATE TYPE subscriptiontier AS ENUM ('free', 'basic', 'starter', 'premium', 'professional', 'enterprise')"))
     connection.execute(text("CREATE TYPE companystatus AS ENUM ('trial', 'active', 'suspended', 'cancelled')"))
     
     # Create companies table
@@ -40,7 +40,7 @@ def upgrade() -> None:
         sa.Column('domain', sa.String(length=255), nullable=False),
         sa.Column('size', postgresql.ENUM('small', 'medium', 'large', 'enterprise', name='companysize', create_type=False), nullable=False, server_default='small'),
         sa.Column('status', postgresql.ENUM('trial', 'active', 'suspended', 'cancelled', name='companystatus', create_type=False), nullable=False, server_default='trial'),
-        sa.Column('subscription_tier', postgresql.ENUM('free', 'starter', 'professional', 'enterprise', name='subscriptiontier', create_type=False), nullable=False, server_default='free'),
+        sa.Column('subscription_tier', postgresql.ENUM('free', 'basic', 'starter', 'premium', 'professional', 'enterprise', name='subscriptiontier', create_type=False), nullable=False, server_default='free'),
         sa.Column('max_users', sa.Integer(), nullable=False, server_default='10'),
         sa.Column('industry', sa.String(length=100), nullable=True),
         sa.Column('country', sa.String(length=100), nullable=True),
