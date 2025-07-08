@@ -25,6 +25,15 @@ from .analytics import (
     PhishingAnalyticsResponse, RealtimeMetricResponse,
     AnalyticsExportRequest, AnalyticsDateRange
 )
+from .phishing import (
+    CampaignStatus, TemplateDifficulty, TemplateCategory,
+    PhishingTemplateCreate, PhishingTemplateUpdate, PhishingTemplateResponse,
+    PhishingCampaignCreate, PhishingCampaignUpdate, PhishingCampaignResponse,
+    PhishingResultCreate, PhishingResultUpdate, PhishingResultResponse,
+    PhishingTrackingEvent, PhishingReportRequest,
+    CampaignAnalytics, ComplianceReport, TemplateLibraryFilter,
+    CampaignTargetGroup, CampaignSettings
+)
 
 __all__ = [
     # User schemas
@@ -50,5 +59,14 @@ __all__ = [
     "DashboardMetrics", "CourseAnalyticsResponse",
     "UserEngagementResponse", "RevenueAnalyticsResponse",
     "PhishingAnalyticsResponse", "RealtimeMetricResponse",
-    "AnalyticsExportRequest", "AnalyticsDateRange"
+    "AnalyticsExportRequest", "AnalyticsDateRange",
+    
+    # Phishing schemas
+    "CampaignStatus", "TemplateDifficulty", "TemplateCategory",
+    "PhishingTemplateCreate", "PhishingTemplateUpdate", "PhishingTemplateResponse",
+    "PhishingCampaignCreate", "PhishingCampaignUpdate", "PhishingCampaignResponse",
+    "PhishingResultCreate", "PhishingResultUpdate", "PhishingResultResponse",
+    "PhishingTrackingEvent", "PhishingReportRequest",
+    "CampaignAnalytics", "ComplianceReport", "TemplateLibraryFilter",
+    "CampaignTargetGroup", "CampaignSettings"
 ]

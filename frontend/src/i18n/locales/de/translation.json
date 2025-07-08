@@ -389,5 +389,96 @@
       "message": "Sind Sie sicher, dass Sie Ihr Abonnement kündigen möchten? Sie haben weiterhin Zugriff bis zum Ende Ihrer aktuellen Abrechnungsperiode.",
       "confirm": "Ja, Abonnement kündigen"
     }
+  },
+  "phishing": {
+    "dashboard": {
+      "title": "Phishing-Simulation Dashboard",
+      "subtitle": "Überwachen und verwalten Sie das Phishing-Awareness-Training",
+      "totalCampaigns": "Kampagnen gesamt",
+      "activeCampaigns": "Aktive Kampagnen",
+      "usersTested": "Getestete Benutzer",
+      "overallClickRate": "Gesamt-Klickrate",
+      "recentCampaigns": "Aktuelle Kampagnen",
+      "viewAll": "Alle anzeigen",
+      "noCampaigns": "Noch keine Kampagnen",
+      "clickRate": "Klickrate",
+      "highRisk": "Hohes Risiko",
+      "mediumRisk": "Mittleres Risiko",
+      "lowRisk": "Niedriges Risiko",
+      "loadError": "Dashboard-Daten konnten nicht geladen werden",
+      "quickActions": {
+        "title": "Schnellaktionen",
+        "browseTemplates": "Phishing-Vorlagen durchsuchen",
+        "viewAnalytics": "Detaillierte Analysen anzeigen",
+        "complianceReport": "Compliance-Bericht erstellen"
+      }
+    },
+    "campaigns": {
+      "title": "Phishing-Kampagnen",
+      "subtitle": "Verwalten Sie Ihre Phishing-Simulationskampagnen",
+      "create": "Neue Kampagne",
+      "createFirst": "Erstellen Sie Ihre erste Kampagne",
+      "search": "Kampagnen suchen...",
+      "allStatuses": "Alle Status",
+      "noCampaigns": "Keine Kampagnen gefunden",
+      "noCampaignsDescription": "Beginnen Sie mit der Erstellung Ihrer ersten Phishing-Simulationskampagne.",
+      "loadError": "Kampagnen konnten nicht geladen werden",
+      "confirmCancel": "Möchten Sie diese Kampagne wirklich abbrechen?",
+      "startedAt": "Gestartet am {{date}}",
+      "scheduledFor": "Geplant für {{date}}",
+      "notScheduled": "Nicht geplant",
+      "viewDetails": "Details anzeigen",
+      "start": "Kampagne starten",
+      "cancel": "Kampagne abbrechen"
+    },
+    "templates": {
+      "title": "Phishing-Vorlagenbibliothek",
+      "subtitle": "Durchsuchen und verwalten Sie Phishing-E-Mail-Vorlagen",
+      "create": "Neue Vorlage",
+      "search": "Vorlagen suchen...",
+      "allCategories": "Alle Kategorien",
+      "allDifficulties": "Alle Schwierigkeitsgrade",
+      "allLanguages": "Alle Sprachen",
+      "publicOnly": "Nur öffentliche Vorlagen anzeigen",
+      "noTemplates": "Keine Vorlagen gefunden",
+      "noTemplatesDescription": "Passen Sie Ihre Filter an oder erstellen Sie eine neue Vorlage.",
+      "loadError": "Vorlagen konnten nicht geladen werden",
+      "confirmDelete": "Möchten Sie diese Vorlage wirklich löschen?",
+      "subject": "Betreff",
+      "sender": "Absender",
+      "from": "Von",
+      "content": "E-Mail-Inhalt",
+      "landingPage": "Landingpage",
+      "language": "Sprache",
+      "preview": "Vorschau",
+      "previewTitle": "Vorlagen-Vorschau",
+      "duplicate": "Duplizieren",
+      "edit": "Bearbeiten",
+      "delete": "Löschen"
+    },
+    "status": {
+      "draft": "Entwurf",
+      "scheduled": "Geplant",
+      "running": "Läuft",
+      "completed": "Abgeschlossen",
+      "cancelled": "Abgebrochen"
+    },
+    "category": {
+      "credential_harvesting": "Zugangsdaten-Diebstahl",
+      "malware": "Malware",
+      "business_email_compromise": "Business E-Mail Compromise",
+      "social_engineering": "Social Engineering",
+      "tech_support": "Tech-Support-Betrug",
+      "invoice_fraud": "Rechnungsbetrug",
+      "package_delivery": "Paketlieferung",
+      "social_media": "Soziale Medien",
+      "general": "Allgemein"
+    },
+    "difficulty": {
+      "easy": "Einfach",
+      "medium": "Mittel",
+      "hard": "Schwer"
+    },
+    "comingSoon": "Phishing-Simulationen kommen bald!"
   }
 }

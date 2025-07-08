@@ -1,0 +1,430 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag to deploy'
+        required: false
+        default: 'latest'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  DEPLOY_HOST: 83.228.205.20
+  DEPLOY_USER: ubuntu
+  APP_DIR: /opt/awareness
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+      
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+      
+      - name: Run backend tests with coverage
+        run: |
+          cd backend
+          export PYTHONPATH=$PYTHONPATH:$(pwd)
+          pytest --cov=. --cov-report=xml --cov-report=term-missing
+      
+      - name: Run frontend tests with coverage
+        run: |
+          cd frontend
+          npm test -- --run --coverage
+      
+      - name: Upload backend coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./backend/coverage.xml
+          flags: backend
+          name: backend-coverage
+      
+      - name: Upload frontend coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./frontend/coverage/coverage-final.json
+          flags: frontend
+          name: frontend-coverage
+
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+      
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+      
+      - name: Run Snyk security scan
+        uses: snyk/actions/python@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+  build:
+    name: Build and Push Images
+    needs: [test, security-scan]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{date 'YYYYMMDD'}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+      
+      - name: Build and push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile.prod
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+            VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+            REVISION=${{ github.sha }}
+      
+      - name: Build and push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile.prod
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+            VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+            REVISION=${{ github.sha }}
+
+  deploy:
+    name: Deploy to Production
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://bootstrap-awareness.de
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ env.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+      
+      - name: Create deployment directory
+        run: |
+          ssh ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }} "
+            sudo mkdir -p ${{ env.APP_DIR }}/{scripts,nginx,deployment,logs,backups}
+            sudo chown -R ${{ env.DEPLOY_USER }}:${{ env.DEPLOY_USER }} ${{ env.APP_DIR }}
+          "
+      
+      - name: Copy deployment files
+        run: |
+          # Copy docker-compose file
+          scp docker-compose.prod.optimized.yml ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }}:${{ env.APP_DIR }}/docker-compose.yml
+          
+          # Copy nginx configurations
+          scp -r deployment/nginx/* ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }}:${{ env.APP_DIR }}/nginx/
+          
+          # Copy deployment scripts
+          scp -r deployment/scripts/* ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }}:${{ env.APP_DIR }}/scripts/
+          
+          # Copy postgres configuration
+          ssh ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }} "mkdir -p ${{ env.APP_DIR }}/deployment/postgres"
+          scp deployment/postgres/postgresql.conf ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }}:${{ env.APP_DIR }}/deployment/postgres/
+      
+      - name: Create environment file
+        run: |
+          cat > .env.production << EOF
+          # Generated at $(date)
+          ENVIRONMENT=production
+          DEBUG=false
+          LOG_LEVEL=INFO
+          
+          # Security
+          SECRET_KEY=${{ secrets.SECRET_KEY }}
+          JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+          
+          # Database
+          DATABASE_URL=postgresql+asyncpg://awareness_user:${{ secrets.DB_PASSWORD }}@postgres:5432/awareness_platform
+          DB_USER=awareness_user
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          POSTGRES_USER=awareness_user
+          POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }}
+          POSTGRES_DB=awareness_platform
+          
+          # Redis
+          REDIS_URL=redis://default:${{ secrets.REDIS_PASSWORD }}@redis:6379
+          REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+          
+          # Email
+          EMAIL_FROM=noreply@bootstrap-awareness.de
+          EMAIL_FROM_NAME=Bootstrap Awareness
+          SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }}
+          
+          # Frontend
+          FRONTEND_URL=https://bootstrap-awareness.de
+          VITE_API_URL=https://bootstrap-awareness.de/api
+          VITE_APP_NAME=Bootstrap Awareness Platform
+          
+          # Payment
+          STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_PUBLISHABLE_KEY=${{ secrets.STRIPE_PUBLISHABLE_KEY }}
+          STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          
+          # External APIs
+          YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}
+          
+          # Monitoring
+          SENTRY_DSN=${{ secrets.SENTRY_DSN }}
+          GRAFANA_USER=${{ secrets.GRAFANA_USER }}
+          GRAFANA_PASSWORD=${{ secrets.GRAFANA_PASSWORD }}
+          
+          # Docker Registry
+          REGISTRY=${{ env.REGISTRY }}
+          IMAGE_NAME=${{ env.IMAGE_NAME }}
+          VERSION=${{ github.sha }}
+          EOF
+          
+          scp .env.production ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }}:${{ env.APP_DIR }}/.env.production
+          rm .env.production
+      
+      - name: Deploy application
+        run: |
+          ssh ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }} "
+            cd ${{ env.APP_DIR }}
+            
+            # Make scripts executable
+            chmod +x scripts/*.sh
+            
+            # Login to GitHub Container Registry
+            echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
+            # Backup current deployment
+            if [ -f docker-compose.yml ]; then
+              docker-compose ps > logs/pre-deployment-status-$(date +%Y%m%d-%H%M%S).log
+            fi
+            
+            # Pull new images
+            docker-compose pull
+            
+            # Stop and remove old containers
+            docker-compose down --remove-orphans
+            
+            # Start new containers
+            docker-compose up -d
+            
+            # Wait for services to be healthy
+            sleep 30
+            
+            # Run database migrations
+            docker-compose exec -T backend alembic upgrade head
+            
+            # Create admin user if not exists
+            docker-compose exec -T backend python scripts/create_production_admin.py || true
+            
+            # Check deployment status
+            docker-compose ps
+          "
+      
+      - name: Health check
+        run: |
+          MAX_RETRIES=10
+          RETRY_DELAY=10
+          
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "Health check attempt $i/$MAX_RETRIES"
+            
+            # Check API health
+            API_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://bootstrap-awareness.de/api/health || echo "000")
+            
+            if [ "$API_STATUS" = "200" ]; then
+              echo "✅ API health check passed"
+              
+              # Check frontend
+              FRONTEND_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://bootstrap-awareness.de || echo "000")
+              
+              if [ "$FRONTEND_STATUS" = "200" ]; then
+                echo "✅ Frontend health check passed"
+                exit 0
+              else
+                echo "❌ Frontend returned status: $FRONTEND_STATUS"
+              fi
+            else
+              echo "❌ API returned status: $API_STATUS"
+            fi
+            
+            if [ $i -lt $MAX_RETRIES ]; then
+              echo "Retrying in $RETRY_DELAY seconds..."
+              sleep $RETRY_DELAY
+            fi
+          done
+          
+          echo "::error::Health checks failed after $MAX_RETRIES attempts"
+          exit 1
+      
+      - name: Run smoke tests
+        run: |
+          # Basic API tests
+          curl -f https://bootstrap-awareness.de/api/health
+          curl -f https://bootstrap-awareness.de/api/v1/companies
+          
+          # Check critical pages
+          curl -f https://bootstrap-awareness.de
+          curl -f https://bootstrap-awareness.de/login
+      
+      - name: Notify deployment status
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ job.status }}';
+            const emoji = status === 'success' ? '✅' : '❌';
+            const color = status === 'success' ? 'good' : 'danger';
+            
+            // Create deployment status
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: context.payload.deployment?.id || 0,
+              state: status === 'success' ? 'success' : 'failure',
+              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              environment: 'production',
+              description: `Deployment ${status}`
+            });
+            
+            // Add comment to PR if exists
+            if (context.payload.pull_request) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body: `${emoji} Production deployment ${status}!\n\nView deployment: https://bootstrap-awareness.de`
+              });
+            }
+
+  rollback:
+    name: Rollback on Failure
+    needs: deploy
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ env.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+      
+      - name: Rollback deployment
+        run: |
+          ssh ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }} "
+            cd ${{ env.APP_DIR }}
+            
+            echo 'Rolling back to previous version...'
+            
+            # Stop current containers
+            docker-compose down
+            
+            # Start with previous images (tagged as 'previous')
+            docker-compose up -d
+            
+            echo 'Rollback completed'
+          "
+      
+      - name: Notify rollback
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request?.number || context.issue.number,
+              body: '⚠️ Production deployment failed and was rolled back to the previous version.'
+            });

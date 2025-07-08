@@ -496,5 +496,96 @@
       "title": "User Engagement Analytics",
       "allUsers": "All Users"
     }
+  },
+  "phishing": {
+    "dashboard": {
+      "title": "Phishing Simulation Dashboard",
+      "subtitle": "Monitor and manage phishing awareness training",
+      "totalCampaigns": "Total Campaigns",
+      "activeCampaigns": "Active Campaigns",
+      "usersTested": "Users Tested",
+      "overallClickRate": "Overall Click Rate",
+      "recentCampaigns": "Recent Campaigns",
+      "viewAll": "View All",
+      "noCampaigns": "No campaigns yet",
+      "clickRate": "Click Rate",
+      "highRisk": "High Risk",
+      "mediumRisk": "Medium Risk",
+      "lowRisk": "Low Risk",
+      "loadError": "Failed to load dashboard data",
+      "quickActions": {
+        "title": "Quick Actions",
+        "browseTemplates": "Browse phishing templates",
+        "viewAnalytics": "View detailed analytics",
+        "complianceReport": "Generate compliance report"
+      }
+    },
+    "campaigns": {
+      "title": "Phishing Campaigns",
+      "subtitle": "Manage your phishing simulation campaigns",
+      "create": "New Campaign",
+      "createFirst": "Create Your First Campaign",
+      "search": "Search campaigns...",
+      "allStatuses": "All Statuses",
+      "noCampaigns": "No campaigns found",
+      "noCampaignsDescription": "Get started by creating your first phishing simulation campaign.",
+      "loadError": "Failed to load campaigns",
+      "confirmCancel": "Are you sure you want to cancel this campaign?",
+      "startedAt": "Started on {{date}}",
+      "scheduledFor": "Scheduled for {{date}}",
+      "notScheduled": "Not scheduled",
+      "viewDetails": "View Details",
+      "start": "Start Campaign",
+      "cancel": "Cancel Campaign"
+    },
+    "templates": {
+      "title": "Phishing Template Library",
+      "subtitle": "Browse and manage phishing email templates",
+      "create": "New Template",
+      "search": "Search templates...",
+      "allCategories": "All Categories",
+      "allDifficulties": "All Difficulties",
+      "allLanguages": "All Languages",
+      "publicOnly": "Show public templates only",
+      "noTemplates": "No templates found",
+      "noTemplatesDescription": "Try adjusting your filters or create a new template.",
+      "loadError": "Failed to load templates",
+      "confirmDelete": "Are you sure you want to delete this template?",
+      "subject": "Subject",
+      "sender": "Sender",
+      "from": "From",
+      "content": "Email Content",
+      "landingPage": "Landing Page",
+      "language": "Language",
+      "preview": "Preview",
+      "previewTitle": "Template Preview",
+      "duplicate": "Duplicate",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "status": {
+      "draft": "Draft",
+      "scheduled": "Scheduled",
+      "running": "Running",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "category": {
+      "credential_harvesting": "Credential Harvesting",
+      "malware": "Malware",
+      "business_email_compromise": "Business Email Compromise",
+      "social_engineering": "Social Engineering",
+      "tech_support": "Tech Support Scam",
+      "invoice_fraud": "Invoice Fraud",
+      "package_delivery": "Package Delivery",
+      "social_media": "Social Media",
+      "general": "General"
+    },
+    "difficulty": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
+    "comingSoon": "Phishing Simulations Coming Soon!"
   }
 }

@@ -26,6 +26,13 @@ from .analytics import (
     CourseAnalytics, UserEngagement, RevenueAnalytics,
     PhishingAnalytics, RealtimeMetric
 )
+from .email_campaign import (
+    EmailTemplate, EmailTemplateType,
+    EmailCampaign, CampaignStatus,
+    EmailLog, EmailStatus,
+    EmailEvent, EmailPreference, EmailFrequency,
+    EmailBounce
+)
 
 __all__ = [
     "User",
@@ -74,4 +81,14 @@ __all__ = [
     "RevenueAnalytics",
     "PhishingAnalytics",
     "RealtimeMetric",
+    "EmailTemplate",
+    "EmailTemplateType",
+    "EmailCampaign",
+    "CampaignStatus",
+    "EmailLog",
+    "EmailStatus",
+    "EmailEvent",
+    "EmailPreference",
+    "EmailFrequency",
+    "EmailBounce",
 ]
