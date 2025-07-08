@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterAll, vi } from 'vitest';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import apiClient from './api';
@@ -7,10 +8,10 @@ const mock = new MockAdapter(axios);
 
 // Mock localStorage
 const localStorageMock = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
 };
 Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
@@ -372,7 +373,7 @@ describe('ApiClient', () => {
 
       try {
         await apiClient.axios.post('/test');
-        fail('Should have thrown an error');
+        throw new Error('Should have thrown an error');
       } catch (error: any) {
         expect(error.response.status).toBe(400);
         expect(error.response.data).toEqual(errorData);

@@ -1,30 +1,31 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useAuthStore } from './authStore';
 import apiClient from '../services/api';
 import toast from 'react-hot-toast';
 
 // Mock dependencies
-jest.mock('../services/api', () => ({
+vi.mock('../services/api', () => ({
   default: {
-    login: jest.fn(),
-    register: jest.fn(),
-    getCurrentUser: jest.fn(),
+    login: vi.fn(),
+    register: vi.fn(),
+    getCurrentUser: vi.fn(),
   },
 }));
 
-jest.mock('react-hot-toast', () => ({
+vi.mock('react-hot-toast', () => ({
   default: {
-    success: jest.fn(),
-    error: jest.fn(),
+    success: vi.fn(),
+    error: vi.fn(),
   },
 }));
 
 // Mock localStorage
 const localStorageMock = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
 };
 Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
@@ -33,7 +34,7 @@ Object.defineProperty(window, 'localStorage', {
 
 describe('authStore', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     localStorageMock.getItem.mockClear();
     localStorageMock.setItem.mockClear();
     localStorageMock.removeItem.mockClear();
@@ -78,7 +79,7 @@ describe('authStore', () => {
     };
 
     it('should login successfully', async () => {
-      (apiClient.login as jest.Mock).mockResolvedValueOnce(mockAuthResponse);
+      vi.mocked(apiClient.login).mockResolvedValueOnce(mockAuthResponse);
       
       const { result } = renderHook(() => useAuthStore());
       
@@ -97,7 +98,7 @@ describe('authStore', () => {
 
     it('should handle login failure', async () => {
       const errorMessage = 'Invalid credentials';
-      (apiClient.login as jest.Mock).mockRejectedValueOnce({
+      vi.mocked(apiClient.login).mockRejectedValueOnce({
         response: { data: { detail: errorMessage } },
       });
       
@@ -117,7 +118,7 @@ describe('authStore', () => {
     });
 
     it('should handle generic login error', async () => {
-      (apiClient.login as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
+      vi.mocked(apiClient.login).mockRejectedValueOnce(new Error('Network error'));
       
       const { result } = renderHook(() => useAuthStore());
       
@@ -134,7 +135,7 @@ describe('authStore', () => {
         resolveLogin = resolve;
       });
       
-      (apiClient.login as jest.Mock).mockReturnValueOnce(loginPromise);
+      vi.mocked(apiClient.login).mockReturnValueOnce(loginPromise);
       
       const { result } = renderHook(() => useAuthStore());
       
@@ -185,7 +186,7 @@ describe('authStore', () => {
     };
 
     it('should register successfully', async () => {
-      (apiClient.register as jest.Mock).mockResolvedValueOnce(mockAuthResponse);
+      vi.mocked(apiClient.register).mockResolvedValueOnce(mockAuthResponse);
       
       const { result } = renderHook(() => useAuthStore());
       
@@ -204,7 +205,7 @@ describe('authStore', () => {
 
     it('should handle registration failure', async () => {
       const errorMessage = 'Email already registered';
-      (apiClient.register as jest.Mock).mockRejectedValueOnce({
+      vi.mocked(apiClient.register).mockRejectedValueOnce({
         response: { data: { detail: errorMessage } },
       });
       
@@ -224,7 +225,7 @@ describe('authStore', () => {
     });
 
     it('should handle generic registration error', async () => {
-      (apiClient.register as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
+      vi.mocked(apiClient.register).mockRejectedValueOnce(new Error('Network error'));
       
       const { result } = renderHook(() => useAuthStore());
       
@@ -271,7 +272,7 @@ describe('authStore', () => {
 
     it('should check auth with valid token', async () => {
       localStorageMock.getItem.mockReturnValueOnce('valid-token');
-      (apiClient.getCurrentUser as jest.Mock).mockResolvedValueOnce(mockUser);
+      vi.mocked(apiClient.getCurrentUser).mockResolvedValueOnce(mockUser);
       
       const { result } = renderHook(() => useAuthStore());
       
@@ -301,7 +302,7 @@ describe('authStore', () => {
 
     it('should clear auth when token is invalid', async () => {
       localStorageMock.getItem.mockReturnValueOnce('invalid-token');
-      (apiClient.getCurrentUser as jest.Mock).mockRejectedValueOnce(new Error('Unauthorized'));
+      vi.mocked(apiClient.getCurrentUser).mockRejectedValueOnce(new Error('Unauthorized'));
       
       const { result } = renderHook(() => useAuthStore());
       

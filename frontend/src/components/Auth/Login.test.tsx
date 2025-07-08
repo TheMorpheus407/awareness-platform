@@ -4,10 +4,10 @@ import { vi } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LoginForm } from './LoginForm';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '../../store/authStore';
 
 // Mock the auth store
-vi.mock('@/store/authStore', () => ({
+vi.mock('../../store/authStore', () => ({
   useAuthStore: vi.fn(),
 }));
 
@@ -50,6 +50,7 @@ describe('Login Component', () => {
     (useAuthStore as any).mockReturnValue({
       login: mockLogin,
       isAuthenticated: false,
+      checkAuth: vi.fn(),
     });
   });
 

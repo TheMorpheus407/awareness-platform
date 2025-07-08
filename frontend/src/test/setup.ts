@@ -2,6 +2,7 @@ import '@testing-library/jest-dom';
 import { expect, afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import * as matchers from '@testing-library/jest-dom/matchers';
+import React from 'react';
 
 // Extend Vitest's expect with jest-dom matchers
 expect.extend(matchers);
@@ -9,6 +10,45 @@ expect.extend(matchers);
 // Cleanup after each test
 afterEach(() => {
   cleanup();
+});
+
+// Mock i18next
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+    i18n: {
+      changeLanguage: vi.fn(),
+      language: 'en',
+    },
+  }),
+  Trans: ({ children }: any) => children,
+  initReactI18next: {
+    type: '3rdParty',
+    init: vi.fn(),
+  },
+}));
+
+// Mock lucide-react icons globally
+vi.mock('lucide-react', () => {
+  const createIcon = (name: string) => {
+    return vi.fn(({ className, ...props }: any) => 
+      React.createElement('div', {
+        'data-testid': `${name.toLowerCase()}-icon`,
+        className,
+        ...props
+      }, `${name} Icon`)
+    );
+  };
+
+  // Create a proxy that returns a mock icon for any export
+  return new Proxy({}, {
+    get: (target, prop) => {
+      if (typeof prop === 'string') {
+        return createIcon(prop);
+      }
+      return undefined;
+    }
+  });
 });
 
 // Mock window.matchMedia
@@ -41,3 +81,17 @@ global.ResizeObserver = class ResizeObserver {
   observe() {}
   unobserve() {}
 };
+
+// Mock useAuthStore
+vi.mock('../store/authStore', () => ({
+  useAuthStore: vi.fn(() => ({
+    user: null,
+    token: null,
+    isAuthenticated: false,
+    isLoading: false,
+    login: vi.fn(),
+    register: vi.fn(),
+    logout: vi.fn(),
+    checkAuth: vi.fn(),
+  })),
+}));

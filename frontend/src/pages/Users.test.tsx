@@ -1,4 +1,5 @@
 import React from 'react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { Users } from './Users';
@@ -6,14 +7,14 @@ import apiClient from '../services/api';
 import { format } from 'date-fns';
 
 // Mock the API client
-jest.mock('../services/api', () => ({
+vi.mock('../services/api', () => ({
   default: {
-    getUsers: jest.fn(),
+    getUsers: vi.fn(),
   },
 }));
 
 // Mock the components
-jest.mock('../components/Common', () => ({
+vi.mock('../components/Common', () => ({
   LoadingSpinner: ({ size, className }: any) => (
     <div data-testid="loading-spinner" className={className}>Loading...</div>
   ),
@@ -80,11 +81,11 @@ const renderUsers = () => {
 
 describe('Users Page', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('displays loading state initially', () => {
-    (apiClient.getUsers as jest.Mock).mockImplementation(() => 
+    (apiClient.getUsers as any).mockImplementation(() => 
       new Promise(() => {}) // Never resolves to keep loading
     );
 
@@ -94,7 +95,7 @@ describe('Users Page', () => {
 
   it('displays error message when API call fails', async () => {
     const errorMessage = 'Failed to fetch users';
-    (apiClient.getUsers as jest.Mock).mockRejectedValueOnce({
+    (apiClient.getUsers as any).mockRejectedValueOnce({
       detail: errorMessage,
     });
 
@@ -107,7 +108,7 @@ describe('Users Page', () => {
   });
 
   it('displays users list when data is loaded', async () => {
-    (apiClient.getUsers as jest.Mock).mockResolvedValueOnce(mockUsers);
+    (apiClient.getUsers as any).mockResolvedValueOnce(mockUsers);
 
     renderUsers();
 
@@ -123,7 +124,7 @@ describe('Users Page', () => {
   });
 
   it('displays user details correctly', async () => {
-    (apiClient.getUsers as jest.Mock).mockResolvedValueOnce(mockUsers);
+    (apiClient.getUsers as any).mockResolvedValueOnce(mockUsers);
 
     renderUsers();
 
@@ -147,7 +148,7 @@ describe('Users Page', () => {
   });
 
   it('filters users based on search term', async () => {
-    (apiClient.getUsers as jest.Mock).mockResolvedValueOnce(mockUsers);
+    (apiClient.getUsers as any).mockResolvedValueOnce(mockUsers);
 
     renderUsers();
 
@@ -180,7 +181,7 @@ describe('Users Page', () => {
   });
 
   it('displays user avatars with correct initials', async () => {
-    (apiClient.getUsers as jest.Mock).mockResolvedValueOnce(mockUsers);
+    (apiClient.getUsers as any).mockResolvedValueOnce(mockUsers);
 
     renderUsers();
 
@@ -194,7 +195,7 @@ describe('Users Page', () => {
   });
 
   it('formats dates correctly', async () => {
-    (apiClient.getUsers as jest.Mock).mockResolvedValueOnce(mockUsers);
+    (apiClient.getUsers as any).mockResolvedValueOnce(mockUsers);
 
     renderUsers();
 
@@ -206,7 +207,7 @@ describe('Users Page', () => {
   });
 
   it('displays action buttons for each user', async () => {
-    (apiClient.getUsers as jest.Mock).mockResolvedValueOnce(mockUsers);
+    (apiClient.getUsers as any).mockResolvedValueOnce(mockUsers);
 
     renderUsers();
 
@@ -229,7 +230,7 @@ describe('Users Page', () => {
   });
 
   it('displays add user button', async () => {
-    (apiClient.getUsers as jest.Mock).mockResolvedValueOnce(mockUsers);
+    (apiClient.getUsers as any).mockResolvedValueOnce(mockUsers);
 
     renderUsers();
 
@@ -248,7 +249,7 @@ describe('Users Page', () => {
       page: 1,
     };
 
-    (apiClient.getUsers as jest.Mock).mockResolvedValueOnce(multiPageUsers);
+    (apiClient.getUsers as any).mockResolvedValueOnce(multiPageUsers);
 
     renderUsers();
 
@@ -276,7 +277,7 @@ describe('Users Page', () => {
       page: 3,
     };
 
-    (apiClient.getUsers as jest.Mock).mockResolvedValueOnce(lastPageUsers);
+    (apiClient.getUsers as any).mockResolvedValueOnce(lastPageUsers);
 
     renderUsers();
 
@@ -290,7 +291,7 @@ describe('Users Page', () => {
   });
 
   it('does not display pagination for single page', async () => {
-    (apiClient.getUsers as jest.Mock).mockResolvedValueOnce(mockUsers);
+    (apiClient.getUsers as any).mockResolvedValueOnce(mockUsers);
 
     renderUsers();
 
@@ -301,7 +302,7 @@ describe('Users Page', () => {
   });
 
   it('applies correct role badge colors', async () => {
-    (apiClient.getUsers as jest.Mock).mockResolvedValueOnce(mockUsers);
+    (apiClient.getUsers as any).mockResolvedValueOnce(mockUsers);
 
     renderUsers();
 
@@ -317,7 +318,7 @@ describe('Users Page', () => {
   });
 
   it('applies correct status badge colors', async () => {
-    (apiClient.getUsers as jest.Mock).mockResolvedValueOnce(mockUsers);
+    (apiClient.getUsers as any).mockResolvedValueOnce(mockUsers);
 
     renderUsers();
 
@@ -346,7 +347,7 @@ describe('Users Page', () => {
       ],
     };
 
-    (apiClient.getUsers as jest.Mock).mockResolvedValueOnce(usersWithoutFullName);
+    (apiClient.getUsers as any).mockResolvedValueOnce(usersWithoutFullName);
 
     renderUsers();
 
@@ -364,7 +365,7 @@ describe('Users Page', () => {
       page: 1,
     };
 
-    (apiClient.getUsers as jest.Mock)
+    (apiClient.getUsers as any)
       .mockResolvedValueOnce(multiPageUsers)
       .mockResolvedValueOnce({ ...multiPageUsers, page: 2 });
 

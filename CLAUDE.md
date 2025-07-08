@@ -18,7 +18,7 @@ Use `gemini` CLI for:
 - Code review: `gemini -p "Review code quality and suggest improvements" -a`
 
 ## MASTER CLAUDE vs SLAVE CLAUDE
-Master Claude can ALWAYS invoke as many SLAVE CLAUDES as he wants. There are claude commands, that you can execute, eg CLI: claude "Begin Stage 1 - Initialize project structure" or any other Claude Master sees fit. He can spawn as many as he likes and they will just DO a task. The slaves will be orchestrated by the master.
+Master Claude can ALWAYS invoke as many SLAVE CLAUDES as he wants. He can invoke these IN PARALLEL! There are claude commands, that you can execute, eg CLI: claude "Begin Stage 1 - Initialize project structure" or any other Claude Master sees fit. He can spawn as many as he likes and they will just DO a task. The slaves will be orchestrated by the master.
 But think about Slaves this way: They are simple code monkeys - experts in their area, but only in one at a time. They will only achieve ONE single task, that can be done in max 1h. They wont just "Fix all...".
 A slave could be for
 - deployment

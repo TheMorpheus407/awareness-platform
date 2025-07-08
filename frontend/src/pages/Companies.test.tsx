@@ -4,6 +4,7 @@ import { vi } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 import { Companies } from './Companies';
 import * as apiModule from '../services/api';
+import { useApi } from '../hooks/useApi';
 
 // Mock the API module
 vi.mock('../services/api', () => ({
@@ -17,28 +18,12 @@ vi.mock('../services/api', () => ({
 
 // Mock useApi hook
 vi.mock('../hooks/useApi', () => ({
-  useApi: vi.fn((apiCall) => {
-    const [loading, setLoading] = vi.fn();
-    const [error, setError] = vi.fn();
-    const [data, setData] = vi.fn();
-    
-    return {
-      data: null,
-      loading: false,
-      error: null,
-      refetch: vi.fn(),
-    };
-  }),
-}));
-
-// Mock lucide-react icons
-vi.mock('lucide-react', () => ({
-  Search: () => <div data-testid="search-icon">Search</div>,
-  Plus: () => <div data-testid="plus-icon">Plus</div>,
-  Edit: () => <div data-testid="edit-icon">Edit</div>,
-  Trash2: () => <div data-testid="trash-icon">Trash</div>,
-  Users: () => <div data-testid="users-icon">Users</div>,
-  Globe: () => <div data-testid="globe-icon">Globe</div>,
+  useApi: vi.fn(() => ({
+    data: null,
+    loading: false,
+    error: null,
+    refetch: vi.fn(),
+  })),
 }));
 
 // Mock date-fns
@@ -79,8 +64,7 @@ describe('Companies Component', () => {
   };
 
   const mockUseApi = (data = mockCompanies, loading = false, error = null) => {
-    const useApi = require('../hooks/useApi').useApi;
-    useApi.mockReturnValue({
+    vi.mocked(useApi).mockReturnValue({
       data,
       loading,
       error,

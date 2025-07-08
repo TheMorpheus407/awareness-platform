@@ -108,7 +108,7 @@ jobs:
       
       - name: Copy deployment files
         run: |
-          scp docker-compose.prod.yml ubuntu@83.228.205.20:/tmp/docker-compose.yml
+          scp docker-compose.prod.ghcr.yml ubuntu@83.228.205.20:/tmp/docker-compose.yml
           ssh ubuntu@83.228.205.20 "sudo mv /tmp/docker-compose.yml /opt/awareness/"
           
           if [ -f deployment/scripts/deploy-production.sh ]; then
@@ -163,10 +163,6 @@ jobs:
             # Pull latest images
             sudo docker pull ghcr.io/themorpheus407/awareness-platform/backend:latest
             sudo docker pull ghcr.io/themorpheus407/awareness-platform/frontend:latest
-            
-            # Update docker-compose.yml with correct image names
-            sudo sed -i "s|awareness-backend|ghcr.io/themorpheus407/awareness-platform/backend:latest|g" docker-compose.yml
-            sudo sed -i "s|awareness-frontend|ghcr.io/themorpheus407/awareness-platform/frontend:latest|g" docker-compose.yml
             
             # Stop existing containers
             sudo docker compose down

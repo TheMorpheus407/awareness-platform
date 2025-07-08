@@ -66,7 +66,6 @@ jobs:
         SECRET_KEY=test-secret-key-for-ci
         FRONTEND_URL=http://localhost:5173
         BACKEND_URL=http://localhost:8000
-        EMAIL_ENABLED=false
         EOF
     
     - name: Run database migrations
@@ -85,11 +84,26 @@ jobs:
       working-directory: ./frontend
       run: npx playwright install --with-deps
     
+    - name: Start backend server
+      working-directory: ./backend
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/awareness_test
+        REDIS_URL: redis://localhost:6379
+        SECRET_KEY: test-secret-key-for-ci
+        FRONTEND_URL: http://localhost:5173
+        CORS_ORIGINS: http://localhost:5173,http://localhost:3000
+        ENVIRONMENT: test
+      run: |
+        uvicorn main:app --host 0.0.0.0 --port 8000 &
+        sleep 10
+        curl -f http://localhost:8000/api/health || exit 1
+    
     - name: Run E2E tests
       working-directory: ./frontend
       env:
         CI: true
         PLAYWRIGHT_BASE_URL: http://localhost:5173
+        VITE_API_URL: http://localhost:8000
       run: npx playwright test
     
     - name: Upload test results

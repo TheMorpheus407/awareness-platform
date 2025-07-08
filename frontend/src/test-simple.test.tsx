@@ -6,7 +6,7 @@ describe('Simple Test', () => {
   })
 
   it('should verify environment', () => {
-    expect(typeof window).toBe('undefined')
+    expect(typeof window).toBe('object')
     expect(typeof global).toBe('object')
   })
 })
