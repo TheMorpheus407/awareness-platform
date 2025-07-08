@@ -102,69 +102,84 @@ jobs:
       
       - name: Create deployment directory on server
         run: |
-          ssh root@83.228.205.20 "mkdir -p /opt/awareness/{backend,frontend,scripts,nginx}"
+          ssh ubuntu@83.228.205.20 "sudo mkdir -p /opt/awareness/{backend,frontend,scripts,nginx,deployment/nginx/sites-enabled}"
       
       - name: Copy deployment files
         run: |
-          scp docker-compose.prod.yml root@83.228.205.20:/opt/awareness/docker-compose.yml
-          scp deployment/scripts/deploy-production.sh root@83.228.205.20:/opt/awareness/scripts/
-          scp deployment/nginx/sites-enabled/awareness-platform.conf root@83.228.205.20:/opt/awareness/nginx/
+          scp docker-compose.prod.yml ubuntu@83.228.205.20:/tmp/docker-compose.yml
+          ssh ubuntu@83.228.205.20 "sudo mv /tmp/docker-compose.yml /opt/awareness/"
+          
+          if [ -f deployment/scripts/deploy-production.sh ]; then
+            scp deployment/scripts/deploy-production.sh ubuntu@83.228.205.20:/tmp/deploy-production.sh
+            ssh ubuntu@83.228.205.20 "sudo mv /tmp/deploy-production.sh /opt/awareness/scripts/ && sudo chmod +x /opt/awareness/scripts/deploy-production.sh"
+          fi
+          
+          if [ -f deployment/nginx/sites-enabled/awareness-platform.conf ]; then
+            scp deployment/nginx/sites-enabled/awareness-platform.conf ubuntu@83.228.205.20:/tmp/awareness-platform.conf
+            ssh ubuntu@83.228.205.20 "sudo mv /tmp/awareness-platform.conf /opt/awareness/nginx/"
+          fi
       
       - name: Deploy application
+        env:
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
         run: |
-          ssh root@83.228.205.20 << 'EOF'
+          ssh ubuntu@83.228.205.20 << 'EOF'
             cd /opt/awareness
             
-            # Create .env file
-            cat > .env << 'ENVFILE'
+            # Create .env file with all required variables
+            sudo bash -c "cat > .env << 'ENVFILE'
             # Database
-            DATABASE_URL=postgresql://awareness_user:${DB_PASSWORD}@postgres:5432/awareness_db
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DATABASE_URL=postgresql://awareness_user:${{ secrets.DB_PASSWORD }}@postgres:5432/awareness_db
             POSTGRES_USER=awareness_user
-            POSTGRES_PASSWORD=${DB_PASSWORD}
+            POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }}
             POSTGRES_DB=awareness_db
+            DB_USER=awareness_user
             
             # Application
-            SECRET_KEY=${SECRET_KEY}
+            SECRET_KEY=${{ secrets.SECRET_KEY }}
             ALGORITHM=HS256
             ACCESS_TOKEN_EXPIRE_MINUTES=30
             REFRESH_TOKEN_EXPIRE_DAYS=7
             
             # Email
-            SMTP_HOST=smtp.sendgrid.net
-            SMTP_PORT=587
-            SMTP_USER=apikey
-            SMTP_PASSWORD=${SENDGRID_API_KEY}
-            EMAIL_FROM=noreply@bootstrap-awareness.de
+            EMAIL_FROM=kontakt@bootstrap-awareness.de
+            EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}
             
             # Frontend
             VITE_API_URL=https://bootstrap-awareness.de/api
+            FRONTEND_URL=https://bootstrap-awareness.de
             
             # Redis
             REDIS_URL=redis://redis:6379
-            ENVFILE
+            REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+            ENVFILE"
             
             # Pull latest images
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
+            sudo docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
+            sudo docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
             
             # Update docker-compose.yml with correct image names
-            sed -i "s|backend:latest|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest|g" docker-compose.yml
-            sed -i "s|frontend:latest|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest|g" docker-compose.yml
+            sudo sed -i "s|awareness-backend|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest|g" docker-compose.yml
+            sudo sed -i "s|awareness-frontend|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest|g" docker-compose.yml
             
             # Stop existing containers
-            docker-compose down
+            sudo docker compose down
             
             # Start new containers
-            docker-compose up -d
+            sudo docker compose up -d
             
             # Wait for services to be ready
             sleep 30
             
             # Run database migrations
-            docker-compose exec -T backend alembic upgrade head
+            sudo docker compose exec -T backend alembic upgrade head
             
             # Create superuser if not exists
-            docker-compose exec -T backend python scripts/create_superuser.py || true
+            sudo docker compose exec -T backend python scripts/create_superuser.py || true
           EOF
       
       - name: Health check

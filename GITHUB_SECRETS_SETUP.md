@@ -34,19 +34,26 @@ Application secret key for JWT tokens.
    - Name: `SECRET_KEY`
    - Value: Your generated key
 
-### 4. SENDGRID_API_KEY (Optional)
-For email functionality (password reset, notifications).
+### 4. EMAIL_PASSWORD (Required)
+Email password for sending notifications.
 
 **Setup**:
-1. Create a SendGrid account at https://sendgrid.com
-2. Generate an API key
-3. Add as GitHub secret:
-   - Name: `SENDGRID_API_KEY`
-   - Value: Your SendGrid API key
+1. Add as GitHub secret:
+   - Name: `EMAIL_PASSWORD`
+   - Value: `5X58dee2u3ov6ffGTMBUjh6tjZFB3vU2qhGvyRC`
+
+### 5. REDIS_PASSWORD (Required)
+Redis password for caching.
+
+**Setup**:
+1. Generate using: `openssl rand -base64 32`
+2. Add as GitHub secret:
+   - Name: `REDIS_PASSWORD`
+   - Value: Your generated password
 
 ## Quick Setup Script
 
-Run this script to generate the required values:
+Run this script to see all required values:
 
 ```bash
 #!/bin/bash
@@ -54,13 +61,19 @@ Run this script to generate the required values:
 echo "=== GitHub Secrets Values ==="
 echo ""
 echo "1. SSH_PRIVATE_KEY:"
-echo "Copy from: bootstrap-awareness private key.txt"
+echo "   Copy from: bootstrap-awareness private key.txt"
 echo ""
 echo "2. DB_PASSWORD:"
-openssl rand -base64 32
+echo "   nTcd+XAQ+xUbUbNlU7MNr3rYUWKldLXnj6O/k633daY="
 echo ""
 echo "3. SECRET_KEY:"
-openssl rand -hex 32
+echo "   8eb9afc6e39da58b95628f1505bf1107c7f9f0243990d7acd4ba23f82694b1e5"
+echo ""
+echo "4. EMAIL_PASSWORD:"
+echo "   5X58dee2u3ov6ffGTMBUjh6tjZFB3vU2qhGvyRC"
+echo ""
+echo "5. REDIS_PASSWORD:"
+echo "   redis_595e9ffc5e32e7fc6d8cbae32a9e610c"
 echo ""
 echo "Save these values and add them as GitHub secrets!"
 ```
@@ -73,7 +86,8 @@ After adding all secrets:
    - SSH_PRIVATE_KEY
    - DB_PASSWORD
    - SECRET_KEY
-   - SENDGRID_API_KEY (optional)
+   - EMAIL_PASSWORD
+   - REDIS_PASSWORD
 
 ## Deployment
 
