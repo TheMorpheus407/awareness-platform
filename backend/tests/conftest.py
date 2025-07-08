@@ -14,61 +14,13 @@ sys.path.insert(0, str(backend_dir))
 os.environ["DATABASE_URL"] = "postgresql://test:test@localhost/test"
 os.environ["SECRET_KEY"] = "test-secret-key"
 os.environ["FRONTEND_URL"] = "http://localhost:5173"
+os.environ["TESTING"] = "true"
 
 from httpx import AsyncClient
-from sqlalchemy import create_engine, event, TypeDecorator, CHAR
+from sqlalchemy import create_engine, event, TypeDecorator, CHAR, String
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 from fastapi.testclient import TestClient
-from sqlalchemy.dialects.postgresql import UUID as PostgreSQLUUID
-
-# Create a UUID type that works with SQLite
-class UUID(TypeDecorator):
-    """Platform-independent UUID type.
-    
-    Uses PostgreSQL's UUID type, otherwise uses CHAR(36), storing as stringified hex values.
-    """
-    impl = CHAR
-    cache_ok = True
-
-    def load_dialect_impl(self, dialect):
-        if dialect.name == "postgresql":
-            return dialect.type_descriptor(PostgreSQLUUID(as_uuid=True))
-        else:
-            return dialect.type_descriptor(CHAR(36))
-
-    def process_bind_param(self, value, dialect):
-        if value is None:
-            return value
-        if dialect.name == "postgresql":
-            return value
-        else:
-            if isinstance(value, uuid.UUID):
-                return str(value)
-            else:
-                return value
-
-    def process_result_value(self, value, dialect):
-        if value is None:
-            return value
-        if dialect.name == "postgresql":
-            return value
-        else:
-            return uuid.UUID(value)
-
-
-# Monkey-patch the UUID type for SQLite compatibility in tests BEFORE importing models
-import sqlalchemy.dialects.postgresql
-sqlalchemy.dialects.postgresql.UUID = UUID
-
-# Now import models and app after patching UUID
-from db.base import Base
-from db.session import get_db
-from core.config import settings
-from models.user import User
-from models.company import Company
-from core.security import get_password_hash
-from main import app
 
 # Test database URL
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
@@ -93,6 +45,85 @@ def override_get_db():
         db.close()
 
 
+# Add UUID compatibility for SQLite
+@event.listens_for(engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    """Enable foreign keys for SQLite."""
+    if "sqlite" in SQLALCHEMY_DATABASE_URL:
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
+
+
+# Monkey patch PostgreSQL types to work with SQLite
+from sqlalchemy.dialects import postgresql
+import json
+
+class SQLiteUUID(TypeDecorator):
+    """Platform-independent UUID type that works with SQLite."""
+    impl = String(36)
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return value
+        if isinstance(value, uuid.UUID):
+            return str(value)
+        return value
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return value
+        if not isinstance(value, uuid.UUID):
+            value = uuid.UUID(value)
+        return value
+
+
+class SQLiteARRAY(TypeDecorator):
+    """SQLite-compatible ARRAY type using JSON."""
+    impl = String()
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return value
+        return json.dumps(value)
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return value
+        return json.loads(value)
+
+
+# Override PostgreSQL types to use our compatible versions in tests
+original_uuid = postgresql.UUID
+original_array = postgresql.ARRAY
+
+def patched_uuid(*args, **kwargs):
+    # Remove as_uuid argument for SQLite compatibility
+    kwargs.pop('as_uuid', None)
+    if 'sqlite' in engine.url.drivername:
+        return SQLiteUUID(*args, **kwargs)
+    return original_uuid(*args, **kwargs)
+
+def patched_array(*args, **kwargs):
+    if 'sqlite' in engine.url.drivername:
+        return SQLiteARRAY(*args, **kwargs)
+    return original_array(*args, **kwargs)
+
+postgresql.UUID = patched_uuid
+postgresql.ARRAY = patched_array
+
+# Now import models and app after setting up UUID compatibility
+from main import app
+from db.base import Base
+from db.session import get_db
+from core.config import settings
+from models.user import User
+from models.company import Company
+from core.security import get_password_hash
+
+
 @pytest.fixture(scope="session")
 def event_loop():
     """Create an instance of the default event loop for the test session."""
@@ -103,18 +134,22 @@ def event_loop():
 
 @pytest.fixture(scope="function")
 def db_session():
-    """Create a fresh database for each test."""
+    """Create a new database session for a test."""
+    # Create tables
     Base.metadata.create_all(bind=engine)
-    db = TestingSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-        Base.metadata.drop_all(bind=engine)
+    
+    # Create session
+    session = TestingSessionLocal()
+    
+    yield session
+    
+    # Cleanup
+    session.close()
+    Base.metadata.drop_all(bind=engine)
 
 
 @pytest.fixture(scope="function")
-def client(db_session) -> Generator:
+def client(db_session) -> TestClient:
     """Create a test client."""
     app.dependency_overrides[get_db] = lambda: db_session
     with TestClient(app) as c:
