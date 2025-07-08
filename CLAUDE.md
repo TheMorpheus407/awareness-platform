@@ -32,6 +32,8 @@ A slave could be for
 - ...
 [You may update more Slave ideas here, that you found worked well; You really dont need to do everything yourself :)]
 These slaves will often take more than 10 minutes to complete, thats normal.
+Your slaves will probably require permission to change files. Start them with claude "your prompt" --dangerously-skip-permissions to give them permission
+Do start them in the background, if you can parallelize work. Eg: Working on backend doesnt require waiting for the slave from the frontend. When you started all your slaves wait until they're finished.
 
 ## 📁 PROJECT STRUCTURE
 

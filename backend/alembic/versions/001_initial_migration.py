@@ -1,6 +1,6 @@
 """Initial migration with users and companies
 
-Revision ID: 001
+Revision ID: 1a2b3c4d5e6f
 Revises: 
 Create Date: 2025-01-07 16:00:00.000000
 

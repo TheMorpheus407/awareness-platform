@@ -1,7 +1,7 @@
 """Add core tables for courses, phishing, and analytics
 
-Revision ID: 002_add_core_tables
-Revises: 001_initial_migration
+Revision ID: 2b3c4d5e6f7a
+Revises: 1a2b3c4d5e6f
 Create Date: 2025-07-07
 
 """
