@@ -19,7 +19,7 @@ Copy the entire content from: bootstrap-awareness private key.txt
 
 ### 2. DB_PASSWORD
 ```
-nTcd+XAQ+xUbUbNlU7MNr3rYUWKldLXnj6O/k633daY=
+AwarenessDB2024Secure
 ```
 
 ### 3. SECRET_KEY
