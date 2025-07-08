@@ -135,10 +135,10 @@ jobs:
             sudo bash -c "cat > .env << 'ENVFILE'
             # Database
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-            DATABASE_URL=postgresql://awareness_user:${{ secrets.DB_PASSWORD }}@postgres:5432/awareness_db
+            DATABASE_URL=postgresql://awareness_user:${{ secrets.DB_PASSWORD }}@postgres:5432/awareness_platform
             POSTGRES_USER=awareness_user
             POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }}
-            POSTGRES_DB=awareness_db
+            POSTGRES_DB=awareness_platform
             DB_USER=awareness_user
             
             # Application
