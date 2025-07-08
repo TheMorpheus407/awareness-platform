@@ -8,7 +8,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   test:
@@ -75,7 +74,7 @@ jobs:
           context: ./backend
           file: ./backend/Dockerfile.prod
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
+          tags: ghcr.io/themorpheus407/awareness-platform/backend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
       
@@ -85,7 +84,7 @@ jobs:
           context: ./frontend
           file: ./frontend/Dockerfile.prod
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
+          tags: ghcr.io/themorpheus407/awareness-platform/frontend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -161,12 +160,12 @@ jobs:
             ENVFILE"
             
             # Pull latest images
-            sudo docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
-            sudo docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
+            sudo docker pull ghcr.io/themorpheus407/awareness-platform/backend:latest
+            sudo docker pull ghcr.io/themorpheus407/awareness-platform/frontend:latest
             
             # Update docker-compose.yml with correct image names
-            sudo sed -i "s|awareness-backend|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest|g" docker-compose.yml
-            sudo sed -i "s|awareness-frontend|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest|g" docker-compose.yml
+            sudo sed -i "s|awareness-backend|ghcr.io/themorpheus407/awareness-platform/backend:latest|g" docker-compose.yml
+            sudo sed -i "s|awareness-frontend|ghcr.io/themorpheus407/awareness-platform/frontend:latest|g" docker-compose.yml
             
             # Stop existing containers
             sudo docker compose down
