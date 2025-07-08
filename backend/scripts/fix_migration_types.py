@@ -22,8 +22,8 @@ def fix_migration_types():
     types_to_recreate = [
         ('companysize', ['small', 'medium', 'large', 'enterprise']),
         ('subscriptiontier', ['free', 'starter', 'professional', 'enterprise']),
-        ('userrole', ['user', 'company_admin', 'admin']),
-        ('companystatus', ['active', 'inactive', 'suspended']),
+        ('userrole', ['system_admin', 'company_admin', 'manager', 'employee']),
+        ('companystatus', ['trial', 'active', 'suspended', 'cancelled']),
     ]
     
     with engine.begin() as conn:

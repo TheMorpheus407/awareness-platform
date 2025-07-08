@@ -8,6 +8,7 @@ Create Date: 2025-01-07 16:00:00.000000
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
+from sqlalchemy.sql import text
 
 # revision identifiers, used by Alembic.
 revision = '1a2b3c4d5e6f'
@@ -17,23 +18,64 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Create custom enums with checkfirst=True to avoid conflicts
-    user_role_enum = postgresql.ENUM('user', 'company_admin', 'admin', name='userrole')
-    user_role_enum.create(op.get_bind(), checkfirst=True)
+    # Create custom enums separately to avoid conflicts
+    # Using sa.Enum in column definitions to prevent duplicate creation attempts
     
-    company_size_enum = postgresql.ENUM('small', 'medium', 'large', 'enterprise', name='companysize')
-    company_size_enum.create(op.get_bind(), checkfirst=True)
+    # First, create the ENUM types if they don't exist
+    connection = op.get_bind()
     
-    subscription_tier_enum = postgresql.ENUM('free', 'starter', 'professional', 'enterprise', name='subscriptiontier')
-    subscription_tier_enum.create(op.get_bind(), checkfirst=True)
+    # Check and create user_role enum
+    result = connection.execute(
+        text("SELECT 1 FROM pg_type WHERE typname = 'userrole'")
+    ).fetchone()
+    if not result:
+        user_role_enum = postgresql.ENUM(
+            'system_admin', 'company_admin', 'manager', 'employee',
+            name='userrole'
+        )
+        user_role_enum.create(connection)
+    
+    # Check and create company_size enum
+    result = connection.execute(
+        text("SELECT 1 FROM pg_type WHERE typname = 'companysize'")
+    ).fetchone()
+    if not result:
+        company_size_enum = postgresql.ENUM(
+            'small', 'medium', 'large', 'enterprise',
+            name='companysize'
+        )
+        company_size_enum.create(connection)
+    
+    # Check and create subscription_tier enum
+    result = connection.execute(
+        text("SELECT 1 FROM pg_type WHERE typname = 'subscriptiontier'")
+    ).fetchone()
+    if not result:
+        subscription_tier_enum = postgresql.ENUM(
+            'free', 'starter', 'professional', 'enterprise',
+            name='subscriptiontier'
+        )
+        subscription_tier_enum.create(connection)
+    
+    # Check and create company_status enum
+    result = connection.execute(
+        text("SELECT 1 FROM pg_type WHERE typname = 'companystatus'")
+    ).fetchone()
+    if not result:
+        company_status_enum = postgresql.ENUM(
+            'trial', 'active', 'suspended', 'cancelled',
+            name='companystatus'
+        )
+        company_status_enum.create(connection)
     
     # Create companies table
     op.create_table('companies',
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('name', sa.String(length=255), nullable=False),
         sa.Column('domain', sa.String(length=255), nullable=False),
-        sa.Column('size', company_size_enum, nullable=False, server_default='small'),
-        sa.Column('subscription_tier', subscription_tier_enum, nullable=False, server_default='free'),
+        sa.Column('size', sa.Enum('small', 'medium', 'large', 'enterprise', name='companysize', create_type=False), nullable=False, server_default='small'),
+        sa.Column('status', sa.Enum('trial', 'active', 'suspended', 'cancelled', name='companystatus', create_type=False), nullable=False, server_default='trial'),
+        sa.Column('subscription_tier', sa.Enum('free', 'starter', 'professional', 'enterprise', name='subscriptiontier', create_type=False), nullable=False, server_default='free'),
         sa.Column('max_users', sa.Integer(), nullable=False, server_default='10'),
         sa.Column('industry', sa.String(length=100), nullable=True),
         sa.Column('country', sa.String(length=100), nullable=True),
@@ -61,7 +103,7 @@ def upgrade() -> None:
         sa.Column('first_name', sa.String(length=100), nullable=False),
         sa.Column('last_name', sa.String(length=100), nullable=False),
         sa.Column('phone', sa.String(length=20), nullable=True),
-        sa.Column('role', sa.String(length=50), nullable=False, server_default='user'),
+        sa.Column('role', sa.Enum('system_admin', 'company_admin', 'manager', 'employee', name='userrole', create_type=False), nullable=False, server_default='employee'),
         sa.Column('is_active', sa.Boolean(), nullable=False, server_default='true'),
         sa.Column('is_verified', sa.Boolean(), nullable=False, server_default='false'),
         sa.Column('verified_at', sa.DateTime(), nullable=True),
@@ -123,12 +165,11 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_companies_domain'), table_name='companies')
     op.drop_table('companies')
     
-    # Drop enums
-    subscription_tier_enum = postgresql.ENUM('free', 'starter', 'professional', 'enterprise', name='subscriptiontier')
-    subscription_tier_enum.drop(op.get_bind())
+    # Drop enums - using raw SQL to ensure they're dropped even if values have changed
+    connection = op.get_bind()
     
-    company_size_enum = postgresql.ENUM('small', 'medium', 'large', 'enterprise', name='companysize')
-    company_size_enum.drop(op.get_bind())
-    
-    user_role_enum = postgresql.ENUM('user', 'company_admin', 'admin', name='userrole')
-    user_role_enum.drop(op.get_bind())
+    # Drop ENUMs if they exist
+    connection.execute(text("DROP TYPE IF EXISTS subscriptiontier CASCADE;"))
+    connection.execute(text("DROP TYPE IF EXISTS companystatus CASCADE;"))
+    connection.execute(text("DROP TYPE IF EXISTS companysize CASCADE;"))
+    connection.execute(text("DROP TYPE IF EXISTS userrole CASCADE;"))
