@@ -297,5 +297,97 @@
       "impressum": "Impressum",
       "rights": "All rights reserved."
     }
+  },
+  "pricing": {
+    "title": "Choose Your Plan",
+    "subtitle": "Select the perfect plan for your organization",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "yearlySave": "Save 20%",
+    "popular": "Most Popular",
+    "selectPlan": "Select Plan",
+    "interval": {
+      "month": "month",
+      "year": "year"
+    },
+    "enterprise": {
+      "need": "Need a custom solution?",
+      "contact": "Contact Sales"
+    },
+    "comparison": {
+      "title": "Compare Plans",
+      "feature": "Feature"
+    }
+  },
+  "payment": {
+    "checkout": {
+      "title": "Complete Your Subscription",
+      "subtitle": "Enter your payment details to get started",
+      "paymentDetails": "Payment Details",
+      "processing": "Processing...",
+      "subscribe": "Subscribe Now",
+      "backToPricing": "Back to Pricing"
+    },
+    "error": {
+      "generic": "An error occurred. Please try again.",
+      "setupIntent": "Failed to initialize payment. Please try again."
+    }
+  },
+  "billing": {
+    "title": "Billing & Subscription",
+    "subscription": {
+      "title": "Subscription Details",
+      "status": "Status",
+      "plan": "Current Plan",
+      "currentPeriod": "Current Period",
+      "trialEnds": "Trial Ends",
+      "cancelsAt": "Cancels At",
+      "changePlan": "Change Plan",
+      "cancel": "Cancel Subscription",
+      "none": "No active subscription",
+      "subscribe": "Subscribe Now",
+      "statuses": {
+        "trialing": "Trial",
+        "active": "Active",
+        "incomplete": "Incomplete",
+        "incomplete_expired": "Incomplete Expired",
+        "past_due": "Past Due",
+        "canceled": "Canceled",
+        "unpaid": "Unpaid"
+      },
+      "intervals": {
+        "monthly": "month",
+        "yearly": "year"
+      }
+    },
+    "paymentMethods": {
+      "title": "Payment Methods",
+      "add": "Add Payment Method",
+      "expires": "Expires",
+      "default": "Default",
+      "none": "No payment methods on file"
+    },
+    "invoices": {
+      "title": "Invoices",
+      "number": "Invoice #",
+      "date": "Date",
+      "amount": "Amount",
+      "status": "Status",
+      "actions": "Actions",
+      "download": "Download",
+      "none": "No invoices yet",
+      "statuses": {
+        "draft": "Draft",
+        "open": "Open",
+        "paid": "Paid",
+        "uncollectible": "Uncollectible",
+        "void": "Void"
+      }
+    },
+    "cancelModal": {
+      "title": "Cancel Subscription",
+      "message": "Are you sure you want to cancel your subscription? You will continue to have access until the end of your current billing period.",
+      "confirm": "Yes, Cancel Subscription"
+    }
   }
 }

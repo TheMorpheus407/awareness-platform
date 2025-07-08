@@ -297,5 +297,97 @@
       "impressum": "Impressum",
       "rights": "Alle Rechte vorbehalten."
     }
+  },
+  "pricing": {
+    "title": "Wählen Sie Ihren Plan",
+    "subtitle": "Wählen Sie den perfekten Plan für Ihre Organisation",
+    "monthly": "Monatlich",
+    "yearly": "Jährlich",
+    "yearlySave": "20% sparen",
+    "popular": "Beliebteste Wahl",
+    "selectPlan": "Plan auswählen",
+    "interval": {
+      "month": "Monat",
+      "year": "Jahr"
+    },
+    "enterprise": {
+      "need": "Benötigen Sie eine individuelle Lösung?",
+      "contact": "Vertrieb kontaktieren"
+    },
+    "comparison": {
+      "title": "Pläne vergleichen",
+      "feature": "Funktion"
+    }
+  },
+  "payment": {
+    "checkout": {
+      "title": "Abonnement abschließen",
+      "subtitle": "Geben Sie Ihre Zahlungsdaten ein, um loszulegen",
+      "paymentDetails": "Zahlungsdetails",
+      "processing": "Verarbeitung...",
+      "subscribe": "Jetzt abonnieren",
+      "backToPricing": "Zurück zu den Preisen"
+    },
+    "error": {
+      "generic": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+      "setupIntent": "Zahlung konnte nicht initialisiert werden. Bitte versuchen Sie es erneut."
+    }
+  },
+  "billing": {
+    "title": "Abrechnung & Abonnement",
+    "subscription": {
+      "title": "Abonnementdetails",
+      "status": "Status",
+      "plan": "Aktueller Plan",
+      "currentPeriod": "Aktuelle Periode",
+      "trialEnds": "Testversion endet",
+      "cancelsAt": "Kündigung am",
+      "changePlan": "Plan ändern",
+      "cancel": "Abonnement kündigen",
+      "none": "Kein aktives Abonnement",
+      "subscribe": "Jetzt abonnieren",
+      "statuses": {
+        "trialing": "Testversion",
+        "active": "Aktiv",
+        "incomplete": "Unvollständig",
+        "incomplete_expired": "Unvollständig abgelaufen",
+        "past_due": "Überfällig",
+        "canceled": "Gekündigt",
+        "unpaid": "Unbezahlt"
+      },
+      "intervals": {
+        "monthly": "Monat",
+        "yearly": "Jahr"
+      }
+    },
+    "paymentMethods": {
+      "title": "Zahlungsmethoden",
+      "add": "Zahlungsmethode hinzufügen",
+      "expires": "Läuft ab",
+      "default": "Standard",
+      "none": "Keine Zahlungsmethoden hinterlegt"
+    },
+    "invoices": {
+      "title": "Rechnungen",
+      "number": "Rechnung #",
+      "date": "Datum",
+      "amount": "Betrag",
+      "status": "Status",
+      "actions": "Aktionen",
+      "download": "Herunterladen",
+      "none": "Noch keine Rechnungen",
+      "statuses": {
+        "draft": "Entwurf",
+        "open": "Offen",
+        "paid": "Bezahlt",
+        "uncollectible": "Uneinbringlich",
+        "void": "Ungültig"
+      }
+    },
+    "cancelModal": {
+      "title": "Abonnement kündigen",
+      "message": "Sind Sie sicher, dass Sie Ihr Abonnement kündigen möchten? Sie haben weiterhin Zugriff bis zum Ende Ihrer aktuellen Abrechnungsperiode.",
+      "confirm": "Ja, Abonnement kündigen"
+    }
   }
 }

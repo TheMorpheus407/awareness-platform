@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from .routes import auth, users, companies, health, email_verification, password_reset, two_factor
+from .routes import auth, users, companies, health, email_verification, password_reset, two_factor, payments
 
 api_router = APIRouter(prefix="/v1")
 
@@ -14,5 +14,6 @@ api_router.include_router(password_reset.router, prefix="/auth/password", tags=[
 api_router.include_router(two_factor.router, prefix="/auth/2fa", tags=["two-factor-auth"])
 api_router.include_router(users.router, prefix="/users", tags=["users"])
 api_router.include_router(companies.router, prefix="/companies", tags=["companies"])
+api_router.include_router(payments.router, prefix="/payments", tags=["payments"])
 
 __all__ = ["api_router"]

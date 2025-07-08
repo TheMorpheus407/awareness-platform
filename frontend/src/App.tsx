@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ProtectedRoute } from './components/Auth';
 import { MainLayout } from './components/Layout';
 import { Login, Register, Dashboard, Users, Companies, Landing } from './pages';
+import { PricingPage, CheckoutForm, BillingDashboard } from './components/Payment';
 
 function App() {
   const { t } = useTranslation();
@@ -36,6 +37,7 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/pricing" element={<PricingPage />} />
         
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>
@@ -47,6 +49,8 @@ function App() {
             <Route path="/phishing" element={<div className="text-2xl font-bold">{t('phishing.comingSoon')}</div>} />
             <Route path="/reports" element={<div className="text-2xl font-bold">{t('reports.comingSoon')}</div>} />
             <Route path="/settings" element={<div className="text-2xl font-bold">{t('settings.comingSoon')}</div>} />
+            <Route path="/checkout" element={<CheckoutForm />} />
+            <Route path="/billing" element={<BillingDashboard />} />
           </Route>
         </Route>
       </Routes>

@@ -77,6 +77,13 @@ class Settings(BaseSettings):
     # External APIs
     YOUTUBE_API_KEY: Optional[str] = None
     
+    # Stripe Configuration
+    STRIPE_SECRET_KEY: str
+    STRIPE_PUBLISHABLE_KEY: str
+    STRIPE_WEBHOOK_SECRET: str
+    STRIPE_SUCCESS_URL: Optional[str] = None
+    STRIPE_CANCEL_URL: Optional[str] = None
+    
     # Frontend URL
     FRONTEND_URL: AnyHttpUrl
     
@@ -103,3 +110,8 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+def get_settings() -> Settings:
+    """Get application settings."""
+    return settings
