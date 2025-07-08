@@ -61,5 +61,21 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
         return response
 
 
+class RateLimitMiddleware(BaseHTTPMiddleware):
+    """Rate limiting middleware."""
+    
+    def __init__(self, app, limiter: Limiter):
+        super().__init__(app)
+        self.limiter = limiter
+    
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        # Rate limiting is handled by the limiter decorator on individual routes
+        return await call_next(request)
+
+
 # Create rate limiter instance
 limiter = Limiter(key_func=get_remote_address)
+
+
+# Export all middleware components
+__all__ = ['limiter', 'SecurityHeadersMiddleware', 'RateLimitMiddleware', 'RequestIdMiddleware']
