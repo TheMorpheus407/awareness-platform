@@ -13,7 +13,11 @@ export const useAuth = () => {
   } = useAuthStore();
 
   useEffect(() => {
-    checkAuth();
+    // Only check auth if there's a token, preventing unnecessary 401s on public pages
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      checkAuth();
+    }
   }, []);
 
   return {

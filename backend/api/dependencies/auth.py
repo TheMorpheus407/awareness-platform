@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from core.config import settings
-from core.exceptions import InsufficientPermissionsError, UnauthorizedError
+from core.exceptions import AuthenticationError, AuthorizationError
 from db.session import get_db
 from models.user import User, UserRole
 
