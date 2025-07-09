@@ -21,7 +21,8 @@ import {
   BarChart3
 } from 'lucide-react';
 import { phishingApi } from '../../services/phishingApi';
-import type { PhishingCampaign, CampaignStatus } from '../../types/phishing';
+import type { PhishingCampaign } from '../../types/phishing';
+import { CampaignStatus } from '../../types/phishing';
 import { LoadingSpinner } from '../Common/LoadingSpinner';
 import { formatPercentage, formatDate } from '../../utils/format';
 

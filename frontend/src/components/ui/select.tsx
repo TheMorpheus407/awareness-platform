@@ -15,7 +15,7 @@ interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>
   onChange: (value: string) => void;
 }
 
-export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
+export const SimpleSelect = React.forwardRef<HTMLSelectElement, SelectProps>(
   ({ label, error, helperText, options, value, onChange, className, ...props }, ref) => {
     return (
       <div className="w-full">
@@ -56,7 +56,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
   }
 );
 
-Select.displayName = 'Select';
+SimpleSelect.displayName = 'SimpleSelect';
 
 // Alternative API for shadcn/ui-like usage
 interface SelectContextValue {
@@ -96,8 +96,7 @@ export const SelectRoot: React.FC<{
   );
 };
 
-// Export the new Select as the default
-export { SelectRoot as Select };
+// Export the new Select API components
 
 export const SelectTrigger: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => {
   const context = React.useContext(SelectContext);
@@ -159,3 +158,6 @@ export const SelectItem: React.FC<{ children: React.ReactNode; value: string }> 
     </div>
   );
 };
+
+// Export SelectRoot as Select for the new API
+export { SelectRoot as Select };

@@ -49,13 +49,13 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('backend/backend/requirements*.txt') }}
+        key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements*.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-
           
     - name: Install dependencies
       run: |
-        cd backend/backend
+        cd backend
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
@@ -64,7 +64,7 @@ jobs:
         
     - name: Fix pytest setup
       run: |
-        cd backend/backend
+        cd backend
         # Run the pytest fix script
         python scripts/fix_pytest_ci.py || echo "Fix script not critical"
         
@@ -83,9 +83,9 @@ jobs:
         SMTP_USERNAME: test@example.com
         SMTP_FROM_EMAIL: test@example.com
         SMTP_FROM_NAME: Test Platform
-        PYTHONPATH: /home/runner/work/${{ github.event.repository.name }}/${{ github.event.repository.name }}/backend/backend
+        PYTHONPATH: /home/runner/work/${{ github.event.repository.name }}/${{ github.event.repository.name }}/backend
       run: |
-        cd backend/backend
+        cd backend
         
         # First attempt: Run full test suite
         if pytest -v --cov=. --cov-report=xml --cov-report=html; then
@@ -118,7 +118,7 @@ jobs:
         
     - name: Check backend coverage
       run: |
-        cd backend/backend
+        cd backend
         # Check if coverage.xml exists
         if [ -f coverage.xml ]; then
           echo "Coverage report exists"
@@ -136,7 +136,7 @@ jobs:
     - name: Upload coverage reports
       uses: codecov/codecov-action@v3
       with:
-        file: ./backend/backend/coverage.xml
+        file: ./backend/coverage.xml
         flags: backend
         name: backend-coverage
         fail_ci_if_error: false  # Don't fail if coverage upload fails
@@ -234,7 +234,7 @@ jobs:
         
     - name: Install backend dependencies
       run: |
-        cd backend/backend
+        cd backend
         pip install -r requirements.txt
         
     - name: Run migrations
@@ -252,7 +252,7 @@ jobs:
         STRIPE_PUBLISHABLE_KEY: pk_test_dummy_key_for_ci
         STRIPE_WEBHOOK_SECRET: whsec_test_dummy_secret_for_ci
       run: |
-        cd backend/backend
+        cd backend
         # Fix enum conflicts before migration
         python scripts/ci_migration_fix.py || echo "Warning: Failed to fix migration types"
         # Run migrations with retry logic
@@ -288,7 +288,7 @@ jobs:
         STRIPE_PUBLISHABLE_KEY: pk_test_dummy_key_for_ci
         STRIPE_WEBHOOK_SECRET: whsec_test_dummy_secret_for_ci
       run: |
-        cd backend/backend
+        cd backend
         python scripts/seed_e2e_data.py || echo "Warning: Failed to seed E2E data"
         
     - name: Start backend
@@ -311,7 +311,7 @@ jobs:
         STRIPE_PUBLISHABLE_KEY: pk_test_dummy_key_for_ci
         STRIPE_WEBHOOK_SECRET: whsec_test_dummy_secret_for_ci
       run: |
-        cd backend/backend
+        cd backend
         uvicorn main:app --host 0.0.0.0 --port 8000 &
         sleep 10
         curl -f http://localhost:8000/api/health || exit 1
@@ -374,8 +374,8 @@ jobs:
     - name: Build and push backend image
       uses: docker/build-push-action@v4
       with:
-        context: ./backend/backend
-        file: ./backend/backend/Dockerfile.prod
+        context: ./backend
+        file: ./backend/Dockerfile.prod
         push: true
         tags: ${{ env.REGISTRY }}/themorpheus407/awareness-platform/backend:latest
         cache-from: type=gha

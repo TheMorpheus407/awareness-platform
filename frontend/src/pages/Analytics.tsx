@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Tab } from '@headlessui/react';
 import { BarChart3, TrendingUp, Users } from 'lucide-react';
-import { MainLayout } from '../components/Layout';
 import { 
   AnalyticsDashboard, 
   CourseAnalytics, 
@@ -46,9 +45,8 @@ const Analytics: React.FC = () => {
   );
 
   return (
-    <MainLayout>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <Tab.Group selectedIndex={selectedIndex} onChange={setSelectedIndex}>
             <div className="border-b border-gray-200 dark:border-gray-700">
               <Tab.List className="flex space-x-8" aria-label="Analytics tabs">
@@ -91,9 +89,8 @@ const Analytics: React.FC = () => {
               ))}
             </Tab.Panels>
           </Tab.Group>
-        </div>
       </div>
-    </MainLayout>
+    </div>
   );
 };
 

@@ -79,5 +79,4 @@ Card.Title = CardTitle;
 Card.Content = CardContent;
 Card.Footer = CardFooter;
 
-// Also export as named exports for compatibility
-export { CardHeader, CardTitle, CardContent, CardFooter };
+// Named exports are already defined above

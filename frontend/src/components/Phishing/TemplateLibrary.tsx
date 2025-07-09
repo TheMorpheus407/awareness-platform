@@ -19,7 +19,8 @@ import {
   Plus
 } from 'lucide-react';
 import { phishingApi } from '../../services/phishingApi';
-import type { PhishingTemplate, TemplateCategory, TemplateDifficulty } from '../../types/phishing';
+import type { PhishingTemplate } from '../../types/phishing';
+import { TemplateCategory, TemplateDifficulty } from '../../types/phishing';
 import { LoadingSpinner } from '../Common/LoadingSpinner';
 import Modal from '../ui/Modal';
 

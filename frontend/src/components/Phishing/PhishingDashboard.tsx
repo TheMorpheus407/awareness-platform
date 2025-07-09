@@ -17,7 +17,8 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { phishingApi } from '../../services/phishingApi';
-import type { PhishingDashboard as DashboardData, CampaignStatus } from '../../types/phishing';
+import type { PhishingDashboard as DashboardData } from '../../types/phishing';
+import { CampaignStatus } from '../../types/phishing';
 import { LoadingSpinner } from '../Common/LoadingSpinner';
 import { formatPercentage } from '../../utils/format';
 
