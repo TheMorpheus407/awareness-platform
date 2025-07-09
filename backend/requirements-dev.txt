@@ -6,6 +6,7 @@ pytest-watch==4.2.0
 httpx==0.26.0
 factory-boy==3.3.0
 faker==22.2.0
+aiosqlite==0.20.0
 
 # Code quality
 black==24.1.1
