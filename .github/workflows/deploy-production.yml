@@ -47,7 +47,7 @@ jobs:
       
       - name: Install backend dependencies
         run: |
-          cd backend/backend
+          cd backend
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
@@ -59,7 +59,7 @@ jobs:
       
       - name: Run backend tests with coverage
         run: |
-          cd backend/backend
+          cd backend
           export PYTHONPATH=$PYTHONPATH:$(pwd)
           pytest --cov=. --cov-report=xml --cov-report=term-missing || {
             echo "::error::Backend tests failed"
@@ -74,7 +74,7 @@ jobs:
       - name: Upload backend coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
-          file: ./backend/backend/coverage.xml
+          file: ./backend/coverage.xml
           flags: backend
           name: backend-coverage
       
@@ -150,8 +150,8 @@ jobs:
       - name: Build and push Backend
         uses: docker/build-push-action@v5
         with:
-          context: ./backend/backend
-          file: ./backend/backend/Dockerfile.prod
+          context: ./backend
+          file: ./backend/Dockerfile.prod
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest

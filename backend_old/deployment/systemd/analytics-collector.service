@@ -1,0 +1,16 @@
+[Unit]
+Description=Awareness Platform Analytics Collector
+After=network.target postgresql.service
+
+[Service]
+Type=oneshot
+User=awareness
+Group=awareness
+WorkingDirectory=/opt/awareness-platform/backend
+Environment="PYTHONPATH=/opt/awareness-platform/backend"
+ExecStart=/usr/local/bin/python /opt/awareness-platform/backend/scripts/collect_analytics.py
+StandardOutput=append:/var/log/awareness-platform/analytics.log
+StandardError=append:/var/log/awareness-platform/analytics.log
+
+[Install]
+WantedBy=multi-user.target

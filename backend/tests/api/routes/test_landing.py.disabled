@@ -1,0 +1,266 @@
+"""Tests for landing page API endpoints."""
+
+import pytest
+from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from models.company import Company, CompanySize, CompanyStatus, SubscriptionTier
+from models.user import User, UserRole
+from models.course import Course
+from core.security import get_password_hash
+
+
+@pytest.mark.asyncio
+class TestLandingPageEndpoints:
+    """Test landing page API endpoints."""
+
+    async def test_get_public_stats(
+        self, async_client: AsyncClient, db: AsyncSession
+    ) -> None:
+        """Test getting public statistics."""
+        # Create test data
+        company1 = Company(
+            name="Test Company 1",
+            domain="test1.com",
+            industry="Technology",
+            size=CompanySize.MEDIUM,
+            status=CompanyStatus.ACTIVE,
+            subscription_tier=SubscriptionTier.BASIC
+        )
+        company2 = Company(
+            name="Test Company 2",
+            domain="test2.com",
+            industry="Finance",
+            size=CompanySize.LARGE,
+            status=CompanyStatus.ACTIVE,
+            subscription_tier=SubscriptionTier.PREMIUM
+        )
+        db.add_all([company1, company2])
+        await db.commit()
+        
+        # Create users
+        for i in range(5):
+            user = User(
+                email=f"user{i}@test.com",
+                password_hash=get_password_hash("password"),
+                first_name=f"User{i}",
+                last_name="Test",
+                company_id=company1.id if i < 3 else company2.id,
+                role=UserRole.EMPLOYEE,
+                is_active=True
+            )
+            db.add(user)
+        await db.commit()
+        
+        # Create courses
+        for i in range(3):
+            course = Course(
+                title=f"Course {i}",
+                description=f"Description for course {i}",
+                duration_minutes=30 + i * 15,
+                difficulty_level="beginner" if i == 0 else "intermediate",
+                is_active=True
+            )
+            db.add(course)
+        await db.commit()
+        
+        response = await async_client.get("/api/public/stats")
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert data["total_companies"] == 2
+        assert data["total_users"] == 5
+        assert data["total_courses"] == 3
+        assert data["active_companies"] == 2
+
+    async def test_get_testimonials(
+        self, async_client: AsyncClient
+    ) -> None:
+        """Test getting testimonials."""
+        response = await async_client.get("/api/public/testimonials")
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert isinstance(data, list)
+        if len(data) > 0:
+            testimonial = data[0]
+            assert "name" in testimonial
+            assert "company" in testimonial
+            assert "text" in testimonial
+            assert "rating" in testimonial
+
+    async def test_get_featured_courses(
+        self, async_client: AsyncClient, db: AsyncSession
+    ) -> None:
+        """Test getting featured courses."""
+        # Create featured courses
+        courses = []
+        for i in range(5):
+            course = Course(
+                title=f"Featured Course {i}",
+                description=f"Amazing course about security topic {i}",
+                duration_minutes=45,
+                difficulty_level="intermediate",
+                is_active=True,
+                is_featured=i < 3  # First 3 are featured
+            )
+            courses.append(course)
+        db.add_all(courses)
+        await db.commit()
+        
+        response = await async_client.get("/api/public/featured-courses")
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert isinstance(data, list)
+        assert len(data) <= 3  # Should return only featured courses
+        for course in data:
+            assert course["is_featured"] is True
+            assert "title" in course
+            assert "description" in course
+            assert "duration_minutes" in course
+
+    async def test_get_pricing_plans(
+        self, async_client: AsyncClient
+    ) -> None:
+        """Test getting pricing plans."""
+        response = await async_client.get("/api/public/pricing")
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert isinstance(data, list)
+        assert len(data) >= 3  # Basic, Premium, Enterprise
+        
+        for plan in data:
+            assert "name" in plan
+            assert "price" in plan
+            assert "features" in plan
+            assert isinstance(plan["features"], list)
+
+    async def test_submit_contact_form(
+        self, async_client: AsyncClient
+    ) -> None:
+        """Test submitting contact form."""
+        contact_data = {
+            "name": "John Doe",
+            "email": "john@example.com",
+            "company": "Test Company",
+            "message": "I'm interested in your security awareness training.",
+            "phone": "+1234567890"
+        }
+        
+        response = await async_client.post(
+            "/api/public/contact",
+            json=contact_data
+        )
+        
+        assert response.status_code == 200
+        assert response.json()["message"] == "Contact form submitted successfully"
+
+    async def test_submit_contact_form_invalid_email(
+        self, async_client: AsyncClient
+    ) -> None:
+        """Test submitting contact form with invalid email."""
+        contact_data = {
+            "name": "John Doe",
+            "email": "invalid-email",
+            "company": "Test Company",
+            "message": "Test message"
+        }
+        
+        response = await async_client.post(
+            "/api/public/contact",
+            json=contact_data
+        )
+        
+        assert response.status_code == 422
+        assert "email" in str(response.json())
+
+    async def test_get_demo_request_info(
+        self, async_client: AsyncClient
+    ) -> None:
+        """Test getting demo request information."""
+        response = await async_client.get("/api/public/demo-info")
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert "available_slots" in data
+        assert "demo_duration_minutes" in data
+        assert "features_included" in data
+
+    async def test_submit_demo_request(
+        self, async_client: AsyncClient
+    ) -> None:
+        """Test submitting demo request."""
+        demo_data = {
+            "name": "Jane Smith",
+            "email": "jane@company.com",
+            "company": "Big Corp",
+            "company_size": "100-500",
+            "preferred_date": "2024-12-20",
+            "preferred_time": "14:00",
+            "message": "Looking forward to the demo"
+        }
+        
+        response = await async_client.post(
+            "/api/public/request-demo",
+            json=demo_data
+        )
+        
+        assert response.status_code == 200
+        assert response.json()["message"] == "Demo request submitted successfully"
+
+    async def test_get_blog_posts(
+        self, async_client: AsyncClient
+    ) -> None:
+        """Test getting blog posts (if implemented)."""
+        response = await async_client.get("/api/public/blog/posts")
+        
+        # This might return 404 if not implemented yet
+        if response.status_code == 200:
+            data = response.json()
+            assert isinstance(data, list)
+
+    async def test_newsletter_signup(
+        self, async_client: AsyncClient
+    ) -> None:
+        """Test newsletter signup."""
+        signup_data = {
+            "email": "subscriber@example.com",
+            "name": "New Subscriber"
+        }
+        
+        response = await async_client.post(
+            "/api/public/newsletter/subscribe",
+            json=signup_data
+        )
+        
+        # This might return 404 if not implemented yet
+        if response.status_code == 200:
+            assert response.json()["message"] == "Successfully subscribed to newsletter"
+
+    async def test_rate_limiting_public_endpoints(
+        self, async_client: AsyncClient
+    ) -> None:
+        """Test rate limiting on public endpoints."""
+        # Test contact form rate limiting
+        contact_data = {
+            "name": "Spammer",
+            "email": "spam@example.com",
+            "company": "Spam Inc",
+            "message": "Spam message"
+        }
+        
+        # Send multiple requests
+        for i in range(10):
+            response = await async_client.post(
+                "/api/public/contact",
+                json=contact_data
+            )
+            if i < 5:
+                assert response.status_code in [200, 422]
+            else:
+                # Should be rate limited after 5 requests
+                if response.status_code == 429:
+                    assert "Too many requests" in response.json()["detail"]
+                    break

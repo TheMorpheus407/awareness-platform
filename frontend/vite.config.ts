@@ -9,6 +9,16 @@ export default defineConfig({
       '@': '/src',
     },
   },
+  server: {
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
+  },
   build: {
     rollupOptions: {
       external: [
@@ -22,6 +32,7 @@ export default defineConfig({
       ]
     },
     sourcemap: false,
-    minify: 'terser'
+    minify: 'terser',
+    outDir: 'dist'
   }
 })
