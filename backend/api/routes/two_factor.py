@@ -12,7 +12,7 @@ from api.dependencies.common import get_db
 from core.security import SecurityUtils
 from core.two_factor_auth import TwoFactorAuth
 from models.user import User
-from models.two_fa_attempt import TwoFactorAttempt
+from models.two_fa_attempt import TwoFAAttempt
 from schemas.auth import (
     TwoFactorSetupRequest,
     TwoFactorSetupResponse,
@@ -113,7 +113,7 @@ async def verify_two_factor(
     two_fa = TwoFactorAuth()
     if not two_fa.verify_token(current_user.two_factor_secret, verify_request.code):
         # Log failed attempt
-        attempt = TwoFactorAttempt(
+        attempt = TwoFAAttempt(
             user_id=current_user.id,
             attempt_type="2fa_setup",
             success=False,
@@ -326,7 +326,7 @@ async def verify_two_factor_login(
     
     if not is_valid:
         # Log failed attempt
-        attempt = TwoFactorAttempt(
+        attempt = TwoFAAttempt(
             user_id=user.id,
             attempt_type="2fa_login",
             success=False,

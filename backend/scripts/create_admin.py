@@ -3,21 +3,22 @@
 
 import asyncio
 import sys
+from pathlib import Path
 from datetime import datetime
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # Add parent directory to path
-sys.path.append('/app')
+sys.path.append(str(Path(__file__).parent.parent))
 
-from core.database import async_session
+from db.session import AsyncSessionLocal
 from models.user import User
-from core.security import get_password_hash
+from core.security import SecurityUtils
 
 
 async def create_admin_user():
     """Create the initial admin user"""
-    async with async_session() as session:
+    async with AsyncSessionLocal() as session:
         # Check if admin already exists
         existing = await session.execute(
             select(User).where(User.email == "admin@bootstrap-awareness.de")
@@ -29,9 +30,10 @@ async def create_admin_user():
         # Create admin user
         admin = User(
             email="admin@bootstrap-awareness.de",
-            password_hash=get_password_hash("ChangeMe123!"),
+            password_hash=SecurityUtils.get_password_hash("ChangeMe123!"),
             first_name="Platform",
             last_name="Administrator",
+            role="system_admin",
             is_active=True,
             is_superuser=True,
             is_verified=True,

@@ -20,7 +20,6 @@ from models.payment import (  # noqa
 from models.email_campaign import (  # noqa
     EmailTemplate,
     EmailCampaign,
-    EmailCampaignRecipient,
     EmailLog,
     EmailEvent,
     EmailPreferences,

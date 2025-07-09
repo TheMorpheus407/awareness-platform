@@ -15,7 +15,7 @@ from core.security import SecurityUtils
 from core.two_factor_auth import TwoFactorAuth
 from models.user import User
 from models.company import Company
-from models.two_fa_attempt import TwoFactorAttempt
+from models.two_fa_attempt import TwoFAAttempt
 from schemas.auth import (
     TokenResponse,
     LoginRequest,
@@ -67,7 +67,7 @@ async def login(
     if not user or not SecurityUtils.verify_password(form_data.password, user.password_hash):
         # Log failed attempt
         if user:
-            attempt = TwoFactorAttempt(
+            attempt = TwoFAAttempt(
                 user_id=user.id,
                 attempt_type="login",
                 success=False,
@@ -114,7 +114,7 @@ async def login(
     refresh_token = SecurityUtils.create_refresh_token(subject=str(user.id))
     
     # Log successful login
-    attempt = TwoFactorAttempt(
+    attempt = TwoFAAttempt(
         user_id=user.id,
         attempt_type="login",
         success=True,
@@ -231,7 +231,7 @@ async def logout(
         Success message
     """
     # Log logout event
-    attempt = TwoFactorAttempt(
+    attempt = TwoFAAttempt(
         user_id=current_user.id,
         attempt_type="logout",
         success=True,
@@ -277,7 +277,7 @@ async def change_password(
     current_user.password_hash = SecurityUtils.get_password_hash(password_data.new_password)
     
     # Log password change
-    attempt = TwoFactorAttempt(
+    attempt = TwoFAAttempt(
         user_id=current_user.id,
         attempt_type="password_change",
         success=True,
@@ -325,9 +325,9 @@ async def get_user_sessions(
     """
     # Get recent authentication logs
     result = await db.execute(
-        select(TwoFactorAttempt)
-        .where(TwoFactorAttempt.user_id == current_user.id)
-        .order_by(TwoFactorAttempt.created_at.desc())
+        select(TwoFAAttempt)
+        .where(TwoFAAttempt.user_id == current_user.id)
+        .order_by(TwoFAAttempt.created_at.desc())
         .limit(20)
     )
     attempts = result.scalars().all()

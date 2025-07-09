@@ -8,15 +8,16 @@ from uuid import uuid4
 from fastapi import status
 from sqlalchemy.orm import Session
 
-from models import Company, User, Subscription, PaymentMethod, Invoice, Payment
-from models import SubscriptionStatus, PaymentMethodType, InvoiceStatus, PaymentStatus
+from models.company import Company
+from models.user import User
+from models.payment import Subscription, PaymentMethod, Invoice, Payment, SubscriptionStatus, PaymentMethodType, InvoiceStatus, PaymentStatus
 from services.stripe_service import StripeService
 
 
 class TestPaymentEndpoints:
     """Test payment-related endpoints."""
     
-    @patch('backend.services.stripe_service.stripe')
+    @patch('services.stripe_service.stripe')
     def test_create_setup_intent(self, mock_stripe, client, auth_headers, db_session):
         """Test creating a setup intent."""
         # Mock Stripe response
@@ -35,7 +36,7 @@ class TestPaymentEndpoints:
         assert "client_secret" in data
         assert "setup_intent_id" in data
     
-    @patch('backend.services.stripe_service.stripe')
+    @patch('services.stripe_service.stripe')
     def test_add_payment_method(self, mock_stripe, client, auth_headers, test_company, db_session):
         """Test adding a payment method."""
         # Mock Stripe responses
@@ -121,7 +122,7 @@ class TestPaymentEndpoints:
         assert data[0]["card_last4"] == "4242"
         assert data[1]["type"] == "sepa_debit"
     
-    @patch('backend.services.stripe_service.stripe')
+    @patch('services.stripe_service.stripe')
     def test_create_subscription(self, mock_stripe, client, auth_headers, test_company, db_session):
         """Test creating a subscription."""
         # Mock Stripe responses
@@ -219,7 +220,7 @@ class TestPaymentEndpoints:
         assert data["amount"] == 49.0
         assert data["billing_interval"] == "monthly"
     
-    @patch('backend.services.stripe_service.stripe')
+    @patch('services.stripe_service.stripe')
     def test_cancel_subscription(self, mock_stripe, client, auth_headers, test_company, db_session):
         """Test canceling a subscription."""
         # Create test subscription
@@ -352,7 +353,7 @@ class TestPaymentEndpoints:
             assert data[1]["amount"] == 149.0
             assert data[1]["tier"] == "premium"
     
-    @patch('backend.services.stripe_service.stripe')
+    @patch('services.stripe_service.stripe')
     def test_webhook_subscription_updated(self, mock_stripe, client, test_company, db_session):
         """Test handling subscription updated webhook."""
         # Create test subscription
