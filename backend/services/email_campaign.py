@@ -19,7 +19,7 @@ from models.user import User, UserRole
 from models.company import Company
 from services.email import email_service
 from services.email_template import template_engine, EmailPersonalization
-from core.db import get_db
+from db.session import get_db
 from core.config import settings
 
 logger = logging.getLogger(__name__)

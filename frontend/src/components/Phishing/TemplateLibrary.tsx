@@ -21,7 +21,7 @@ import {
 import { phishingApi } from '../../services/phishingApi';
 import { PhishingTemplate, TemplateCategory, TemplateDifficulty } from '../../types/phishing';
 import LoadingSpinner from '../Common/LoadingSpinner';
-import Modal from '../UI/Modal';
+import Modal from '../ui/Modal';
 
 const TemplateLibrary: React.FC = () => {
   const { t } = useTranslation();

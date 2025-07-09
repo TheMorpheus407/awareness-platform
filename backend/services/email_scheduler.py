@@ -16,7 +16,7 @@ from models.email_campaign import (
 from models.user import User
 from services.email_campaign import campaign_service
 from core.config import settings
-from core.db import SessionLocal
+from db.session import AsyncSessionLocal as SessionLocal
 
 logger = logging.getLogger(__name__)
 

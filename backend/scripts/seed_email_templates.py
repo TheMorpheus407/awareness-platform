@@ -9,7 +9,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 from datetime import datetime
 from sqlalchemy.orm import Session
 
-from core.db import SessionLocal, engine
+from db.session import AsyncSessionLocal as SessionLocal, engine
 from models.email_campaign import EmailTemplate, EmailTemplateType
 
 

@@ -6,6 +6,10 @@ on:
     types:
       - completed
 
+permissions:
+  issues: write
+  contents: read
+
 jobs:
   notify-deployment-status:
     runs-on: ubuntu-latest
