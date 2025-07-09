@@ -18,7 +18,7 @@ import {
 import { Link } from 'react-router-dom';
 import { phishingApi } from '../../services/phishingApi';
 import { PhishingDashboard as DashboardData, CampaignStatus } from '../../types/phishing';
-import LoadingSpinner from '../UI/LoadingSpinner';
+import LoadingSpinner from '../Common/LoadingSpinner';
 import { formatPercentage } from '../../utils/format';
 
 const PhishingDashboard: React.FC = () => {

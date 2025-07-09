@@ -47,6 +47,13 @@ jobs:
         pip install -r requirements.txt
         
     - name: Check imports
+      env:
+        SECRET_KEY: test-secret-key
+        DATABASE_URL: postgresql://test:test@localhost/test
+        STRIPE_SECRET_KEY: sk_test_placeholder
+        STRIPE_PUBLISHABLE_KEY: pk_test_placeholder
+        STRIPE_WEBHOOK_SECRET: whsec_test_placeholder
+        FRONTEND_URL: http://localhost:3000
       run: |
         cd backend
         python -c "import main; print('Backend imports successful')"
