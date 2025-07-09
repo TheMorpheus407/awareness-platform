@@ -3,27 +3,36 @@ import { clsx } from 'clsx';
 
 interface SwitchProps {
   checked: boolean;
-  onChange: (checked: boolean) => void;
+  onChange?: (checked: boolean) => void;
+  onCheckedChange?: (checked: boolean) => void;
   label?: string;
   disabled?: boolean;
   className?: string;
+  id?: string;
 }
 
 export const Switch: React.FC<SwitchProps> = ({
   checked,
   onChange,
+  onCheckedChange,
   label,
   disabled = false,
   className,
+  id,
 }) => {
+  const handleChange = (newChecked: boolean) => {
+    onChange?.(newChecked);
+    onCheckedChange?.(newChecked);
+  };
   return (
     <label className={clsx('flex items-center cursor-pointer', disabled && 'opacity-50 cursor-not-allowed', className)}>
       <div className="relative">
         <input
           type="checkbox"
           className="sr-only"
+          id={id}
           checked={checked}
-          onChange={(e) => onChange(e.target.checked)}
+          onChange={(e) => handleChange(e.target.checked)}
           disabled={disabled}
         />
         <div className={clsx(

@@ -6,7 +6,7 @@ import {
   Clock,
   Database,
   HardDrive,
-  Memory,
+  MemoryStick,
   Cpu,
   TrendingUp,
   TrendingDown,
@@ -97,9 +97,9 @@ export const MonitoringDashboard: React.FC = () => {
   const fetchMonitoringData = async () => {
     try {
       const [healthRes, perfRes, alertsRes] = await Promise.all([
-        api.get('/monitoring/health/detailed'),
-        api.get('/monitoring/performance/summary?timeframe=24h'),
-        api.get('/monitoring/alerts/active'),
+        api.axios.get('/monitoring/health/detailed'),
+        api.axios.get('/monitoring/performance/summary?timeframe=24h'),
+        api.axios.get('/monitoring/alerts/active'),
       ]);
 
       setHealth(healthRes.data);
@@ -307,7 +307,7 @@ export const MonitoringDashboard: React.FC = () => {
             <Card.Content className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-2">
-                  <Memory className="w-5 h-5 text-gray-600" />
+                  <MemoryStick className="w-5 h-5 text-gray-600" />
                   <h3 className="font-medium">{t('monitoring.memory')}</h3>
                 </div>
                 {getStatusIcon(health.checks.memory.status)}

@@ -13,7 +13,7 @@ import { LoadingSpinner, ErrorMessage } from '../Common';
 import { useAuthStore } from '../../store/authStore';
 
 // Load Stripe outside of component to avoid recreating on every render
-const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || '');
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
 
 interface CheckoutFormProps {
   priceId: string;

@@ -18,15 +18,15 @@ import {
   X
 } from 'lucide-react';
 import { phishingApi } from '../../services/phishingApi';
-import { api } from '../../services';
-import {
+import { api } from '../../services/api';
+import type {
   PhishingTemplate,
   PhishingCampaignForm,
   CampaignTargetGroup,
   CampaignSettings,
   TemplateCategory
 } from '../../types/phishing';
-import LoadingSpinner from '../Common/LoadingSpinner';
+import { LoadingSpinner } from '../Common/LoadingSpinner';
 
 interface Step {
   id: string;

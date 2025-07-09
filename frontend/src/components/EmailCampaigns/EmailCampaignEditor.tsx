@@ -14,20 +14,20 @@ import {
   TestTube,
   ChevronLeft,
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Textarea } from '../ui/textarea';
+import { Label } from '../ui/label';
+import { Switch } from '../ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '../ui/select';
 import {
   Dialog,
   DialogContent,
@@ -35,18 +35,24 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+} from '../ui/dialog';
+import { Badge } from '../ui/Badge';
+import { Skeleton } from '../ui/skeleton';
 import { toast } from 'react-hot-toast';
-import { emailCampaignService } from '@/services/emailCampaignService';
-import {
+import { emailCampaignService } from '../../services/emailCampaignService';
+import type {
   Campaign,
   CampaignCreate,
   CampaignUpdate,
   EmailTemplate,
-} from '@/types/emailCampaign';
-import { userRoles } from '@/types/user';
+} from '../../types/emailCampaign';
+import type { User } from '../../types/api';
+
+const userRoles = [
+  { value: 'user', label: 'User' },
+  { value: 'company_admin', label: 'Company Admin' },
+  { value: 'admin', label: 'Admin' },
+];
 
 const campaignSchema = z.object({
   name: z.string().min(1, 'Campaign name is required'),

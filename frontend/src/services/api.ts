@@ -185,6 +185,27 @@ class ApiClient {
     const response = await this.client.get('/dashboard/stats');
     return response.data;
   }
+
+  // Convenience methods for direct HTTP calls
+  get(url: string, config?: any) {
+    return this.client.get(url, config);
+  }
+
+  post(url: string, data?: any, config?: any) {
+    return this.client.post(url, data, config);
+  }
+
+  put(url: string, data?: any, config?: any) {
+    return this.client.put(url, data, config);
+  }
+
+  patch(url: string, data?: any, config?: any) {
+    return this.client.patch(url, data, config);
+  }
+
+  delete(url: string, config?: any) {
+    return this.client.delete(url, config);
+  }
 }
 
 export const apiClient = new ApiClient();

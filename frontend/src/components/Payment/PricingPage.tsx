@@ -51,7 +51,7 @@ const PricingPage: React.FC = () => {
   };
 
   const getTierColor = (tier: string) => {
-    const colors = {
+    const colors: Record<string, string> = {
       basic: 'blue',
       starter: 'green',
       premium: 'purple',

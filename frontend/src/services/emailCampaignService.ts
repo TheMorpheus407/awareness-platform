@@ -1,5 +1,5 @@
 import api from './api';
-import {
+import type {
   Campaign,
   CampaignCreate,
   CampaignUpdate,
@@ -12,7 +12,7 @@ import {
   EmailPreferencesUpdate,
   CampaignStats,
   EmailLog,
-} from '@/types/emailCampaign';
+} from '../types/emailCampaign';
 
 class EmailCampaignService {
   // Email Templates

@@ -6,7 +6,14 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
 }
 
-export const Card: React.FC<CardProps> = ({ children, className, ...props }) => {
+interface CardComponent extends React.FC<CardProps> {
+  Header: React.FC<CardProps>;
+  Title: React.FC<CardProps>;
+  Content: React.FC<CardProps>;
+  Footer: React.FC<CardProps>;
+}
+
+const CardBase: React.FC<CardProps> = ({ children, className, ...props }) => {
   return (
     <div
       className={clsx(
@@ -19,6 +26,8 @@ export const Card: React.FC<CardProps> = ({ children, className, ...props }) => 
     </div>
   );
 };
+
+export const Card = CardBase as CardComponent;
 
 export const CardHeader: React.FC<CardProps> = ({ children, className, ...props }) => {
   return (
@@ -63,3 +72,12 @@ export const CardFooter: React.FC<CardProps> = ({ children, className, ...props 
     </div>
   );
 };
+
+// Attach sub-components to Card for dot notation access
+Card.Header = CardHeader;
+Card.Title = CardTitle;
+Card.Content = CardContent;
+Card.Footer = CardFooter;
+
+// Also export as named exports for compatibility
+export { CardHeader, CardTitle, CardContent, CardFooter };

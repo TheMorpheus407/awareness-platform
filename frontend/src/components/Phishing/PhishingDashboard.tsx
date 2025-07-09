@@ -17,8 +17,8 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { phishingApi } from '../../services/phishingApi';
-import { PhishingDashboard as DashboardData, CampaignStatus } from '../../types/phishing';
-import LoadingSpinner from '../Common/LoadingSpinner';
+import type { PhishingDashboard as DashboardData, CampaignStatus } from '../../types/phishing';
+import { LoadingSpinner } from '../Common/LoadingSpinner';
 import { formatPercentage } from '../../utils/format';
 
 const PhishingDashboard: React.FC = () => {

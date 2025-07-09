@@ -48,7 +48,7 @@ const UserEngagementAnalytics: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await api.get('/users');
+      const response = await api.axios.get('/users');
       setUsers(response.data.items || []);
     } catch (err) {
       console.error('Failed to fetch users:', err);
@@ -61,7 +61,7 @@ const UserEngagementAnalytics: React.FC = () => {
       setError(null);
       
       const params = selectedUser !== 'all' ? `?user_id=${selectedUser}` : '';
-      const response = await api.get(`/analytics/engagement${params}`);
+      const response = await api.axios.get(`/analytics/engagement${params}`);
       setEngagementData(response.data);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to load engagement data');
@@ -260,7 +260,7 @@ const UserEngagementAnalytics: React.FC = () => {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"

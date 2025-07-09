@@ -13,20 +13,20 @@ import {
   MousePointer,
   TrendingUp,
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
+import { Button } from '../ui/button';
+import { Badge } from '../ui/Badge';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
-import { emailCampaignService } from '@/services/emailCampaignService';
-import { Campaign, CampaignStatus } from '@/types/emailCampaign';
-import { formatDate, formatPercentage } from '@/lib/utils';
+} from '../ui/select';
+import { Skeleton } from '../ui/skeleton';
+import { emailCampaignService } from '../../services/emailCampaignService';
+import type { Campaign, CampaignStatus } from '../../types/emailCampaign';
+import { formatDate, formatPercentage } from '../../utils/format';
 
 const statusConfig = {
   draft: { label: 'Draft', color: 'secondary', icon: Mail },

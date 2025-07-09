@@ -1,6 +1,8 @@
 """Security utilities for authentication and password handling."""
 
 from datetime import datetime, timedelta, timezone
+import secrets
+import string
 from typing import Any, Dict, Optional, Union
 
 from jose import JWTError, jwt
@@ -134,3 +136,17 @@ def create_password_reset_token(email: str) -> str:
     to_encode = {"exp": expire, "sub": email, "type": "password_reset"}
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
+
+
+def create_random_token(length: int = 32) -> str:
+    """
+    Create a cryptographically secure random token.
+    
+    Args:
+        length: Length of the token (default: 32 characters)
+        
+    Returns:
+        Random token string
+    """
+    alphabet = string.ascii_letters + string.digits
+    return ''.join(secrets.choice(alphabet) for _ in range(length))

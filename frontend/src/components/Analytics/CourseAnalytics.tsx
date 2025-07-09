@@ -38,7 +38,7 @@ const CourseAnalytics: React.FC = () => {
 
   const fetchCourses = async () => {
     try {
-      const response = await api.get('/courses');
+      const response = await api.axios.get('/courses');
       setCourses(response.data.items || []);
     } catch (err) {
       console.error('Failed to fetch courses:', err);
@@ -51,7 +51,7 @@ const CourseAnalytics: React.FC = () => {
       setError(null);
       
       const params = selectedCourse !== 'all' ? `?course_id=${selectedCourse}` : '';
-      const response = await api.get(`/analytics/courses${params}`);
+      const response = await api.axios.get(`/analytics/courses${params}`);
       setCourseData(response.data);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to load course analytics');

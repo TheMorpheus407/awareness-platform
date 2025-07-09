@@ -29,10 +29,10 @@ import {
   Tablet,
   Link2,
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
+import { Button } from '../ui/button';
+import { Badge } from '../ui/Badge';
+import { Skeleton } from '../ui/skeleton';
 import {
   Table,
   TableBody,
@@ -40,10 +40,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { emailCampaignService } from '@/services/emailCampaignService';
-import { CampaignStats } from '@/types/emailCampaign';
-import { formatDate, formatPercentage } from '@/lib/utils';
+} from '../ui/table';
+import { emailCampaignService } from '../../services/emailCampaignService';
+import type { CampaignStats } from '../../types/emailCampaign';
+import { formatDate, formatPercentage } from '../../utils/format';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 

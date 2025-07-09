@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Bell, Shield, BookOpen, Tag, Clock } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
+import { Button } from '../ui/button';
+import { Switch } from '../ui/switch';
+import { Label } from '../ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
+} from '../ui/select';
+import { Skeleton } from '../ui/skeleton';
 import { toast } from 'react-hot-toast';
-import { emailCampaignService } from '@/services/emailCampaignService';
-import { EmailPreferences, EmailFrequency } from '@/types/emailCampaign';
+import { emailCampaignService } from '../../services/emailCampaignService';
+import type { EmailPreferences, EmailFrequency } from '../../types/emailCampaign';
 
 const emailCategories = [
   {
@@ -343,7 +343,7 @@ export const EmailPreferencesComponent: React.FC = () => {
                 </p>
               </div>
               <Button
-                variant="destructive"
+                variant="danger"
                 onClick={handleUnsubscribeAll}
                 disabled={saving}
               >

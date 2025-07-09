@@ -7,10 +7,11 @@ import type { LoginCredentials, LoginWith2FACredentials } from '../../types';
 import { LoadingSpinner } from '../Common';
 import { useTranslation } from 'react-i18next';
 import apiClient from '../../services/api';
+import { useAuthStore } from '../../store/authStore';
 
 export const LoginFormWith2FA: React.FC = () => {
   const navigate = useNavigate();
-  const { setToken, setUser } = useAuth();
+  const { login } = useAuth();
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [requires2FA, setRequires2FA] = useState(false);
@@ -45,8 +46,11 @@ export const LoginFormWith2FA: React.FC = () => {
       
       // Get user data
       const userData = await apiClient.getCurrentUser();
-      setToken(response.access_token);
-      setUser(userData);
+      
+      // Update auth store
+      useAuthStore.getState().user = userData;
+      useAuthStore.getState().token = response.access_token;
+      useAuthStore.getState().isAuthenticated = true;
       
       navigate('/dashboard');
     } catch (error: any) {
@@ -85,12 +89,17 @@ export const LoginFormWith2FA: React.FC = () => {
 
       if (response) {
         localStorage.setItem('access_token', response.access_token);
-        localStorage.setItem('refresh_token', response.refresh_token);
+        if (response.refresh_token) {
+          localStorage.setItem('refresh_token', response.refresh_token);
+        }
         
         // Get user data
         const userData = await apiClient.getCurrentUser();
-        setToken(response.access_token);
-        setUser(userData);
+        
+        // Update auth store
+        useAuthStore.getState().user = userData;
+        useAuthStore.getState().token = response.access_token;
+        useAuthStore.getState().isAuthenticated = true;
         
         navigate('/dashboard');
       }

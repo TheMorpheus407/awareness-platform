@@ -70,7 +70,7 @@ const AnalyticsDashboard: React.FC = () => {
       setError(null);
 
       // Fetch main dashboard metrics
-      const response = await api.get(`/analytics/dashboard?date_range=${dateRange}`);
+      const response = await api.axios.get(`/analytics/dashboard?date_range=${dateRange}`);
       setMetrics(response.data);
 
       // Fetch additional chart data
@@ -90,7 +90,7 @@ const AnalyticsDashboard: React.FC = () => {
 
   const fetchUserTrendData = async () => {
     try {
-      const response = await api.get('/analytics/engagement');
+      const response = await api.axios.get('/analytics/engagement');
       const data = response.data.map((item: any) => ({
         date: new Date(item.date).toLocaleDateString(),
         activeUsers: item.loginCount,
@@ -104,7 +104,7 @@ const AnalyticsDashboard: React.FC = () => {
 
   const fetchCourseProgressData = async () => {
     try {
-      const response = await api.get('/analytics/courses');
+      const response = await api.axios.get('/analytics/courses');
       const data = response.data.map((item: any) => ({
         courseName: `Course ${item.courseId.slice(0, 8)}`,
         enrollments: item.enrollmentsCount,
@@ -119,7 +119,7 @@ const AnalyticsDashboard: React.FC = () => {
 
   const fetchEngagementData = async () => {
     try {
-      const response = await api.get('/analytics/engagement');
+      const response = await api.axios.get('/analytics/engagement');
       const data = response.data.map((item: any) => ({
         date: new Date(item.date).toLocaleDateString(),
         timeSpent: item.timeSpent,
@@ -134,7 +134,7 @@ const AnalyticsDashboard: React.FC = () => {
 
   const fetchRevenueData = async () => {
     try {
-      const response = await api.get('/analytics/revenue');
+      const response = await api.axios.get('/analytics/revenue');
       const data = response.data.map((item: any) => ({
         date: new Date(item.date).toLocaleDateString(),
         revenue: item.totalRevenue,
