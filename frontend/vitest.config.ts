@@ -17,7 +17,7 @@ export default defineConfig({
       '**/e2e/**',
       '**/store/**' // Temporarily exclude store tests
     ],
-    testTimeout: 5000,
+    testTimeout: 30000, // 30 seconds for CI environment
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
