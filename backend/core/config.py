@@ -132,30 +132,30 @@ class Settings(BaseSettings):
     
     @field_validator("SENTRY_ENVIRONMENT", mode="before")
     @classmethod
-    def set_sentry_environment(cls, v: Optional[str], values: dict) -> str:
+    def set_sentry_environment(cls, v: Optional[str], info) -> str:
         if v is None:
-            return values.get("ENVIRONMENT", "development")
+            return info.data.get("ENVIRONMENT", "development")
         return v
     
     @field_validator("RATE_LIMIT_STORAGE_URL", mode="before")
     @classmethod
-    def set_rate_limit_storage(cls, v: Optional[str], values: dict) -> Optional[str]:
+    def set_rate_limit_storage(cls, v: Optional[str], info) -> Optional[str]:
         if v is None:
-            return values.get("REDIS_URL")
+            return info.data.get("REDIS_URL")
         return v
     
     @field_validator("CELERY_BROKER_URL", mode="before")
     @classmethod
-    def set_celery_broker(cls, v: Optional[str], values: dict) -> Optional[str]:
+    def set_celery_broker(cls, v: Optional[str], info) -> Optional[str]:
         if v is None:
-            return values.get("REDIS_URL")
+            return info.data.get("REDIS_URL")
         return v
     
     @field_validator("CELERY_RESULT_BACKEND", mode="before")
     @classmethod
-    def set_celery_backend(cls, v: Optional[str], values: dict) -> Optional[str]:
+    def set_celery_backend(cls, v: Optional[str], info) -> Optional[str]:
         if v is None:
-            return values.get("REDIS_URL")
+            return info.data.get("REDIS_URL")
         return v
     
     @property

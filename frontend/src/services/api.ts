@@ -36,7 +36,14 @@ class ApiClient {
         if (error.response?.status === 401) {
           // Token expired or invalid
           localStorage.removeItem('access_token');
-          window.location.href = '/login';
+          
+          // Only redirect to login if we're not already on a public page
+          const publicPaths = ['/', '/login', '/register', '/pricing'];
+          const currentPath = window.location.pathname;
+          
+          if (!publicPaths.includes(currentPath)) {
+            window.location.href = '/login';
+          }
         }
         return Promise.reject(error);
       }
