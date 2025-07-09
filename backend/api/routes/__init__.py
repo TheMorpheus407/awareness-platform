@@ -1,0 +1,43 @@
+"""API routes module."""
+
+from . import (
+    analytics,
+    auth,
+    certificates,
+    companies,
+    content,
+    courses,
+    email_campaigns,
+    email_verification,
+    enrollments,
+    health,
+    health_extended,
+    monitoring,
+    password_reset,
+    payments,
+    phishing,
+    quizzes,
+    two_factor,
+    users,
+)
+
+__all__ = [
+    "analytics",
+    "auth",
+    "certificates",
+    "companies",
+    "content",
+    "courses",
+    "email_campaigns",
+    "email_verification",
+    "enrollments",
+    "health",
+    "health_extended",
+    "monitoring",
+    "password_reset",
+    "payments",
+    "phishing",
+    "quizzes",
+    "two_factor",
+    "users",
+]
