@@ -281,7 +281,7 @@ def track_content_progress(
     # If content is 95% complete, consider it viewed
     if progress >= 95:
         # Update lesson progress
-        from backend.api.routes.enrollments import update_lesson_progress
+        from api.routes.enrollments import update_lesson_progress
         from schemas.course import LessonProgressUpdate
         
         progress_update = LessonProgressUpdate(

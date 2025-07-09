@@ -8,10 +8,10 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.date import DateTrigger
 from sqlalchemy.orm import Session
 
-from backend.models import PhishingCampaign
-from backend.schemas.phishing import CampaignStatus
-from backend.services.phishing_service import PhishingService
-from backend.db.session import SessionLocal
+from models import PhishingCampaign
+from schemas.phishing import CampaignStatus
+from services.phishing_service import PhishingService
+from db.session import SessionLocal
 
 logger = logging.getLogger(__name__)
 

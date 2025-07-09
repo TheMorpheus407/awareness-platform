@@ -7,7 +7,7 @@ from email.mime.multipart import MIMEMultipart
 import smtplib
 import logging
 
-from backend.core.config import settings
+from core.config import settings
 
 logger = logging.getLogger(__name__)
 

@@ -26,7 +26,7 @@ import {
   CampaignSettings,
   TemplateCategory
 } from '../../types/phishing';
-import LoadingSpinner from '../UI/LoadingSpinner';
+import LoadingSpinner from '../Common/LoadingSpinner';
 
 interface Step {
   id: string;
