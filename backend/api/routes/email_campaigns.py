@@ -8,7 +8,8 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query, Request, R
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_
 
-from api.deps import get_db, get_current_active_user, require_company_admin
+from api.dependencies import get_db, get_current_active_user
+from api.dependencies.auth import require_role
 from models.user import User, UserRole
 from models.email_campaign import (
     EmailTemplate, EmailCampaign, EmailLog, EmailPreference,
@@ -32,7 +33,7 @@ router = APIRouter(prefix="/api/v1/email", tags=["email-campaigns"])
 async def create_email_template(
     template: EmailTemplateCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_company_admin),
+    current_user: User = Depends(require_role([UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN])),
 ):
     """Create a new email template."""
     # Check if slug already exists
@@ -105,7 +106,7 @@ async def update_email_template(
     template_id: UUID,
     updates: EmailTemplateUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_company_admin),
+    current_user: User = Depends(require_role([UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN])),
 ):
     """Update an email template."""
     template = db.query(EmailTemplate).filter(
@@ -133,7 +134,7 @@ async def update_email_template(
 async def delete_email_template(
     template_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_company_admin),
+    current_user: User = Depends(require_role([UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN])),
 ):
     """Delete an email template."""
     template = db.query(EmailTemplate).filter(
@@ -168,7 +169,7 @@ async def test_email_template(
     template_id: UUID,
     test_request: EmailTestRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_company_admin),
+    current_user: User = Depends(require_role([UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN])),
 ):
     """Send a test email using a template."""
     template = db.query(EmailTemplate).filter(
@@ -230,7 +231,7 @@ async def test_email_template(
 async def create_email_campaign(
     campaign: EmailCampaignCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_company_admin),
+    current_user: User = Depends(require_role([UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN])),
 ):
     """Create a new email campaign."""
     # Verify template exists
@@ -260,7 +261,7 @@ async def list_email_campaigns(
     limit: int = Query(100, ge=1, le=100),
     status: Optional[CampaignStatus] = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_company_admin),
+    current_user: User = Depends(require_role([UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN])),
 ):
     """List email campaigns for the current company."""
     query = db.query(EmailCampaign).filter(
@@ -281,7 +282,7 @@ async def list_email_campaigns(
 async def get_email_campaign(
     campaign_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_company_admin),
+    current_user: User = Depends(require_role([UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN])),
 ):
     """Get an email campaign by ID."""
     campaign = db.query(EmailCampaign).filter(
@@ -303,7 +304,7 @@ async def update_email_campaign(
     campaign_id: UUID,
     updates: EmailCampaignUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_company_admin),
+    current_user: User = Depends(require_role([UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN])),
 ):
     """Update an email campaign."""
     campaign = db.query(EmailCampaign).filter(
@@ -331,7 +332,7 @@ async def send_email_campaign(
     campaign_id: UUID,
     send_request: EmailCampaignSendRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_company_admin),
+    current_user: User = Depends(require_role([UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN])),
 ):
     """Send an email campaign."""
     campaign = db.query(EmailCampaign).filter(
@@ -380,7 +381,7 @@ async def send_email_campaign(
 async def get_campaign_recipients(
     campaign_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_company_admin),
+    current_user: User = Depends(require_role([UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN])),
 ):
     """Get list of recipients for a campaign."""
     campaign = db.query(EmailCampaign).filter(
@@ -414,7 +415,7 @@ async def get_campaign_recipients(
 async def get_campaign_stats(
     campaign_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_company_admin),
+    current_user: User = Depends(require_role([UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN])),
 ):
     """Get detailed campaign statistics."""
     campaign = db.query(EmailCampaign).filter(
@@ -439,7 +440,7 @@ async def get_campaign_logs(
     limit: int = Query(100, ge=1, le=100),
     status: Optional[str] = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_company_admin),
+    current_user: User = Depends(require_role([UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN])),
 ):
     """Get email logs for a campaign."""
     # Verify campaign belongs to user's company
