@@ -1,7 +1,7 @@
 import React from 'react';
 import clsx from 'clsx';
 import { AlertCircle, RefreshCw, Home, HelpCircle, XCircle } from 'lucide-react';
-import { Button } from './Button';
+import { Button } from './button';
 
 export interface ErrorStateProps {
   title?: string;

@@ -11,7 +11,7 @@ from sqlalchemy import select, update
 from api.dependencies.auth import get_current_active_user
 from api.dependencies.common import get_db
 from core.config import settings
-from core.security import verify_password, get_password_hash, create_access_token, create_refresh_token
+from core.security import SecurityUtils
 from core.two_factor_auth import generate_qr_code, generate_backup_codes
 from models.user import User
 from models.company import Company
@@ -64,7 +64,7 @@ async def login(
     user = result.scalar_one_or_none()
     
     # Verify user and password
-    if not user or not verify_password(form_data.password, user.password_hash):
+    if not user or not SecurityUtils.verify_password(form_data.password, user.password_hash):
         # Log failed attempt
         if user:
             attempt = TwoFactorAttempt(
@@ -92,10 +92,10 @@ async def login(
     # Check if 2FA is enabled
     if user.two_factor_enabled and user.two_factor_secret:
         # Return temporary token for 2FA verification
-        temp_token = create_access_token(
+        temp_token = SecurityUtils.create_access_token(
             subject=str(user.id),
             expires_delta=timedelta(minutes=5),
-            extra_claims={"temp": True, "purpose": "2fa"}
+            additional_claims={"temp": True, "purpose": "2fa"}
         )
         
         return TokenResponse(
@@ -110,8 +110,8 @@ async def login(
     await db.commit()
     
     # Create tokens
-    access_token = create_access_token(subject=str(user.id))
-    refresh_token = create_refresh_token(subject=str(user.id))
+    access_token = SecurityUtils.create_access_token(subject=str(user.id))
+    refresh_token = SecurityUtils.create_refresh_token(subject=str(user.id))
     
     # Log successful login
     attempt = TwoFactorAttempt(
