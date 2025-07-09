@@ -1,0 +1,1 @@
+"""Data module for static data and templates."""

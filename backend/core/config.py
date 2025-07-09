@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     # Application Settings
     APP_NAME: str = "Cybersecurity Awareness Platform"
     APP_VERSION: str = "1.0.0"
-    ENVIRONMENT: str = Field(default="development", pattern="^(development|staging|production)$")
+    ENVIRONMENT: str = Field(default="development", pattern="^(development|staging|production|test)$")
     DEBUG: bool = Field(default=False)
     
     # Server Settings

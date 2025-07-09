@@ -9,7 +9,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
 from sqlalchemy import select
-from core.security import get_password_hash
+from core.security import SecurityUtils
 from db.session import AsyncSessionLocal
 from models.user import User
 
@@ -44,10 +44,10 @@ async def create_superuser():
         # Create superuser
         user = User(
             email=email,
-            password_hash=get_password_hash(password),
+            password_hash=SecurityUtils.get_password_hash(password),
             first_name=first_name,
             last_name=last_name,
-            role="admin",
+            role="system_admin",
             is_active=True,
             is_verified=True,
             is_superuser=True,

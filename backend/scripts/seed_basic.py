@@ -2,16 +2,22 @@
 """Basic seed data for production"""
 import os
 import sys
-sys.path.insert(0, '/app')
+from pathlib import Path
+
+# Add backend directory to path
+sys.path.append(str(Path(__file__).parent.parent))
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import Company, User
-from core.security import get_password_hash
+from models.company import Company
+from models.user import User
+from core.security import SecurityUtils
 import uuid
 
 # Database connection
 DATABASE_URL = os.getenv("DATABASE_URL")
+if DATABASE_URL and DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -50,9 +56,9 @@ def seed_data():
         admin_user = User(
             id=uuid.uuid4(),
             email="admin@bootstrap-awareness.de",
-            username="admin",
-            full_name="System Administrator",
-            hashed_password=get_password_hash("admin123!"),
+            first_name="System",
+            last_name="Administrator",
+            password_hash=SecurityUtils.get_password_hash("admin123!"),
             is_active=True,
             is_superuser=True,
             company_id=bootstrap_company.id,
@@ -64,9 +70,9 @@ def seed_data():
         demo_admin = User(
             id=uuid.uuid4(),
             email="admin@demo.com",
-            username="demo_admin",
-            full_name="Demo Admin",
-            hashed_password=get_password_hash("demo123!"),
+            first_name="Demo",
+            last_name="Admin",
+            password_hash=SecurityUtils.get_password_hash("demo123!"),
             is_active=True,
             is_superuser=False,
             company_id=demo_company.id,
@@ -77,13 +83,13 @@ def seed_data():
         demo_user = User(
             id=uuid.uuid4(),
             email="user@demo.com",
-            username="demo_user",
-            full_name="Demo User",
-            hashed_password=get_password_hash("demo123!"),
+            first_name="Demo",
+            last_name="User",
+            password_hash=SecurityUtils.get_password_hash("demo123!"),
             is_active=True,
             is_superuser=False,
             company_id=demo_company.id,
-            role="user"
+            role="employee"
         )
         db.add(demo_user)
         
