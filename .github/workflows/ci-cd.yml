@@ -171,10 +171,12 @@ jobs:
         
     - name: Run unit tests
       timeout-minutes: 5
+      env:
+        CI: true
       run: |
         cd frontend
-        # Run tests without coverage for faster CI
-        npm test -- --run --reporter=verbose || true
+        # Run tests without coverage and force exit
+        npm test -- --run --reporter=verbose --pool=forks || true
         
     - name: Check coverage thresholds
       run: |
