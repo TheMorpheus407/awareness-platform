@@ -4,7 +4,7 @@ Email campaign schemas for automated email communications.
 
 from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from pydantic import EmailStr, Field, field_validator
