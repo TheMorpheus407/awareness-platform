@@ -39,7 +39,7 @@ class EmailTemplateEngine:
         self.env.globals['current_year'] = datetime.utcnow().year
         self.env.globals['app_name'] = settings.APP_NAME
         self.env.globals['app_url'] = settings.FRONTEND_URL
-        self.env.globals['support_email'] = settings.SUPPORT_EMAIL
+        self.env.globals['support_email'] = settings.SUPPORT_EMAIL or settings.SMTP_FROM_EMAIL or "support@example.com"
         
     def render_template(
         self,

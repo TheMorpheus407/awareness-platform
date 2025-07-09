@@ -61,6 +61,7 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: Optional[str] = None
     SMTP_FROM_EMAIL: Optional[EmailStr] = None
     SMTP_FROM_NAME: Optional[str] = None
+    SUPPORT_EMAIL: Optional[EmailStr] = None
     
     # Sentry (Error Tracking)
     SENTRY_DSN: Optional[str] = None
