@@ -8,8 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query, Request, R
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_
 
-from api.dependencies import get_db, get_current_active_user
-from api.dependencies.auth import require_role
+from api.dependencies import get_db, get_current_active_user, require_company_admin, require_role
 from models.user import User, UserRole
 from models.email_campaign import (
     EmailTemplate, EmailCampaign, EmailLog, EmailPreference,
