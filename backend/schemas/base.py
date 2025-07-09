@@ -25,14 +25,14 @@ class BaseSchema(BaseModel):
     )
 
 
-class TimestampMixin(BaseSchema):
+class TimestampMixin(BaseModel):
     """Mixin for models with timestamp fields."""
 
     created_at: datetime
     updated_at: Optional[datetime] = None
 
 
-class UUIDMixin(BaseSchema):
+class UUIDMixin(BaseModel):
     """Mixin for models with UUID primary key."""
 
     id: UUID = Field(..., description="Unique identifier")
