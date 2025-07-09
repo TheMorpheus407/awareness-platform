@@ -162,6 +162,47 @@ class User(BaseModel, SoftDeleteMixin):
         """Check if user has 2FA enabled."""
         return self.totp_enabled and self.totp_secret is not None
     
+    # Properties for backward compatibility with two_factor naming
+    @property
+    def two_factor_enabled(self) -> bool:
+        """Alias for totp_enabled."""
+        return self.totp_enabled
+    
+    @two_factor_enabled.setter
+    def two_factor_enabled(self, value: bool) -> None:
+        """Setter for two_factor_enabled."""
+        self.totp_enabled = value
+    
+    @property
+    def two_factor_secret(self) -> Optional[str]:
+        """Alias for totp_secret."""
+        return self.totp_secret
+    
+    @two_factor_secret.setter
+    def two_factor_secret(self, value: Optional[str]) -> None:
+        """Setter for two_factor_secret."""
+        self.totp_secret = value
+    
+    @property
+    def two_factor_backup_codes(self) -> Optional[List[str]]:
+        """Get backup codes as a list."""
+        if self.backup_codes:
+            import json
+            try:
+                return json.loads(self.backup_codes)
+            except:
+                return self.backup_codes.split(',') if ',' in self.backup_codes else [self.backup_codes]
+        return None
+    
+    @two_factor_backup_codes.setter
+    def two_factor_backup_codes(self, value: Optional[List[str]]) -> None:
+        """Set backup codes from a list."""
+        if value:
+            import json
+            self.backup_codes = json.dumps(value)
+        else:
+            self.backup_codes = None
+    
     def can_access_company(self, company_id: int) -> bool:
         """Check if user can access a specific company."""
         if self.is_system_admin:
