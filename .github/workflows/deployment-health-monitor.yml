@@ -1,0 +1,185 @@
+name: Production Health Monitor
+
+on:
+  schedule:
+    # Run every 30 minutes
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+env:
+  PRODUCTION_URL: https://bootstrap-awareness.de
+  API_URL: https://bootstrap-awareness.de/api
+  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
+jobs:
+  health-check:
+    name: Monitor Production Health
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check API Health
+        id: api-check
+        continue-on-error: true
+        run: |
+          response=$(curl -s -o response.json -w "%{http_code}" ${{ env.API_URL }}/health || echo "000")
+          
+          if [ "$response" = "200" ]; then
+            echo "status=healthy" >> $GITHUB_OUTPUT
+            echo "✅ API is healthy"
+          else
+            echo "status=unhealthy" >> $GITHUB_OUTPUT
+            echo "❌ API returned status: $response"
+            cat response.json || true
+          fi
+      
+      - name: Check Frontend
+        id: frontend-check
+        continue-on-error: true
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" ${{ env.PRODUCTION_URL }} || echo "000")
+          
+          if [ "$response" = "200" ]; then
+            echo "status=healthy" >> $GITHUB_OUTPUT
+            echo "✅ Frontend is healthy"
+          else
+            echo "status=unhealthy" >> $GITHUB_OUTPUT
+            echo "❌ Frontend returned status: $response"
+          fi
+      
+      - name: Check Database via API
+        id: db-check
+        continue-on-error: true
+        run: |
+          response=$(curl -s -o response.json -w "%{http_code}" ${{ env.API_URL }}/health/extended || echo "000")
+          
+          if [ "$response" = "200" ]; then
+            db_status=$(cat response.json | jq -r '.database.status' || echo "unknown")
+            if [ "$db_status" = "healthy" ]; then
+              echo "status=healthy" >> $GITHUB_OUTPUT
+              echo "✅ Database is healthy"
+            else
+              echo "status=unhealthy" >> $GITHUB_OUTPUT
+              echo "❌ Database status: $db_status"
+            fi
+          else
+            echo "status=unknown" >> $GITHUB_OUTPUT
+            echo "⚠️ Could not check database status"
+          fi
+      
+      - name: Performance Check
+        id: performance-check
+        continue-on-error: true
+        run: |
+          # Check API response time
+          api_time=$(curl -s -o /dev/null -w "%{time_total}" ${{ env.API_URL }}/health || echo "999")
+          
+          if (( $(echo "$api_time < 2" | bc -l) )); then
+            echo "api_performance=good" >> $GITHUB_OUTPUT
+            echo "✅ API response time: ${api_time}s"
+          else
+            echo "api_performance=slow" >> $GITHUB_OUTPUT
+            echo "⚠️ API response time is slow: ${api_time}s"
+          fi
+      
+      - name: Create Status Badge Data
+        if: always()
+        run: |
+          # Determine overall status
+          if [[ "${{ steps.api-check.outputs.status }}" == "healthy" && \
+                "${{ steps.frontend-check.outputs.status }}" == "healthy" && \
+                "${{ steps.db-check.outputs.status }}" == "healthy" ]]; then
+            overall_status="operational"
+            badge_color="success"
+          elif [[ "${{ steps.api-check.outputs.status }}" == "unhealthy" || \
+                  "${{ steps.frontend-check.outputs.status }}" == "unhealthy" ]]; then
+            overall_status="down"
+            badge_color="critical"
+          else
+            overall_status="degraded"
+            badge_color="warning"
+          fi
+          
+          # Create status JSON
+          cat > status.json << EOF
+          {
+            "status": "$overall_status",
+            "api": "${{ steps.api-check.outputs.status }}",
+            "frontend": "${{ steps.frontend-check.outputs.status }}",
+            "database": "${{ steps.db-check.outputs.status }}",
+            "performance": "${{ steps.performance-check.outputs.api_performance }}",
+            "last_check": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "badge_color": "$badge_color"
+          }
+          EOF
+          
+          cat status.json
+      
+      - name: Alert on Failure
+        if: |
+          steps.api-check.outputs.status == 'unhealthy' ||
+          steps.frontend-check.outputs.status == 'unhealthy' ||
+          steps.db-check.outputs.status == 'unhealthy'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = {
+              api: '${{ steps.api-check.outputs.status }}',
+              frontend: '${{ steps.frontend-check.outputs.status }}',
+              database: '${{ steps.db-check.outputs.status }}'
+            };
+            
+            // Check if we've already created an issue recently
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'production-health',
+              state: 'open'
+            });
+            
+            const recentIssue = issues.data.find(issue => {
+              const createdAt = new Date(issue.created_at);
+              const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
+              return createdAt > hourAgo;
+            });
+            
+            if (!recentIssue) {
+              // Create new issue
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: '🚨 Production Health Alert',
+                body: `Production health check failed at ${new Date().toISOString()}
+                
+                **Status:**
+                - API: ${status.api}
+                - Frontend: ${status.frontend}
+                - Database: ${status.database}
+                
+                **URLs:**
+                - Production: ${{ env.PRODUCTION_URL }}
+                - API: ${{ env.API_URL }}
+                
+                **Action Required:** Please investigate immediately!
+                
+                cc: @TheMorpheus407`,
+                labels: ['bug', 'production-health', 'high-priority']
+              });
+            }
+      
+      - name: Update Status Page
+        if: always()
+        continue-on-error: true
+        run: |
+          # This would typically update a status page
+          # For now, we'll just log the status
+          echo "Would update status page with:"
+          cat status.json
+      
+      - name: Store Metrics
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: health-metrics-${{ github.run_id }}
+          path: |
+            status.json
+            response.json
+          retention-days: 7

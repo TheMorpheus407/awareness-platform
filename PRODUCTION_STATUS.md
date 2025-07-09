@@ -25,14 +25,15 @@
 
 Run these commands on the production server:
 ```bash
-# 1. Initialize database
-docker exec -it backend-container alembic upgrade head
+# IMPORTANT: Backend code is now in backend/backend/ directory
+# 1. Initialize database with correct path
+docker exec -it backend-container bash -c "cd /app/backend && alembic upgrade head"
 
 # 2. Create tables
-docker exec -it backend-container python scripts/init_db_tables.py
+docker exec -it backend-container bash -c "cd /app/backend && python backend/scripts/init_db_tables.py"
 
 # 3. Create admin user
-docker exec -it backend-container python scripts/create_admin_user.py
+docker exec -it backend-container bash -c "cd /app/backend && python backend/scripts/create_admin_user.py"
 ```
 
 **That's it! Stage 1 will be 100% complete.**

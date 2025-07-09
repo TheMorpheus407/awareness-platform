@@ -47,7 +47,7 @@ jobs:
       
       - name: Install backend dependencies
         run: |
-          cd backend
+          cd backend/backend
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
@@ -59,9 +59,12 @@ jobs:
       
       - name: Run backend tests with coverage
         run: |
-          cd backend
+          cd backend/backend
           export PYTHONPATH=$PYTHONPATH:$(pwd)
-          pytest --cov=. --cov-report=xml --cov-report=term-missing
+          pytest --cov=. --cov-report=xml --cov-report=term-missing || {
+            echo "::error::Backend tests failed"
+            exit 1
+          }
       
       - name: Run frontend tests with coverage
         run: |
@@ -71,7 +74,7 @@ jobs:
       - name: Upload backend coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
-          file: ./backend/coverage.xml
+          file: ./backend/backend/coverage.xml
           flags: backend
           name: backend-coverage
       
@@ -147,8 +150,8 @@ jobs:
       - name: Build and push Backend
         uses: docker/build-push-action@v5
         with:
-          context: ./backend
-          file: ./backend/Dockerfile.prod
+          context: ./backend/backend
+          file: ./backend/backend/Dockerfile.prod
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
@@ -212,6 +215,7 @@ jobs:
           
           # Copy deployment scripts
           scp -r deployment/scripts/* ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }}:${{ env.APP_DIR }}/scripts/
+          ssh ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }} "chmod +x ${{ env.APP_DIR }}/scripts/*.sh"
           
           # Copy postgres configuration
           ssh ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }} "mkdir -p ${{ env.APP_DIR }}/deployment/postgres"
@@ -284,30 +288,30 @@ jobs:
             # Login to GitHub Container Registry
             echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
-            # Backup current deployment
-            if [ -f docker-compose.yml ]; then
-              docker-compose ps > logs/pre-deployment-status-$(date +%Y%m%d-%H%M%S).log
+            # Export necessary variables for deployment script
+            export REGISTRY=${{ env.REGISTRY }}
+            export IMAGE_NAME=${{ env.IMAGE_NAME }}
+            
+            # Use enhanced deployment script
+            if [ -f scripts/deploy-with-verification.sh ]; then
+              ./scripts/deploy-with-verification.sh
+            else
+              # Fallback to standard deployment
+              docker-compose -f docker-compose.yml pull
+              docker-compose -f docker-compose.yml down --remove-orphans
+              docker-compose -f docker-compose.yml up -d
+              
+              # Wait for services
+              sleep 30
+              
+              # Run migrations
+              docker-compose -f docker-compose.yml exec -T backend alembic upgrade head || true
+              
+              # Create admin user
+              docker-compose -f docker-compose.yml exec -T backend python /app/scripts/create_production_admin.py || true
             fi
             
-            # Pull new images
-            docker-compose pull
-            
-            # Stop and remove old containers
-            docker-compose down --remove-orphans
-            
-            # Start new containers
-            docker-compose up -d
-            
-            # Wait for services to be healthy
-            sleep 30
-            
-            # Run database migrations
-            docker-compose exec -T backend alembic upgrade head
-            
-            # Create admin user if not exists
-            docker-compose exec -T backend python scripts/create_production_admin.py || true
-            
-            # Check deployment status
+            # Show final status
             docker-compose ps
           "
       
@@ -350,12 +354,32 @@ jobs:
       - name: Run smoke tests
         run: |
           # Basic API tests
-          curl -f https://bootstrap-awareness.de/api/health
-          curl -f https://bootstrap-awareness.de/api/v1/companies
+          echo "Testing API health endpoint..."
+          curl -f https://bootstrap-awareness.de/api/health || {
+            echo "API health check failed!"
+            exit 1
+          }
+          
+          echo "Testing companies endpoint..."
+          curl -f https://bootstrap-awareness.de/api/v1/companies?skip=0&limit=1 || {
+            echo "Companies endpoint failed!"
+            exit 1
+          }
           
           # Check critical pages
-          curl -f https://bootstrap-awareness.de
-          curl -f https://bootstrap-awareness.de/login
+          echo "Testing frontend homepage..."
+          curl -f https://bootstrap-awareness.de || {
+            echo "Frontend homepage failed!"
+            exit 1
+          }
+          
+          echo "Testing login page..."
+          curl -f https://bootstrap-awareness.de/login || {
+            echo "Login page failed!"
+            exit 1
+          }
+          
+          echo "✅ All smoke tests passed!"
       
       - name: Notify deployment status
         if: always()
@@ -412,8 +436,24 @@ jobs:
             # Stop current containers
             docker-compose down
             
-            # Start with previous images (tagged as 'previous')
+            # Restore from backup if available
+            if [ -d /opt/awareness-backup-* ]; then
+              latest_backup=$(ls -dt /opt/awareness-backup-* | head -1)
+              echo "Restoring from backup: $latest_backup"
+              
+              # Restore configuration files
+              cp -r $latest_backup/{.env*,docker-compose*.yml} /opt/awareness/ 2>/dev/null || true
+              
+              # Pull previous working images
+              docker-compose pull
+            fi
+            
+            # Start with restored configuration
             docker-compose up -d
+            
+            # Verify rollback
+            sleep 30
+            docker-compose ps
             
             echo 'Rollback completed'
           "

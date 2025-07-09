@@ -20,16 +20,16 @@ info:
     
   version: 1.0.0
   contact:
-    email: api@cybersec-platform.de
+    email: hallo@bootstrap-awareness.de
   license:
     name: Proprietary
     
 servers:
-  - url: https://api.cybersec-platform.de/api/v1
+  - url: https://bootstrap-awareness.de/api
     description: Production server
-  - url: https://staging-api.cybersec-platform.de/api/v1
+  - url: https://staging.bootstrap-awareness.de/api
     description: Staging server
-  - url: http://localhost:8000/api/v1
+  - url: http://localhost:8000/api
     description: Development server
 
 security:
@@ -1712,7 +1712,7 @@ from typing import Optional, Dict, Any
 import asyncio
 
 class CybersecAPIClient:
-    def __init__(self, base_url: str = "https://api.cybersec-platform.de"):
+    def __init__(self, base_url: str = "https://bootstrap-awareness.de"):
         self.base_url = base_url
         self.token: Optional[str] = None
         self.client = httpx.AsyncClient(base_url=base_url)
@@ -1720,7 +1720,7 @@ class CybersecAPIClient:
     async def login(self, email: str, password: str) -> Dict[str, Any]:
         """Authenticate and store access token"""
         response = await self.client.post(
-            "/api/v1/auth/login",
+            "/api/auth/login",
             data={
                 "username": email,
                 "password": password,
@@ -1735,20 +1735,20 @@ class CybersecAPIClient:
     
     async def get_courses(self) -> list:
         """Get available courses"""
-        response = await self.client.get("/api/v1/courses")
+        response = await self.client.get("/api/courses")
         response.raise_for_status()
         return response.json()
     
     async def start_course(self, course_id: str) -> Dict[str, Any]:
         """Start a course"""
-        response = await self.client.post(f"/api/v1/courses/{course_id}/start")
+        response = await self.client.post(f"/api/courses/{course_id}/start")
         response.raise_for_status()
         return response.json()
     
     async def submit_quiz(self, course_id: str, answers: list) -> Dict[str, Any]:
         """Submit quiz answers"""
         response = await self.client.post(
-            f"/api/v1/courses/{course_id}/quiz",
+            f"/api/courses/{course_id}/quiz",
             json={"answers": answers}
         )
         response.raise_for_status()
@@ -1804,12 +1804,12 @@ class CybersecAPIClient {
   private baseURL: string;
   private token: string | null = null;
   
-  constructor(baseURL: string = 'https://api.cybersec-platform.de') {
+  constructor(baseURL: string = 'https://bootstrap-awareness.de') {
     this.baseURL = baseURL;
   }
   
   async login(email: string, password: string): Promise<TokenResponse> {
-    const response = await fetch(`${this.baseURL}/api/v1/auth/login`, {
+    const response = await fetch(`${this.baseURL}/api/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -1831,12 +1831,12 @@ class CybersecAPIClient {
   }
   
   async getCourses(): Promise<Course[]> {
-    const response = await this.authFetch('/api/v1/courses');
+    const response = await this.authFetch('/api/courses');
     return response.json();
   }
   
   async startCourse(courseId: string) {
-    const response = await this.authFetch(`/api/v1/courses/${courseId}/start`, {
+    const response = await this.authFetch(`/api/courses/${courseId}/start`, {
       method: 'POST',
     });
     return response.json();
@@ -1889,20 +1889,20 @@ async function example() {
 ### 2.3 cURL Examples
 ```bash
 # Login
-curl -X POST https://api.cybersec-platform.de/api/v1/auth/login \
+curl -X POST https://bootstrap-awareness.de/api/auth/login \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "username=user@company.com&password=password123&grant_type=password"
 
 # Get courses (with token)
-curl -X GET https://api.cybersec-platform.de/api/v1/courses \
+curl -X GET https://bootstrap-awareness.de/api/courses \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 
 # Start course
-curl -X POST https://api.cybersec-platform.de/api/v1/courses/COURSE_ID/start \
+curl -X POST https://bootstrap-awareness.de/api/courses/COURSE_ID/start \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 
 # Submit quiz
-curl -X POST https://api.cybersec-platform.de/api/v1/courses/COURSE_ID/quiz \
+curl -X POST https://bootstrap-awareness.de/api/courses/COURSE_ID/quiz \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -1913,7 +1913,7 @@ curl -X POST https://api.cybersec-platform.de/api/v1/courses/COURSE_ID/quiz \
   }'
 
 # Generate compliance report
-curl -X GET "https://api.cybersec-platform.de/api/v1/reports/compliance/nis2?start_date=2025-01-01&end_date=2025-01-31&format=pdf" \
+curl -X GET "https://bootstrap-awareness.de/api/reports/compliance/nis2?start_date=2025-01-01&end_date=2025-01-31&format=pdf" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -o compliance-report.pdf
 ```
@@ -2005,7 +2005,7 @@ X-RateLimit-Reset: 1642329600
 ## 6. API Versioning
 
 ### 6.1 Version Strategy
-- URL versioning: `/api/v1/`, `/api/v2/`
+- URL versioning: `/api/v1/`, `/api/v2/` (currently using `/api/` without version)
 - Breaking changes require new version
 - Deprecation notice: 6 months
 - Sunset period: 12 months

@@ -70,14 +70,14 @@ After the first deployment, initialize the database:
 # SSH to server
 ssh root@bootstrap-awareness.de
 
-# Run database migrations
-docker exec -it backend-container alembic upgrade head
+# Run database migrations (note the backend/backend structure)
+docker exec -it backend-container bash -c "cd /app/backend && alembic upgrade head"
 
 # Initialize database tables
-docker exec -it backend-container python scripts/init_db_tables.py
+docker exec -it backend-container bash -c "cd /app/backend && python backend/scripts/init_db_tables.py"
 
 # Create admin user
-docker exec -it backend-container python scripts/create_admin_user.py
+docker exec -it backend-container bash -c "cd /app/backend && python backend/scripts/create_admin_user.py"
 ```
 
 ### 5. Verify Deployment
@@ -110,8 +110,8 @@ cp .env.example .env
 # Start services
 docker-compose -f docker-compose.dev.yml up -d
 
-# Run migrations
-docker-compose exec backend alembic upgrade head
+# Run migrations (with correct path)
+docker-compose exec backend bash -c "cd /app/backend && alembic upgrade head"
 
 # Access the application
 # Frontend: http://localhost:5173
@@ -122,12 +122,14 @@ docker-compose exec backend alembic upgrade head
 
 **Backend:**
 ```bash
-cd backend
+cd backend/backend
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
+cd ..
 alembic upgrade head
-uvicorn main:app --reload
+cd backend
+python -m uvicorn backend.main:app --reload
 ```
 
 **Frontend:**
@@ -145,11 +147,14 @@ npm run dev
 - Check nginx configuration
 - Verify frontend build completed
 - Check docker logs: `docker logs frontend-container`
+- See [TROUBLESHOOTING.md](../TROUBLESHOOTING.md#frontend-issues) for detailed solutions
 
 **API routes return 404:**
-- Ensure database is initialized
+- Ensure database is initialized with correct paths
 - Check backend logs: `docker logs backend-container`
-- Verify environment variables are set
+- Verify PYTHONPATH includes /app/backend
+- Check imports are using backend.module format
+- See [TROUBLESHOOTING.md](../TROUBLESHOOTING.md#backendapi-issues) for detailed solutions
 
 **Cannot connect to database:**
 - Check PostgreSQL is running: `docker ps | grep postgres`
@@ -181,10 +186,10 @@ docker stats
 
 ```bash
 # Create backup
-docker exec postgres-container pg_dump -U awareness awareness_platform > backup_$(date +%Y%m%d).sql
+docker exec postgres-container pg_dump -U awareness awareness_platform > backup_$(date +%Y%m%d_%H%M%S).sql
 
 # Restore backup
-docker exec -i postgres-container psql -U awareness awareness_platform < backup_20250109.sql
+docker exec -i postgres-container psql -U awareness awareness_platform < backup_20250109_123045.sql
 ```
 
 ### Full System Backup

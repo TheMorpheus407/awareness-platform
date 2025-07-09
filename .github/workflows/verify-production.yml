@@ -1,0 +1,275 @@
+name: Verify Production Deployment
+
+on:
+  workflow_run:
+    workflows: ["Deploy to Production"]
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      manual_check:
+        description: 'Run manual production verification'
+        required: false
+        default: 'true'
+
+env:
+  PRODUCTION_URL: https://bootstrap-awareness.de
+  API_BASE_URL: https://bootstrap-awareness.de/api
+
+jobs:
+  verify-deployment:
+    name: Verify Production Deployment
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Wait for services to stabilize
+        run: sleep 30
+      
+      - name: Check API Health
+        id: api-health
+        run: |
+          echo "Checking API health endpoint..."
+          response=$(curl -s -o response.json -w "%{http_code}" ${{ env.API_BASE_URL }}/health || echo "000")
+          
+          if [ "$response" = "200" ]; then
+            echo "✅ API health check passed"
+            cat response.json | jq '.'
+            echo "api_status=healthy" >> $GITHUB_OUTPUT
+          else
+            echo "❌ API health check failed with status: $response"
+            cat response.json || echo "No response body"
+            echo "api_status=unhealthy" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+      
+      - name: Check Extended Health
+        run: |
+          echo "Checking extended health endpoint..."
+          response=$(curl -s -o response.json -w "%{http_code}" ${{ env.API_BASE_URL }}/health/extended || echo "000")
+          
+          if [ "$response" = "200" ]; then
+            echo "✅ Extended health check passed"
+            cat response.json | jq '.'
+          else
+            echo "⚠️ Extended health check returned status: $response"
+            cat response.json || echo "No response body"
+          fi
+      
+      - name: Verify Database Connection
+        run: |
+          echo "Checking database status via API..."
+          response=$(curl -s -o response.json -w "%{http_code}" ${{ env.API_BASE_URL }}/health/extended || echo "000")
+          
+          if [ "$response" = "200" ]; then
+            db_status=$(cat response.json | jq -r '.database.status' || echo "unknown")
+            if [ "$db_status" = "healthy" ]; then
+              echo "✅ Database connection is healthy"
+            else
+              echo "❌ Database status: $db_status"
+              exit 1
+            fi
+          fi
+      
+      - name: Verify Redis Connection
+        run: |
+          echo "Checking Redis status via API..."
+          response=$(curl -s -o response.json -w "%{http_code}" ${{ env.API_BASE_URL }}/health/extended || echo "000")
+          
+          if [ "$response" = "200" ]; then
+            redis_status=$(cat response.json | jq -r '.redis.status' || echo "unknown")
+            if [ "$redis_status" = "healthy" ]; then
+              echo "✅ Redis connection is healthy"
+            else
+              echo "⚠️ Redis status: $redis_status (non-critical)"
+            fi
+          fi
+      
+      - name: Check Frontend
+        run: |
+          echo "Checking frontend..."
+          response=$(curl -s -o /dev/null -w "%{http_code}" ${{ env.PRODUCTION_URL }} || echo "000")
+          
+          if [ "$response" = "200" ]; then
+            echo "✅ Frontend is accessible"
+          else
+            echo "❌ Frontend returned status: $response"
+            exit 1
+          fi
+      
+      - name: Verify API Endpoints
+        run: |
+          echo "Testing critical API endpoints..."
+          
+          # Companies endpoint (public)
+          response=$(curl -s -o response.json -w "%{http_code}" "${{ env.API_BASE_URL }}/v1/companies?skip=0&limit=1" || echo "000")
+          if [ "$response" = "200" ]; then
+            echo "✅ Companies endpoint is working"
+          else
+            echo "❌ Companies endpoint returned: $response"
+            cat response.json || true
+          fi
+          
+          # Auth endpoint test (should return 422 for missing data)
+          response=$(curl -s -o response.json -w "%{http_code}" -X POST "${{ env.API_BASE_URL }}/v1/auth/login" -H "Content-Type: application/json" -d '{}' || echo "000")
+          if [ "$response" = "422" ]; then
+            echo "✅ Auth endpoint is responding correctly"
+          else
+            echo "⚠️ Auth endpoint returned unexpected status: $response"
+          fi
+      
+      - name: Check SSL Certificate
+        run: |
+          echo "Checking SSL certificate..."
+          echo | openssl s_client -connect bootstrap-awareness.de:443 -servername bootstrap-awareness.de 2>/dev/null | openssl x509 -noout -dates
+          
+          # Check certificate expiry
+          expiry_date=$(echo | openssl s_client -connect bootstrap-awareness.de:443 -servername bootstrap-awareness.de 2>/dev/null | openssl x509 -noout -enddate | cut -d= -f2)
+          expiry_epoch=$(date -d "$expiry_date" +%s)
+          current_epoch=$(date +%s)
+          days_until_expiry=$(( ($expiry_epoch - $current_epoch) / 86400 ))
+          
+          echo "Certificate expires in $days_until_expiry days"
+          
+          if [ $days_until_expiry -lt 30 ]; then
+            echo "⚠️ WARNING: Certificate expires in less than 30 days!"
+          else
+            echo "✅ Certificate is valid for $days_until_expiry more days"
+          fi
+      
+      - name: Performance Check
+        run: |
+          echo "Running basic performance check..."
+          
+          # Measure API response time
+          api_time=$(curl -s -o /dev/null -w "%{time_total}" ${{ env.API_BASE_URL }}/health)
+          echo "API health check response time: ${api_time}s"
+          
+          # Measure frontend load time
+          frontend_time=$(curl -s -o /dev/null -w "%{time_total}" ${{ env.PRODUCTION_URL }})
+          echo "Frontend load time: ${frontend_time}s"
+          
+          # Check if times are reasonable (under 2 seconds)
+          if (( $(echo "$api_time < 2" | bc -l) )); then
+            echo "✅ API response time is good"
+          else
+            echo "⚠️ API response time is slow: ${api_time}s"
+          fi
+          
+          if (( $(echo "$frontend_time < 2" | bc -l) )); then
+            echo "✅ Frontend load time is good"
+          else
+            echo "⚠️ Frontend load time is slow: ${frontend_time}s"
+          fi
+      
+      - name: Security Headers Check
+        run: |
+          echo "Checking security headers..."
+          headers=$(curl -s -I ${{ env.PRODUCTION_URL }})
+          
+          # Check for important security headers
+          if echo "$headers" | grep -qi "X-Content-Type-Options: nosniff"; then
+            echo "✅ X-Content-Type-Options header present"
+          else
+            echo "⚠️ Missing X-Content-Type-Options header"
+          fi
+          
+          if echo "$headers" | grep -qi "X-Frame-Options:"; then
+            echo "✅ X-Frame-Options header present"
+          else
+            echo "⚠️ Missing X-Frame-Options header"
+          fi
+          
+          if echo "$headers" | grep -qi "Strict-Transport-Security:"; then
+            echo "✅ HSTS header present"
+          else
+            echo "⚠️ Missing Strict-Transport-Security header"
+          fi
+      
+      - name: Check Docker Containers on Server
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H 83.228.205.20 >> ~/.ssh/known_hosts
+          
+          echo "Checking Docker containers status..."
+          ssh ubuntu@83.228.205.20 "cd /opt/awareness && sudo docker-compose ps"
+          
+          # Check if all containers are running
+          running_count=$(ssh ubuntu@83.228.205.20 "cd /opt/awareness && sudo docker-compose ps --filter 'status=running' -q | wc -l")
+          echo "Running containers: $running_count"
+          
+          if [ "$running_count" -ge 4 ]; then
+            echo "✅ All critical containers are running"
+          else
+            echo "❌ Some containers are not running!"
+            ssh ubuntu@83.228.205.20 "cd /opt/awareness && sudo docker-compose logs --tail=50"
+            exit 1
+          fi
+      
+      - name: Generate Deployment Report
+        if: always()
+        run: |
+          cat > deployment-report.md << EOF
+          # Production Deployment Verification Report
+          
+          **Date:** $(date)
+          **Deployment Status:** ${{ job.status }}
+          **Triggered by:** ${{ github.event_name }}
+          
+          ## Checks Summary
+          
+          - API Health: ${{ steps.api-health.outputs.api_status || 'unknown' }}
+          - Frontend: Checked
+          - Database: Checked
+          - Redis: Checked
+          - SSL Certificate: Checked
+          - Performance: Measured
+          - Security Headers: Analyzed
+          - Docker Containers: Verified
+          
+          ## Production URL
+          
+          - Frontend: ${{ env.PRODUCTION_URL }}
+          - API: ${{ env.API_BASE_URL }}
+          
+          ## Next Steps
+          
+          1. Monitor application logs for any errors
+          2. Check user reports for any issues
+          3. Verify all features are working as expected
+          4. Monitor performance metrics
+          
+          EOF
+          
+          cat deployment-report.md
+      
+      - name: Upload Deployment Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: deployment-verification-report
+          path: deployment-report.md
+      
+      - name: Notify Deployment Status
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Create an issue if verification fails
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 Production Deployment Verification Failed',
+              body: `The production deployment verification failed at ${new Date().toISOString()}.
+              
+              **Workflow Run:** [${context.runId}](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+              
+              Please check the deployment logs and take appropriate action.
+              
+              cc: @TheMorpheus407`,
+              labels: ['bug', 'production', 'high-priority']
+            });

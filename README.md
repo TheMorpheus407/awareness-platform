@@ -70,17 +70,21 @@ See [STAGE_1_ACTUAL_STATUS.md](STAGE_1_ACTUAL_STATUS.md) for detailed status.
 ### Quick Start with Docker
 
 ```bash
-# Clone repository (when available on GitHub)
-# For now, use local directory
+# Clone repository
+git clone https://github.com/TheMorpheus407/awareness-platform.git
+cd awareness-platform
 
 # Copy environment files
-cp .env.example .env
+cp backend/.env.example backend/.env
 
 # Start all services
-docker-compose -f docker-compose.dev.yml up -d
+docker-compose -f backend/docker-compose.dev.yml up -d
 
-# Run database migrations
-docker-compose exec backend alembic upgrade head
+# Run database migrations (note the backend/backend structure)
+docker-compose -f backend/docker-compose.dev.yml exec backend bash -c "cd /app/backend && alembic upgrade head"
+
+# Create initial admin user
+docker-compose -f backend/docker-compose.dev.yml exec backend bash -c "cd /app/backend && python backend/scripts/create_admin.py"
 
 # Access the application
 # Frontend: http://localhost:5173
@@ -141,19 +145,26 @@ docker-compose exec backend alembic upgrade head
 ## 📖 Documentation
 
 ### Available Documentation
-- [Contributing Guidelines](CONTRIBUTING.md)
-- [Deployment Guide](DEPLOYMENT_GUIDE.md)
-- [Stage 1 Completion Report](STAGE_1_COMPLETION_REPORT.md)
-- [Actual Status Report](STAGE_1_ACTUAL_STATUS.md)
-- [Production Readiness Checklist](PRODUCTION_READINESS_CHECKLIST.md)
-- API Documentation at `/docs` when backend is running
+- [Contributing Guidelines](backend/CONTRIBUTING.md)
+- [Deployment Guide](backend/DEPLOYMENT_GUIDE.md)
+- [Current Status Report](CURRENT_STATUS.md)
+- [Troubleshooting Guide](TROUBLESHOOTING.md)
+- [Production Status](PRODUCTION_STATUS.md)
+- [Stage 1 Status Report](STAGE_1_ACTUAL_STATUS.md)
+- API Documentation at `/api/docs` when backend is running
 
 ### Technical Specifications
-- [Backend Specification](backend-spec.md)
-- [Frontend Specification](frontend-spec.md)
-- [Database Specification](database-spec.md)
-- [Security Specification](security-spec.md)
-- [Testing Specification](testing-spec.md)
+- [Backend Specification](backend/backend-spec.md)
+- [Frontend Specification](backend/frontend-spec.md)
+- [Database Specification](backend/database-spec.md)
+- [Security Specification](backend/security-spec.md)
+- [Testing Specification](backend/testing-spec.md)
+
+### Backend Documentation
+- [Backend README](backend/README.md)
+- [Backend Development](backend/backend/README.md)
+- [RLS Implementation](backend/backend/docs/ROW_LEVEL_SECURITY.md)
+- [2FA Testing Guide](backend/backend/docs/2FA_TESTING.md)
 
 ## 🧪 Testing
 

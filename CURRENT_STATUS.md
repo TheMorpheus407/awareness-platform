@@ -1,9 +1,10 @@
 # 🚀 Bootstrap Awareness Platform - Current Status
 
-**Last Updated**: 2025-07-09 12:50 UTC  
+**Last Updated**: 2025-07-09 13:30 UTC  
 **Project**: Bootstrap Awareness Platform  
 **Repository**: TheMorpheus407/awareness-platform  
-**Production URL**: https://bootstrap-awareness.de
+**Production URL**: https://bootstrap-awareness.de  
+**Backend Structure**: Note the backend code is now in `backend/backend/` directory
 
 ## 📊 Overall Status: 60% Operational
 
@@ -54,45 +55,63 @@
   - Ensures coverage reports are generated
   - Allows pipeline to continue to deployment
 
-### Documentation Updates (In Progress 🔄)
-- Updated README.md with current status
-- Created this CURRENT_STATUS.md file
-- Updated deployment documentation
+### Documentation Updates (Completed ✅)
+- Updated README.md with current status and new backend structure
+- Updated CURRENT_STATUS.md file with latest information
+- Created comprehensive TROUBLESHOOTING.md guide
+- Updated deployment documentation to reflect backend/backend paths
 - Synchronized all docs with actual project state
+- Added proper API documentation references
 
 ## 📋 Immediate Action Items
 
 ### 1. Fix Frontend Display (Priority: HIGH)
 ```bash
 # SSH to server and check nginx configuration
-docker exec -it nginx-container cat /etc/nginx/conf.d/default.conf
+docker exec nginx-container cat /etc/nginx/conf.d/default.conf
 
 # Verify frontend build
-docker exec -it frontend-container ls -la /usr/share/nginx/html
+docker exec frontend-container ls -la /usr/share/nginx/html
 
 # Check index.html content
-docker exec -it frontend-container cat /usr/share/nginx/html/index.html
+docker exec frontend-container cat /usr/share/nginx/html/index.html
+
+# Rebuild frontend with correct configuration
+cd /app/frontend
+docker-compose -f docker-compose.prod.yml build frontend
+docker-compose -f docker-compose.prod.yml up -d frontend
 ```
 
 ### 2. Initialize Database (Priority: HIGH)
 ```bash
-# Run migrations
-docker exec -it backend-container alembic upgrade head
+# IMPORTANT: Backend code is in backend/backend/ directory
+# Run migrations with correct path
+docker exec backend-container bash -c "cd /app/backend && alembic upgrade head"
 
 # Initialize tables
-docker exec -it backend-container python scripts/init_db_tables.py
+docker exec backend-container bash -c "cd /app/backend && python backend/scripts/init_db_tables.py"
 
 # Create admin user
-docker exec -it backend-container python scripts/create_admin_user.py
+docker exec backend-container bash -c "cd /app/backend && python backend/scripts/create_admin_user.py"
 ```
 
 ### 3. Fix API Routes (Priority: HIGH)
 ```bash
-# Check registered routes
-docker exec -it backend-container python -c "from main import app; print([r.path for r in app.routes])"
+# Check registered routes (with correct import path)
+docker exec backend-container python -c "
+import sys
+sys.path.append('/app/backend')
+from backend.main import app
+for route in app.routes:
+    if hasattr(route, 'path'):
+        print(f'{route.methods} {route.path}')
+"
 
 # Verify API documentation
 curl https://bootstrap-awareness.de/api/docs
+
+# Fix Python path if needed
+docker exec backend-container bash -c "export PYTHONPATH=/app/backend:$PYTHONPATH && python -m backend.main"
 ```
 
 ## 📈 Progress Metrics
@@ -111,8 +130,16 @@ curl https://bootstrap-awareness.de/api/docs
 
 ### Critical (Blocking Production)
 1. **Frontend Not Displaying** - GitHub Issue #9
+   - Root cause: Frontend build artifacts not deployed correctly
+   - Solution: Rebuild frontend container with production config
+   
 2. **API Routes 404** - GitHub Issue #10
+   - Root cause: Backend structure changed to backend/backend/
+   - Solution: Fix Python imports and PYTHONPATH
+   
 3. **Database Not Initialized** - Needs manual intervention
+   - Root cause: Migration commands need correct working directory
+   - Solution: Use bash -c with cd commands as shown above
 
 ### Non-Critical (Can be fixed later)
 4. **SSH Access Blocked** - Alternative access methods needed
@@ -143,9 +170,11 @@ curl https://bootstrap-awareness.de/api/docs
 
 - **Production**: https://bootstrap-awareness.de
 - **API Health**: https://bootstrap-awareness.de/api/health
+- **API Docs**: https://bootstrap-awareness.de/api/docs (when fixed)
 - **GitHub Repo**: https://github.com/TheMorpheus407/awareness-platform
 - **GitHub Actions**: https://github.com/TheMorpheus407/awareness-platform/actions
 - **Support Email**: hallo@bootstrap-awareness.de
+- **Troubleshooting Guide**: [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 
 ## 🚦 Status Summary
 

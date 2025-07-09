@@ -28,7 +28,7 @@ jobs:
       
       - name: Install backend dependencies
         run: |
-          cd backend
+          cd backend/backend
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
@@ -40,13 +40,12 @@ jobs:
       
       - name: Run backend tests
         run: |
-          cd backend
+          cd backend/backend
           export PYTHONPATH=$PYTHONPATH:$(pwd)
-          pytest --cov=. --cov-report=xml
-          if [ $? -ne 0 ]; then
+          pytest --cov=. --cov-report=xml || {
             echo "::error::Backend tests failed"
             exit 1
-          fi
+          }
       
       - name: Run frontend tests
         run: |
@@ -92,12 +91,17 @@ jobs:
       - name: Build and push Backend Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./backend
-          file: ./backend/Dockerfile.prod
+          context: ./backend/backend
+          file: ./backend/backend/Dockerfile.prod
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            VCS_REF=${{ github.sha }}
       
       - name: Build and push Frontend Docker image
         uses: docker/build-push-action@v5
@@ -220,5 +224,5 @@ jobs:
       - name: Create admin user
         run: |
           echo "Creating admin user on production..."
-          scp backend/scripts/create_production_admin.py ubuntu@83.228.205.20:/tmp/
+          scp backend/backend/scripts/create_production_admin.py ubuntu@83.228.205.20:/tmp/
           ssh ubuntu@83.228.205.20 "sudo docker cp /tmp/create_production_admin.py awareness-backend-1:/tmp/ && sudo docker exec awareness-backend-1 python /tmp/create_production_admin.py" || true
