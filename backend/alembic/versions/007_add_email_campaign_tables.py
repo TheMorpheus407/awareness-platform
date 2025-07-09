@@ -11,7 +11,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers
 revision = '007_add_email_campaign_tables'
-down_revision = '006_add_analytics_tables'
+down_revision = '006'
 branch_labels = None
 depends_on = None
 
