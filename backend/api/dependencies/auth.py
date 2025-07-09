@@ -1,6 +1,6 @@
 """Authentication dependencies."""
 
-from typing import Optional
+from typing import Optional, List
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -10,7 +10,7 @@ from sqlalchemy import select
 
 from core.security import decode_token
 from db.session import get_db
-from models.user import User
+from models.user import User, UserRole
 from schemas.user import TokenPayload
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
@@ -128,3 +128,33 @@ async def require_company_admin(
             detail="Company admin privileges required",
         )
     return current_user
+
+
+def require_role(allowed_roles: List[UserRole]):
+    """
+    Create a dependency that requires specific user roles.
+    
+    Args:
+        allowed_roles: List of allowed user roles
+        
+    Returns:
+        Dependency function that checks user role
+    """
+    async def role_checker(
+        current_user: User = Depends(get_current_active_user),
+    ) -> User:
+        """Check if user has one of the allowed roles."""
+        if hasattr(current_user, 'role') and current_user.role in allowed_roles:
+            return current_user
+        # Also check admin status
+        if UserRole.ADMIN in allowed_roles and current_user.is_admin:
+            return current_user
+        if UserRole.MANAGER in allowed_roles and current_user.is_company_admin:
+            return current_user
+        
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Insufficient permissions. Required roles: {[r.value for r in allowed_roles]}",
+        )
+    
+    return role_checker

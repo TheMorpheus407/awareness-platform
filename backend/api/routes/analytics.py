@@ -266,11 +266,10 @@ async def get_user_engagement(
 
 
 @router.get("/revenue", response_model=List[RevenueAnalyticsResponse])
-@require_admin
 async def get_revenue_analytics(
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """Get revenue analytics (admin only)."""
@@ -370,10 +369,9 @@ async def get_realtime_metrics(
 
 
 @router.post("/export")
-@require_admin
 async def export_analytics(
     export_request: AnalyticsExportRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """Export analytics data to various formats."""
@@ -392,9 +390,8 @@ async def export_analytics(
 
 
 @router.post("/refresh-materialized-views")
-@require_admin
 async def refresh_materialized_views(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """Refresh analytics materialized views (admin only)."""

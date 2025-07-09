@@ -7,7 +7,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, validator
 
-from backend.models.course import ContentType, DifficultyLevel, CourseStatus, ProgressStatus
+from models.course import ContentType, DifficultyLevel, CourseStatus, ProgressStatus
 
 
 # Enums (re-export for convenience)
@@ -641,3 +641,10 @@ class CourseAnnouncementInDB(BaseModel):
     author_name: Optional[str] = None  # Populated from join
 
     model_config = ConfigDict(from_attributes=True)
+
+
+# Update forward references
+CourseDetail.model_rebuild()
+ModulePublic.model_rebuild()
+LessonPublic.model_rebuild()
+LessonDetail.model_rebuild()

@@ -7,13 +7,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_, func
 
-from backend.core.auth import get_current_active_user
-from backend.core.database import get_db
-from backend.models import (
+from api.dependencies.auth import get_current_active_user
+from db.session import get_db
+from models import (
     User, Course, Module, Lesson, CourseEnrollment,
     ModuleProgress, LessonProgress, CourseStatus, ProgressStatus
 )
-from backend.schemas.course import (
+from schemas.course import (
     CourseEnrollmentCreate, CourseEnrollmentPublic,
     CourseProgressSummary, LessonProgressUpdate,
     LessonProgressInDB, ModuleProgressInDB

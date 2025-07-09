@@ -31,7 +31,7 @@ class AnalyticsEvent(Base):
     user_id = Column(PostgresUUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"))
     company_id = Column(PostgresUUID(as_uuid=True), ForeignKey("companies.id", ondelete="SET NULL"))
     session_id = Column(String(100))
-    metadata = Column(JSON)  # Additional event data
+    event_metadata = Column(JSON)  # Additional event data
     
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     

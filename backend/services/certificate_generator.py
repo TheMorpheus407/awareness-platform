@@ -18,8 +18,8 @@ from reportlab.pdfbase.ttfonts import TTFont
 import qrcode
 from PIL import Image as PILImage
 
-from backend.models import User, Course, CourseEnrollment, Company
-from backend.core.config import get_settings
+from models import User, Course, CourseEnrollment, Company
+from core.config import get_settings
 
 settings = get_settings()
 

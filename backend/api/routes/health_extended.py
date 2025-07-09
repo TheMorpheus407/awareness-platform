@@ -9,11 +9,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...db.session import get_db
-from ...core.config import settings
-from ...core.cache import cache_manager
-from ...core.logging import get_logger
-from ..dependencies.auth import get_current_superuser
+from db.session import get_db
+from core.config import settings
+from core.cache import cache_manager
+from core.logging import get_logger
+from api.dependencies.auth import get_current_superuser
 
 logger = get_logger(__name__)
 

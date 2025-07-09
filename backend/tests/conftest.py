@@ -18,6 +18,9 @@ os.environ["SECRET_KEY"] = "test-secret-key"
 os.environ["FRONTEND_URL"] = "http://localhost:5173"
 os.environ["TESTING"] = "true"
 os.environ["ENVIRONMENT"] = "test"
+os.environ["STRIPE_SECRET_KEY"] = "sk_test_placeholder_for_testing"
+os.environ["STRIPE_PUBLISHABLE_KEY"] = "pk_test_placeholder_for_testing"
+os.environ["STRIPE_WEBHOOK_SECRET"] = "whsec_test_placeholder_for_testing"
 
 from httpx import AsyncClient
 from sqlalchemy import create_engine, event, TypeDecorator, CHAR, String

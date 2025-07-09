@@ -11,8 +11,8 @@ import json
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
-from ..core.config import get_settings
-from ..models import (
+from core.config import get_settings
+from models import (
     Company, CompanyStatus, SubscriptionTier,
     Subscription, SubscriptionStatus, BillingInterval,
     PaymentMethod, PaymentMethodType,

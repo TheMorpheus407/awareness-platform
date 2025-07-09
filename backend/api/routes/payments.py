@@ -8,10 +8,10 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, Header
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
 
-from ...core.database import get_db
-from ...core.security import get_current_user, require_company_admin
-from ...models import User, Company, Subscription, PaymentMethod, Invoice, Payment
-from ...services.stripe_service import StripeService
+from db.session import get_db
+from api.dependencies.auth import get_current_user, require_company_admin
+from models import User, Company, Subscription, PaymentMethod, Invoice, Payment
+from services.stripe_service import StripeService
 
 router = APIRouter()
 stripe_service = StripeService()

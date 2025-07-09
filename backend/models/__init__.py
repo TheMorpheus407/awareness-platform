@@ -12,7 +12,7 @@ from .course import (
     ContentType, DifficultyLevel, CourseStatus, ProgressStatus
 )
 from .phishing import PhishingCampaign, PhishingTemplate, PhishingResult
-from .audit import AuditLog, AnalyticsEvent
+from .audit import AuditLog, AuditAnalyticsEvent
 from .two_fa_attempt import TwoFAAttempt
 from .payment import (
     Subscription, SubscriptionStatus, BillingInterval,
@@ -22,7 +22,7 @@ from .payment import (
     SubscriptionUsage
 )
 from .analytics import (
-    AnalyticsEvent as AnalyticsEventNew,
+    AnalyticsEvent,
     CourseAnalytics, UserEngagement, RevenueAnalytics,
     PhishingAnalytics, RealtimeMetric
 )

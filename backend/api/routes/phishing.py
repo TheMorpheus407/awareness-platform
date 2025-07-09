@@ -7,16 +7,17 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from sqlalchemy.orm import Session
 
-from backend.api.deps import get_current_user, get_db, require_role
-from backend.models import User, UserRole
-from backend.schemas.phishing import (
+from api.dependencies.auth import get_current_user, require_admin, require_role
+from db.session import get_db
+from models import User, UserRole
+from schemas.phishing import (
     CampaignStatus,
     PhishingTemplateCreate, PhishingTemplateUpdate, PhishingTemplateResponse,
     PhishingCampaignCreate, PhishingCampaignUpdate, PhishingCampaignResponse,
     PhishingTrackingEvent, PhishingReportRequest,
     CampaignAnalytics, ComplianceReport, TemplateLibraryFilter
 )
-from backend.services.phishing_service import PhishingService
+from services.phishing_service import PhishingService
 
 router = APIRouter(prefix="/phishing", tags=["phishing"])
 
@@ -265,9 +266,9 @@ def track_email_open(
 
 @router.get("/track/click/{tracking_id}")
 def track_link_click(
+    request: Request,
     tracking_id: str,
     url: str = Query(..., description="Original URL to redirect to"),
-    request: Request,
     db: Session = Depends(get_db)
 ):
     """Track link click event and redirect."""

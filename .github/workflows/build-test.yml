@@ -1,0 +1,52 @@
+name: Quick Build Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  frontend-build-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+        
+    - name: Install dependencies
+      run: |
+        cd frontend
+        npm ci
+        
+    - name: Build frontend (skip type checking)
+      run: |
+        cd frontend
+        npx vite build --mode production
+        
+    - name: List build output
+      run: |
+        cd frontend
+        ls -la dist/
+
+  backend-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        cd backend
+        pip install -r requirements.txt
+        
+    - name: Check imports
+      run: |
+        cd backend
+        python -c "import main; print('Backend imports successful')"

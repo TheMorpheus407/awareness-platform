@@ -9,14 +9,14 @@ from fastapi.responses import StreamingResponse, Response
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 
-from backend.core.auth import get_current_active_user
-from backend.core.database import get_db
-from backend.core.config import get_settings
-from backend.models import (
+from api.dependencies.auth import get_current_active_user
+from db.session import get_db
+from core.config import get_settings
+from models import (
     User, CourseContent, CourseEnrollment, Lesson,
     ProgressStatus
 )
-from backend.services.content_delivery import content_delivery
+from services.content_delivery import content_delivery
 
 router = APIRouter()
 settings = get_settings()
@@ -282,7 +282,7 @@ def track_content_progress(
     if progress >= 95:
         # Update lesson progress
         from backend.api.routes.enrollments import update_lesson_progress
-        from backend.schemas.course import LessonProgressUpdate
+        from schemas.course import LessonProgressUpdate
         
         progress_update = LessonProgressUpdate(
             progress_percentage=progress,

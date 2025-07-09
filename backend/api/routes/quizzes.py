@@ -8,13 +8,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_, func
 
-from backend.core.auth import get_current_active_user
-from backend.core.database import get_db
-from backend.models import (
+from api.dependencies.auth import get_current_active_user
+from db.session import get_db
+from models import (
     User, UserRole, Lesson, Quiz, QuizQuestion, QuizAttempt, QuizAnswer,
     CourseEnrollment, LessonProgress, ProgressStatus
 )
-from backend.schemas.course import (
+from schemas.course import (
     QuizCreate, QuizUpdate, QuizPublic, QuizInDB,
     QuizQuestionCreate, QuizQuestionUpdate, QuizQuestionInDB,
     QuizAttemptCreate, QuizAttemptSubmit, QuizAttemptResult,

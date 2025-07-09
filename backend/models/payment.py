@@ -98,7 +98,7 @@ class Subscription(Base):
     ended_at = Column(DateTime(timezone=True), nullable=True)
     
     # Metadata
-    metadata = Column(JSON, nullable=True)
+    extra_metadata = Column(JSON, nullable=True)
     
     # Indexes
     __table_args__ = (
@@ -166,7 +166,7 @@ class PaymentMethod(Base):
     billing_address_country = Column(String(2), nullable=True)
     
     # Metadata
-    metadata = Column(JSON, nullable=True)
+    extra_metadata = Column(JSON, nullable=True)
     
     def __repr__(self) -> str:
         return f"<PaymentMethod {self.stripe_payment_method_id}>"
@@ -225,7 +225,7 @@ class Invoice(Base):
     hosted_invoice_url = Column(Text, nullable=True)
     
     # Metadata
-    metadata = Column(JSON, nullable=True)
+    extra_metadata = Column(JSON, nullable=True)
     
     # Line items stored as JSON
     line_items = Column(JSON, nullable=True)
@@ -304,7 +304,7 @@ class Payment(Base):
     refund_reason = Column(String(255), nullable=True)
     
     # Metadata
-    metadata = Column(JSON, nullable=True)
+    extra_metadata = Column(JSON, nullable=True)
     
     # Indexes
     __table_args__ = (

@@ -199,7 +199,7 @@ class CourseContent(Base):
     mime_type = Column(String(100), nullable=True)
     
     # Additional data
-    metadata = Column(JSON, nullable=True, default={})  # Flexible storage for content-specific data
+    content_metadata = Column(JSON, nullable=True, default={})  # Flexible storage for content-specific data
     transcript = Column(Text, nullable=True)  # For videos
     
     # Relationships

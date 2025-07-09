@@ -9,13 +9,13 @@ from fastapi.responses import FileResponse, Response
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 
-from backend.core.auth import get_current_active_user
-from backend.core.database import get_db
-from backend.models import (
+from api.dependencies.auth import get_current_active_user
+from db.session import get_db
+from models import (
     User, UserRole, Course, CourseEnrollment,
     ProgressStatus
 )
-from backend.services.certificate_generator import certificate_generator
+from services.certificate_generator import certificate_generator
 
 router = APIRouter()
 

@@ -13,7 +13,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.dialects.postgresql import UUID
 
-from db.base_class import Base
+from models.base import Base
 
 
 class EmailTemplateType(str, Enum):

@@ -84,3 +84,9 @@ global.ResizeObserver = class ResizeObserver {
 
 // Note: useAuthStore is mocked individually in component tests that need it
 // This allows the store tests to run properly without interference
+
+// Prevent tests from hanging
+global.setImmediate = global.setImmediate || ((fn: any) => setTimeout(fn, 0));
+
+// Set test environment flag
+process.env.NODE_ENV = 'test';

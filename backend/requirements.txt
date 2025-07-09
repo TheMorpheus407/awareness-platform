@@ -60,4 +60,4 @@ markupsafe==2.1.4
 premailer==3.10.0
 beautifulsoup4==4.12.3
 celery[redis]==5.3.4
-redis==5.0.1
+redis==4.6.0

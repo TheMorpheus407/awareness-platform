@@ -9,17 +9,17 @@ from uuid import uuid4
 from sqlalchemy import and_, or_, func
 from sqlalchemy.orm import Session, joinedload
 
-from backend.models import (
+from models import (
     PhishingCampaign, PhishingTemplate, PhishingResult,
     User, Company, PhishingAnalytics
 )
-from backend.schemas.phishing import (
+from schemas.phishing import (
     CampaignStatus, PhishingTrackingEvent,
     CampaignAnalytics, ComplianceReport
 )
-from backend.core.exceptions import NotFoundError, ValidationError, PermissionError
-from backend.services.email_service import EmailService
-from backend.services.analytics_collector import AnalyticsCollector
+from core.exceptions import NotFoundError, ValidationError, PermissionError
+from services.email_service import EmailService
+from services.analytics_collector import AnalyticsCollector
 
 
 class PhishingService:

@@ -9,7 +9,7 @@ from models.user import User  # noqa
 from models.company import Company  # noqa
 from models.course import Course, Quiz, QuizQuestion, UserCourseProgress  # noqa
 from models.phishing import PhishingCampaign, PhishingTemplate, PhishingResult  # noqa
-from models.audit import AuditLog, AnalyticsEvent  # noqa
+from models.audit import AuditLog, AuditAnalyticsEvent  # noqa
 
 # This ensures all models are available
 __all__ = [
@@ -24,5 +24,5 @@ __all__ = [
     "PhishingTemplate",
     "PhishingResult",
     "AuditLog",
-    "AnalyticsEvent",
+    "AuditAnalyticsEvent",
 ]

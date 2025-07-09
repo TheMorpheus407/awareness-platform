@@ -3,13 +3,14 @@
 from datetime import datetime
 from typing import Dict, List, Optional, Any
 from uuid import UUID
+from enum import Enum
 
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 import re
 
 
 # Enums
-class CampaignStatus(str):
+class CampaignStatus(str, Enum):
     """Campaign status enum."""
     DRAFT = "draft"
     SCHEDULED = "scheduled"
@@ -18,14 +19,14 @@ class CampaignStatus(str):
     CANCELLED = "cancelled"
 
 
-class TemplateDifficulty(str):
+class TemplateDifficulty(str, Enum):
     """Template difficulty enum."""
     EASY = "easy"
     MEDIUM = "medium"
     HARD = "hard"
 
 
-class TemplateCategory(str):
+class TemplateCategory(str, Enum):
     """Template category enum."""
     CREDENTIAL_HARVESTING = "credential_harvesting"
     MALWARE = "malware"

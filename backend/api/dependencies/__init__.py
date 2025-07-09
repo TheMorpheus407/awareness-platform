@@ -1,6 +1,6 @@
 """API dependencies."""
 
-from .auth import get_current_user, get_current_active_user, require_admin, require_company_admin
+from .auth import get_current_user, get_current_active_user, require_admin, require_company_admin, require_role
 from .common import get_pagination_params
 
 __all__ = [
@@ -8,5 +8,6 @@ __all__ = [
     "get_current_active_user",
     "require_admin",
     "require_company_admin",
+    "require_role",
     "get_pagination_params",
 ]

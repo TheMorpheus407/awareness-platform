@@ -10,8 +10,8 @@ import boto3
 from botocore.exceptions import ClientError
 import urllib.parse
 
-from backend.core.config import get_settings
-from backend.models import CourseContent, ContentType
+from core.config import get_settings
+from models import CourseContent, ContentType
 
 settings = get_settings()
 

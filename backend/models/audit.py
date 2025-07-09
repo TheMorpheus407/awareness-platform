@@ -42,10 +42,10 @@ class AuditLog(Base):
         return f"<AuditLog {self.action} {self.resource_type}:{self.resource_id}>"
 
 
-class AnalyticsEvent(Base):
+class AuditAnalyticsEvent(Base):
     """Analytics event for tracking user behavior."""
     
-    __tablename__ = "analytics_events"
+    __tablename__ = "audit_analytics_events"
     
     # Basic information
     user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)

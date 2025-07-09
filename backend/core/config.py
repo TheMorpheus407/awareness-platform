@@ -77,6 +77,12 @@ class Settings(BaseSettings):
     # External APIs
     YOUTUBE_API_KEY: Optional[str] = None
     
+    # AWS Configuration (for S3)
+    AWS_ACCESS_KEY_ID: Optional[str] = None
+    AWS_SECRET_ACCESS_KEY: Optional[str] = None
+    AWS_REGION: Optional[str] = "us-east-1"
+    AWS_S3_BUCKET: Optional[str] = None
+    
     # Stripe Configuration
     STRIPE_SECRET_KEY: str
     STRIPE_PUBLISHABLE_KEY: str
