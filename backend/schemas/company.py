@@ -100,7 +100,6 @@ class CompanyRegistration(BaseSchema):
     admin_password: str = Field(
         ...,
         min_length=8,
-        pattern=r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$",
         description="Password must contain uppercase, lowercase, number and special character",
     )
     admin_first_name: str = Field(..., min_length=1, max_length=100)

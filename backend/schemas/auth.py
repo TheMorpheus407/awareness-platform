@@ -64,7 +64,6 @@ class ResetPasswordRequest(BaseSchema):
     new_password: str = Field(
         ...,
         min_length=8,
-        pattern=r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$",
         description="Password must contain uppercase, lowercase, number and special character",
     )
     confirm_password: str = Field(..., min_length=8)
@@ -139,7 +138,6 @@ class ChangePasswordRequest(BaseSchema):
     new_password: str = Field(
         ...,
         min_length=8,
-        pattern=r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$",
         description="Password must contain uppercase, lowercase, number and special character",
     )
     confirm_password: str = Field(..., min_length=8)
