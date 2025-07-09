@@ -19,31 +19,48 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-
-# Virtual Environment
+MANIFEST
+.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+.cache
+coverage.xml
+*.cover
+.hypothesis/
 venv/
-env/
 ENV/
-.venv
+test_venv/
+backend/venv/
+backend/test_venv/
 
-# Environment variables
-.env
-.env.local
-.env.*.local
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/coverage/
+frontend/.vite/
 
-# IDEs
-.idea/
+# IDE
 .vscode/
+.idea/
 *.swp
 *.swo
 *~
+.DS_Store
 
-# Testing
-.coverage
-.pytest_cache/
-htmlcov/
-.tox/
-.coverage.*
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
 
 # Logs
 logs/
@@ -53,32 +70,38 @@ logs/
 *.db
 *.sqlite
 *.sqlite3
+.hive-mind/
 
-# OS
-.DS_Store
-Thumbs.db
+# Docker
+.docker/
 
-# Uploads
-uploads/
-static/uploads/
-
-# Temporary files
-tmp/
+# Misc
+.cache/
+.temp/
 temp/
+tmp/
+*.tar.gz
+password_fix.tar.gz
+backend_fixes.tar.gz
+import_fixes.tar.gz
+model_fixes.tar.gz
 
-# Jupyter Notebook
-.ipynb_checkpoints
+# Test results
+test-results/
+playwright-report/
+playwright-results.xml
+test_results.txt
 
-# pyenv
-.python-version
+# Memory and coordination
+memory/
+coordination/
 
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
+# SSH keys
+temp_ssh_key.pem
+bootstrap-awareness private key.txt
+bootstrap awareness public key.txt
 
-# Pyre type checker
-.pyre/
-
-# Alembic
-alembic/versions/*.pyc
+# Claude Flow
+slave*.log
+claude-flow.bat
+claude-flow.ps1cybersecurity-platform/

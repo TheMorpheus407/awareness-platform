@@ -5,13 +5,18 @@ import { ProtectedRoute } from './components/Auth';
 import { MainLayout } from './components/Layout';
 import { Login, Register, Dashboard, Users, Companies, Analytics, Phishing } from './pages';
 import LandingEnhanced from './pages/LandingEnhanced';
+import { DashboardEnhanced } from './pages/DashboardEnhanced';
 import { PricingPage, CheckoutForm, BillingDashboard } from './components/Payment';
+import { ErrorBoundary } from './components/Common/ErrorBoundary';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 function App() {
   const { t } = useTranslation();
   
   return (
-    <BrowserRouter>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <BrowserRouter>
       <Toaster 
         position="top-right"
         toastOptions={{
@@ -43,7 +48,7 @@ function App() {
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>
           <Route element={<MainLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={<DashboardEnhanced />} />
             <Route path="/users" element={<Users />} />
             <Route path="/companies" element={<Companies />} />
             <Route path="/courses" element={<div className="text-2xl font-bold">{t('courses.comingSoon')}</div>} />
@@ -56,7 +61,9 @@ function App() {
           </Route>
         </Route>
       </Routes>
-    </BrowserRouter>
+        </BrowserRouter>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 
