@@ -247,6 +247,9 @@ jobs:
         ENVIRONMENT: test
         EMAIL_FROM: test@example.com
         SMTP_FROM_EMAIL: test@example.com
+        STRIPE_SECRET_KEY: sk_test_dummy_key_for_ci
+        STRIPE_PUBLISHABLE_KEY: pk_test_dummy_key_for_ci
+        STRIPE_WEBHOOK_SECRET: whsec_test_dummy_secret_for_ci
       run: |
         cd backend/backend
         # Fix enum conflicts before migration
@@ -280,6 +283,9 @@ jobs:
         ENVIRONMENT: test
         EMAIL_FROM: test@example.com
         SMTP_FROM_EMAIL: test@example.com
+        STRIPE_SECRET_KEY: sk_test_dummy_key_for_ci
+        STRIPE_PUBLISHABLE_KEY: pk_test_dummy_key_for_ci
+        STRIPE_WEBHOOK_SECRET: whsec_test_dummy_secret_for_ci
       run: |
         cd backend/backend
         python scripts/seed_e2e_data.py || echo "Warning: Failed to seed E2E data"
@@ -300,6 +306,9 @@ jobs:
         SMTP_USERNAME: test@example.com
         SMTP_FROM_EMAIL: test@example.com
         SMTP_FROM_NAME: Test Platform
+        STRIPE_SECRET_KEY: sk_test_dummy_key_for_ci
+        STRIPE_PUBLISHABLE_KEY: pk_test_dummy_key_for_ci
+        STRIPE_WEBHOOK_SECRET: whsec_test_dummy_secret_for_ci
       run: |
         cd backend/backend
         uvicorn main:app --host 0.0.0.0 --port 8000 &
