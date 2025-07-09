@@ -27,7 +27,7 @@ router = APIRouter(prefix="/phishing", tags=["phishing"])
 def create_template(
     template: PhishingTemplateCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.MANAGER]))
+    current_user: User = Depends(require_role([UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN, UserRole.MANAGER]))
 ):
     """Create a new phishing template."""
     service = PhishingService(db)
@@ -88,7 +88,7 @@ def update_template(
     template_id: int,
     template: PhishingTemplateUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.MANAGER]))
+    current_user: User = Depends(require_role([UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN, UserRole.MANAGER]))
 ):
     """Update a phishing template."""
     service = PhishingService(db)
@@ -103,7 +103,7 @@ def update_template(
 def delete_template(
     template_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.MANAGER]))
+    current_user: User = Depends(require_role([UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN, UserRole.MANAGER]))
 ):
     """Delete a phishing template."""
     service = PhishingService(db)
@@ -116,7 +116,7 @@ def delete_template(
 def create_campaign(
     campaign: PhishingCampaignCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.MANAGER]))
+    current_user: User = Depends(require_role([UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN, UserRole.MANAGER]))
 ):
     """Create a new phishing campaign."""
     service = PhishingService(db)
@@ -133,7 +133,7 @@ def list_campaigns(
     limit: int = Query(100, le=1000),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.MANAGER]))
+    current_user: User = Depends(require_role([UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN, UserRole.MANAGER]))
 ):
     """List phishing campaigns."""
     service = PhishingService(db)
@@ -166,7 +166,7 @@ def list_campaigns(
 def get_campaign(
     campaign_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.MANAGER]))
+    current_user: User = Depends(require_role([UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN, UserRole.MANAGER]))
 ):
     """Get a specific phishing campaign."""
     service = PhishingService(db)
@@ -194,7 +194,7 @@ def update_campaign(
     campaign_id: int,
     campaign: PhishingCampaignUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.MANAGER]))
+    current_user: User = Depends(require_role([UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN, UserRole.MANAGER]))
 ):
     """Update a phishing campaign."""
     service = PhishingService(db)
@@ -210,7 +210,7 @@ def schedule_campaign(
     campaign_id: int,
     scheduled_at: datetime,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.MANAGER]))
+    current_user: User = Depends(require_role([UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN, UserRole.MANAGER]))
 ):
     """Schedule a phishing campaign."""
     service = PhishingService(db)
@@ -221,7 +221,7 @@ def schedule_campaign(
 def start_campaign(
     campaign_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.MANAGER]))
+    current_user: User = Depends(require_role([UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN, UserRole.MANAGER]))
 ):
     """Start a scheduled phishing campaign."""
     service = PhishingService(db)
@@ -232,7 +232,7 @@ def start_campaign(
 def cancel_campaign(
     campaign_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.MANAGER]))
+    current_user: User = Depends(require_role([UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN, UserRole.MANAGER]))
 ):
     """Cancel a phishing campaign."""
     service = PhishingService(db)
@@ -335,7 +335,7 @@ def report_phishing(
 def get_campaign_analytics(
     campaign_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.MANAGER]))
+    current_user: User = Depends(require_role([UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN, UserRole.MANAGER]))
 ):
     """Get detailed analytics for a campaign."""
     service = PhishingService(db)
@@ -347,7 +347,7 @@ def get_compliance_report(
     start_date: datetime = Query(..., description="Report start date"),
     end_date: datetime = Query(..., description="Report end date"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.MANAGER]))
+    current_user: User = Depends(require_role([UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN, UserRole.MANAGER]))
 ):
     """Generate compliance report for phishing simulations."""
     service = PhishingService(db)
@@ -362,7 +362,7 @@ def get_compliance_report(
 @router.get("/dashboard")
 def get_phishing_dashboard(
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.MANAGER]))
+    current_user: User = Depends(require_role([UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN, UserRole.MANAGER]))
 ):
     """Get phishing simulation dashboard data."""
     service = PhishingService(db)
