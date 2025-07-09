@@ -1,0 +1,219 @@
+/* Modal Component Styles */
+
+.ds-modal__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-4);
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Modal Base */
+.ds-modal {
+  position: relative;
+  width: 100%;
+  max-height: calc(100vh - var(--spacing-8));
+  background: var(--color-surface-primary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-modal-content);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Size Variants */
+.ds-modal--sm {
+  max-width: 400px;
+}
+
+.ds-modal--md {
+  max-width: 600px;
+}
+
+.ds-modal--lg {
+  max-width: 800px;
+}
+
+.ds-modal--xl {
+  max-width: 1200px;
+}
+
+.ds-modal--full {
+  max-width: calc(100vw - var(--spacing-8));
+  max-height: calc(100vh - var(--spacing-8));
+  width: 100%;
+  height: 100%;
+}
+
+/* Modal Header */
+.ds-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: var(--spacing-6);
+  border-bottom: 1px solid var(--color-neutral-200);
+}
+
+.ds-modal__header-content {
+  flex: 1;
+  min-width: 0;
+  padding-right: var(--spacing-4);
+}
+
+.ds-modal__title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.ds-modal__description {
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-secondary);
+  margin: var(--spacing-2) 0 0;
+}
+
+.ds-modal__close {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: var(--color-text-tertiary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.ds-modal__close:hover {
+  color: var(--color-text-secondary);
+  background: var(--color-neutral-100);
+}
+
+.ds-modal__close:focus-visible {
+  outline: 2px solid var(--color-brand-primary-500);
+  outline-offset: 2px;
+}
+
+/* Modal Body */
+.ds-modal__body {
+  flex: 1;
+  padding: var(--spacing-6);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Custom Scrollbar for Modal Body */
+.ds-modal__body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ds-modal__body::-webkit-scrollbar-track {
+  background: var(--color-neutral-100);
+  border-radius: var(--radius-full);
+}
+
+.ds-modal__body::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-400);
+  border-radius: var(--radius-full);
+}
+
+.ds-modal__body::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral-500);
+}
+
+/* Modal Footer */
+.ds-modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: var(--spacing-4) var(--spacing-6);
+  border-top: 1px solid var(--color-neutral-200);
+  background: var(--color-neutral-50);
+}
+
+.ds-modal__footer-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+/* Confirm Modal */
+.ds-modal__message {
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-body);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 640px) {
+  .ds-modal__overlay {
+    padding: 0;
+  }
+
+  .ds-modal {
+    max-width: 100%;
+    max-height: 100%;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+
+  .ds-modal--sm,
+  .ds-modal--md,
+  .ds-modal--lg,
+  .ds-modal--xl {
+    max-width: 100%;
+  }
+}
+
+/* Dark Mode */
+.dark .ds-modal {
+  background: var(--color-neutral-800);
+}
+
+.dark .ds-modal__header {
+  border-bottom-color: var(--color-neutral-700);
+}
+
+.dark .ds-modal__footer {
+  border-top-color: var(--color-neutral-700);
+  background: var(--color-neutral-900);
+}
+
+.dark .ds-modal__close:hover {
+  background: var(--color-neutral-700);
+}
+
+.dark .ds-modal__body::-webkit-scrollbar-track {
+  background: var(--color-neutral-700);
+}
+
+.dark .ds-modal__body::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-600);
+}
+
+.dark .ds-modal__body::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral-500);
+}
+
+/* Animations */
+@media (prefers-reduced-motion: reduce) {
+  .ds-modal__overlay,
+  .ds-modal {
+    animation: none !important;
+    transition: none !important;
+  }
+}

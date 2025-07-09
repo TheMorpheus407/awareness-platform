@@ -1,650 +1,261 @@
-"""Course-related schemas."""
+"""
+Course and training-related schemas for the application.
+"""
 
 from datetime import datetime
-from typing import List, Optional, Dict, Any
 from enum import Enum
+from typing import Dict, List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, validator
+from pydantic import Field, field_validator
 
-from models.course import ContentType, DifficultyLevel, CourseStatus, ProgressStatus
-
-
-# Enums (re-export for convenience)
-__all__ = [
-    "ContentType",
-    "DifficultyLevel", 
-    "CourseStatus",
-    "ProgressStatus",
-    # Course schemas
-    "CourseBase",
-    "CourseCreate",
-    "CourseUpdate",
-    "CourseInDB",
-    "CoursePublic",
-    "CourseDetail",
-    # Module schemas
-    "ModuleBase",
-    "ModuleCreate",
-    "ModuleUpdate",
-    "ModuleInDB",
-    "ModulePublic",
-    # Lesson schemas
-    "LessonBase",
-    "LessonCreate",
-    "LessonUpdate",
-    "LessonInDB",
-    "LessonPublic",
-    "LessonDetail",
-    # Content schemas
-    "CourseContentBase",
-    "CourseContentCreate",
-    "CourseContentUpdate",
-    "CourseContentInDB",
-    # Quiz schemas
-    "QuizBase",
-    "QuizCreate",
-    "QuizUpdate",
-    "QuizInDB",
-    "QuizPublic",
-    "QuizQuestionBase",
-    "QuizQuestionCreate",
-    "QuizQuestionUpdate",
-    "QuizQuestionInDB",
-    "QuizAttemptCreate",
-    "QuizAttemptSubmit",
-    "QuizAttemptResult",
-    "QuizAnswerSubmit",
-    # Enrollment schemas
-    "CourseEnrollmentCreate",
-    "CourseEnrollmentInDB",
-    "CourseEnrollmentPublic",
-    # Progress schemas
-    "LessonProgressUpdate",
-    "LessonProgressInDB",
-    "ModuleProgressInDB",
-    "CourseProgressSummary",
-    # Review schemas
-    "CourseReviewCreate",
-    "CourseReviewUpdate",
-    "CourseReviewInDB",
-    # Announcement schemas
-    "CourseAnnouncementCreate",
-    "CourseAnnouncementUpdate",
-    "CourseAnnouncementInDB",
-]
+from .base import BaseSchema, TimestampMixin, UUIDMixin
 
 
-# Base schemas
-class CourseBase(BaseModel):
-    """Base course schema."""
+class CourseDifficulty(str, Enum):
+    """Course difficulty levels."""
+
+    BEGINNER = "beginner"
+    INTERMEDIATE = "intermediate"
+    ADVANCED = "advanced"
+
+
+class CourseProgressStatus(str, Enum):
+    """Course progress status."""
+
+    NOT_STARTED = "not_started"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class CourseLanguage(str, Enum):
+    """Available course languages."""
+
+    DE = "de"
+    EN = "en"
+    FR = "fr"
+    IT = "it"
+
+
+class Course(BaseSchema, UUIDMixin):
+    """Course response schema."""
+
     title: str = Field(..., min_length=1, max_length=255)
-    slug: str = Field(..., min_length=1, max_length=255)
-    description: Optional[str] = None
-    short_description: Optional[str] = Field(None, max_length=500)
-    category: str = Field(..., min_length=1, max_length=100)
-    difficulty_level: DifficultyLevel = DifficultyLevel.BEGINNER
-    duration_minutes: int = Field(0, ge=0)
-    thumbnail_url: Optional[str] = None
-    preview_video_url: Optional[str] = None
-    language: str = Field("de", min_length=2, max_length=10)
-    available_languages: List[str] = []
-    tags: List[str] = []
-    prerequisites: List[int] = []
-    learning_objectives: List[str] = []
-    target_audience: Optional[str] = None
-    is_free: bool = False
-    price: Optional[float] = Field(None, ge=0)
-    meta_title: Optional[str] = Field(None, max_length=255)
-    meta_description: Optional[str] = Field(None, max_length=500)
-    compliance_standards: List[str] = []
-    validity_days: Optional[int] = Field(None, ge=1)
-    scorm_package_url: Optional[str] = None
-    scorm_version: Optional[str] = None
+    description: str = Field(..., max_length=1000)
+    duration_minutes: int = Field(..., gt=0, le=480)
+    difficulty: CourseDifficulty
+    tags: List[str] = Field(default_factory=list, max_length=20)
+    compliance_tags: List[str] = Field(
+        default_factory=list,
+        description="Compliance frameworks this course covers",
+    )
+    available_languages: List[CourseLanguage] = Field(
+        default_factory=lambda: [CourseLanguage.DE]
+    )
+    is_mandatory: bool = Field(False)
+    is_active: bool = Field(True)
+    passing_score: int = Field(80, ge=0, le=100)
+    max_attempts: int = Field(3, ge=1, le=10)
+    certificate_available: bool = Field(True)
+    prerequisites: List[UUID] = Field(
+        default_factory=list,
+        description="Course IDs that must be completed first",
+    )
 
-    model_config = ConfigDict(from_attributes=True)
-
-
-class CourseCreate(CourseBase):
-    """Schema for creating a course."""
-    pass
+    @field_validator("tags", "compliance_tags")
+    @classmethod
+    def validate_tags(cls, v: List[str]) -> List[str]:
+        """Ensure tags are unique and lowercase."""
+        return list(set(tag.lower().strip() for tag in v if tag.strip()))
 
 
-class CourseUpdate(BaseModel):
-    """Schema for updating a course."""
-    title: Optional[str] = Field(None, min_length=1, max_length=255)
-    slug: Optional[str] = Field(None, min_length=1, max_length=255)
-    description: Optional[str] = None
-    short_description: Optional[str] = Field(None, max_length=500)
-    category: Optional[str] = Field(None, min_length=1, max_length=100)
-    difficulty_level: Optional[DifficultyLevel] = None
-    duration_minutes: Optional[int] = Field(None, ge=0)
-    status: Optional[CourseStatus] = None
-    thumbnail_url: Optional[str] = None
-    preview_video_url: Optional[str] = None
-    language: Optional[str] = Field(None, min_length=2, max_length=10)
-    available_languages: Optional[List[str]] = None
-    tags: Optional[List[str]] = None
-    prerequisites: Optional[List[int]] = None
-    learning_objectives: Optional[List[str]] = None
-    target_audience: Optional[str] = None
-    is_free: Optional[bool] = None
-    price: Optional[float] = Field(None, ge=0)
-    meta_title: Optional[str] = Field(None, max_length=255)
-    meta_description: Optional[str] = Field(None, max_length=500)
-    compliance_standards: Optional[List[str]] = None
-    validity_days: Optional[int] = Field(None, ge=1)
-    scorm_package_url: Optional[str] = None
-    scorm_version: Optional[str] = None
+class QuizOption(BaseSchema):
+    """Quiz question option."""
 
-    model_config = ConfigDict(from_attributes=True)
+    id: str = Field(..., min_length=1, max_length=10)
+    text: str = Field(..., min_length=1, max_length=500)
 
 
-class CourseInDB(CourseBase):
-    """Course schema for database."""
-    id: int
-    status: CourseStatus
-    published_at: Optional[datetime] = None
-    enrolled_count: int = 0
-    completion_count: int = 0
-    average_rating: Optional[float] = None
-    rating_count: int = 0
-    certificate_template_id: Optional[int] = None
+class QuizQuestion(BaseSchema):
+    """Quiz question schema."""
+
+    id: str = Field(..., min_length=1, max_length=50)
+    question: str = Field(..., min_length=1, max_length=1000)
+    options: List[QuizOption] = Field(..., min_length=2, max_length=6)
+    correct_answer_id: Optional[str] = Field(
+        None, description="Hidden in responses, only for internal use"
+    )
+    explanation: Optional[str] = Field(
+        None, max_length=500, description="Explanation shown after answering"
+    )
+    points: int = Field(1, ge=1, le=10)
+
+    @field_validator("options")
+    @classmethod
+    def validate_options(cls, v: List[QuizOption]) -> List[QuizOption]:
+        """Ensure option IDs are unique."""
+        ids = [opt.id for opt in v]
+        if len(ids) != len(set(ids)):
+            raise ValueError("Option IDs must be unique")
+        return v
+
+
+class CourseDetail(Course):
+    """Detailed course information."""
+
+    youtube_video_id: Optional[str] = Field(None, max_length=20)
+    content_markdown: str = Field(..., description="Course content in Markdown")
+    quiz_questions: List[QuizQuestion] = Field(
+        default_factory=list,
+        description="Quiz questions (without correct answers in response)",
+    )
+    estimated_reading_time_minutes: int = Field(10, ge=1)
+    resources: List[Dict[str, str]] = Field(
+        default_factory=list,
+        description="Additional resources with title and URL",
+    )
     created_at: datetime
-    updated_at: datetime
-
-
-class CoursePublic(BaseModel):
-    """Public course schema (listing)."""
-    id: int
-    title: str
-    slug: str
-    short_description: Optional[str] = None
-    category: str
-    difficulty_level: DifficultyLevel
-    duration_minutes: int
-    thumbnail_url: Optional[str] = None
-    language: str
-    tags: List[str] = []
-    is_free: bool
-    price: Optional[float] = None
-    enrolled_count: int
-    average_rating: Optional[float] = None
-    rating_count: int
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class CourseDetail(CourseInDB):
-    """Detailed course schema with modules."""
-    modules: List["ModulePublic"] = []
-    enrollment_status: Optional["CourseEnrollmentPublic"] = None
-    can_enroll: bool = True
-    enrollment_message: Optional[str] = None
-
-
-# Module schemas
-class ModuleBase(BaseModel):
-    """Base module schema."""
-    title: str = Field(..., min_length=1, max_length=255)
-    slug: str = Field(..., min_length=1, max_length=255)
-    description: Optional[str] = None
-    order_index: int = Field(..., ge=0)
-    duration_minutes: int = Field(0, ge=0)
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class ModuleCreate(ModuleBase):
-    """Schema for creating a module."""
-    course_id: int
-
-
-class ModuleUpdate(BaseModel):
-    """Schema for updating a module."""
-    title: Optional[str] = Field(None, min_length=1, max_length=255)
-    slug: Optional[str] = Field(None, min_length=1, max_length=255)
-    description: Optional[str] = None
-    order_index: Optional[int] = Field(None, ge=0)
-    duration_minutes: Optional[int] = Field(None, ge=0)
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class ModuleInDB(ModuleBase):
-    """Module schema for database."""
-    id: int
-    course_id: int
-    created_at: datetime
-    updated_at: datetime
-
-
-class ModulePublic(ModuleBase):
-    """Public module schema."""
-    id: int
-    lessons: List["LessonPublic"] = []
-    progress: Optional["ModuleProgressInDB"] = None
-
-
-# Lesson schemas
-class LessonBase(BaseModel):
-    """Base lesson schema."""
-    title: str = Field(..., min_length=1, max_length=255)
-    slug: str = Field(..., min_length=1, max_length=255)
-    description: Optional[str] = None
-    order_index: int = Field(..., ge=0)
-    duration_minutes: int = Field(0, ge=0)
-    content_type: ContentType = ContentType.VIDEO
-    is_preview: bool = False
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class LessonCreate(LessonBase):
-    """Schema for creating a lesson."""
-    module_id: int
-
-
-class LessonUpdate(BaseModel):
-    """Schema for updating a lesson."""
-    title: Optional[str] = Field(None, min_length=1, max_length=255)
-    slug: Optional[str] = Field(None, min_length=1, max_length=255)
-    description: Optional[str] = None
-    order_index: Optional[int] = Field(None, ge=0)
-    duration_minutes: Optional[int] = Field(None, ge=0)
-    content_type: Optional[ContentType] = None
-    is_preview: Optional[bool] = None
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class LessonInDB(LessonBase):
-    """Lesson schema for database."""
-    id: int
-    module_id: int
-    created_at: datetime
-    updated_at: datetime
-
-
-class LessonPublic(LessonBase):
-    """Public lesson schema."""
-    id: int
-    has_quiz: bool = False
-    is_completed: bool = False
-    is_locked: bool = False
-    progress: Optional["LessonProgressInDB"] = None
-
-
-class LessonDetail(LessonInDB):
-    """Detailed lesson schema with content."""
-    content_items: List["CourseContentInDB"] = []
-    quiz: Optional["QuizPublic"] = None
-    progress: Optional["LessonProgressInDB"] = None
-    next_lesson: Optional["LessonPublic"] = None
-    previous_lesson: Optional["LessonPublic"] = None
-
-
-# Content schemas
-class CourseContentBase(BaseModel):
-    """Base course content schema."""
-    title: str = Field(..., min_length=1, max_length=255)
-    content_type: ContentType
-    order_index: int = Field(0, ge=0)
-    content_url: Optional[str] = None
-    external_id: Optional[str] = None
-    duration_seconds: Optional[int] = Field(None, ge=0)
-    file_size_bytes: Optional[int] = Field(None, ge=0)
-    mime_type: Optional[str] = None
-    metadata: Dict[str, Any] = {}
-    transcript: Optional[str] = None
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class CourseContentCreate(CourseContentBase):
-    """Schema for creating course content."""
-    lesson_id: int
-
-
-class CourseContentUpdate(BaseModel):
-    """Schema for updating course content."""
-    title: Optional[str] = Field(None, min_length=1, max_length=255)
-    content_type: Optional[ContentType] = None
-    order_index: Optional[int] = Field(None, ge=0)
-    content_url: Optional[str] = None
-    external_id: Optional[str] = None
-    duration_seconds: Optional[int] = Field(None, ge=0)
-    file_size_bytes: Optional[int] = Field(None, ge=0)
-    mime_type: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
-    transcript: Optional[str] = None
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class CourseContentInDB(CourseContentBase):
-    """Course content schema for database."""
-    id: int
-    lesson_id: int
-    created_at: datetime
-    updated_at: datetime
-
-
-# Quiz schemas
-class QuizBase(BaseModel):
-    """Base quiz schema."""
-    title: str = Field(..., min_length=1, max_length=255)
-    description: Optional[str] = None
-    instructions: Optional[str] = None
-    passing_score: int = Field(70, ge=0, le=100)
-    time_limit_minutes: Optional[int] = Field(None, ge=1)
-    max_attempts: Optional[int] = Field(None, ge=1)
-    is_required: bool = True
-    randomize_questions: bool = False
-    randomize_answers: bool = False
-    show_correct_answers: bool = True
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class QuizCreate(QuizBase):
-    """Schema for creating a quiz."""
-    lesson_id: int
-
-
-class QuizUpdate(BaseModel):
-    """Schema for updating a quiz."""
-    title: Optional[str] = Field(None, min_length=1, max_length=255)
-    description: Optional[str] = None
-    instructions: Optional[str] = None
-    passing_score: Optional[int] = Field(None, ge=0, le=100)
-    time_limit_minutes: Optional[int] = Field(None, ge=1)
-    max_attempts: Optional[int] = Field(None, ge=1)
-    is_required: Optional[bool] = None
-    randomize_questions: Optional[bool] = None
-    randomize_answers: Optional[bool] = None
-    show_correct_answers: Optional[bool] = None
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class QuizInDB(QuizBase):
-    """Quiz schema for database."""
-    id: int
-    lesson_id: int
-    created_at: datetime
-    updated_at: datetime
-
-
-class QuizPublic(QuizBase):
-    """Public quiz schema."""
-    id: int
-    question_count: int = 0
-    attempts_remaining: Optional[int] = None
-    best_score: Optional[float] = None
-    last_attempt: Optional["QuizAttemptResult"] = None
-
-
-class QuizQuestionBase(BaseModel):
-    """Base quiz question schema."""
-    question_text: str
-    question_type: str  # multiple_choice, true_false, text, multiple_select
-    options: Optional[List[Dict[str, Any]]] = None
-    correct_answer: Any  # Can be string or list
-    explanation: Optional[str] = None
-    hint: Optional[str] = None
-    points: int = Field(1, ge=0)
-    negative_points: int = Field(0, ge=0)
-    partial_credit: bool = False
-    order_index: int = Field(..., ge=0)
-    is_bonus: bool = False
-    image_url: Optional[str] = None
-    video_url: Optional[str] = None
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class QuizQuestionCreate(QuizQuestionBase):
-    """Schema for creating a quiz question."""
-    quiz_id: int
-
-
-class QuizQuestionUpdate(BaseModel):
-    """Schema for updating a quiz question."""
-    question_text: Optional[str] = None
-    question_type: Optional[str] = None
-    options: Optional[List[Dict[str, Any]]] = None
-    correct_answer: Optional[Any] = None
-    explanation: Optional[str] = None
-    hint: Optional[str] = None
-    points: Optional[int] = Field(None, ge=0)
-    negative_points: Optional[int] = Field(None, ge=0)
-    partial_credit: Optional[bool] = None
-    order_index: Optional[int] = Field(None, ge=0)
-    is_bonus: Optional[bool] = None
-    image_url: Optional[str] = None
-    video_url: Optional[str] = None
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class QuizQuestionInDB(QuizQuestionBase):
-    """Quiz question schema for database."""
-    id: int
-    quiz_id: int
-    created_at: datetime
-    updated_at: datetime
-
-
-class QuizAttemptCreate(BaseModel):
-    """Schema for creating a quiz attempt."""
-    quiz_id: int
-    enrollment_id: int
-
-
-class QuizAnswerSubmit(BaseModel):
-    """Schema for submitting a quiz answer."""
-    question_id: int
-    answer: Any  # Can be string, list, etc.
-    time_spent_seconds: Optional[int] = None
-
-
-class QuizAttemptSubmit(BaseModel):
-    """Schema for submitting a quiz attempt."""
-    answers: List[QuizAnswerSubmit]
-
-
-class QuizAttemptResult(BaseModel):
-    """Quiz attempt result schema."""
-    id: int
-    quiz_id: int
-    attempt_number: int
-    started_at: datetime
-    submitted_at: Optional[datetime] = None
-    time_spent_seconds: Optional[int] = None
-    score: Optional[float] = None
-    passed: Optional[bool] = None
-    questions_answered: int = 0
-    questions_correct: int = 0
-    feedback: Optional[str] = None
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-# Enrollment schemas
-class CourseEnrollmentCreate(BaseModel):
-    """Schema for creating a course enrollment."""
-    course_id: int
-    user_id: Optional[int] = None  # Optional, can be inferred from current user
-    company_id: Optional[int] = None  # Optional, can be inferred from user
-
-
-class CourseEnrollmentInDB(BaseModel):
-    """Course enrollment schema for database."""
-    id: int
-    user_id: int
-    course_id: int
-    company_id: int
-    enrolled_at: datetime
-    expires_at: Optional[datetime] = None
-    status: ProgressStatus
-    progress_percentage: float
-    last_accessed_at: Optional[datetime] = None
+    updated_at: Optional[datetime]
+
+    @field_validator("quiz_questions")
+    @classmethod
+    def hide_correct_answers(cls, v: List[QuizQuestion]) -> List[QuizQuestion]:
+        """Remove correct answers from questions for security."""
+        for question in v:
+            question.correct_answer_id = None
+        return v
+
+
+class AssignedCourse(Course):
+    """Course with assignment information."""
+
+    assigned_at: datetime
+    assigned_by: Optional[UUID] = Field(None, description="User who assigned the course")
+    due_date: Optional[datetime] = None
+    status: CourseProgressStatus = Field(CourseProgressStatus.NOT_STARTED)
+    progress_percentage: float = Field(0.0, ge=0, le=100)
+    quiz_score: Optional[float] = Field(None, ge=0, le=100)
+    attempts_used: int = Field(0, ge=0)
     completed_at: Optional[datetime] = None
-    completion_certificate_id: Optional[UUID] = None
-    certificate_issued_at: Optional[datetime] = None
-    certificate_expires_at: Optional[datetime] = None
-    time_spent_seconds: int
-    lessons_completed: int
-    lessons_total: int
-    created_at: datetime
-    updated_at: datetime
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class CourseEnrollmentPublic(BaseModel):
-    """Public course enrollment schema."""
-    id: int
-    course_id: int
-    enrolled_at: datetime
-    expires_at: Optional[datetime] = None
-    status: ProgressStatus
-    progress_percentage: float
-    last_accessed_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    certificate_available: bool = False
     certificate_id: Optional[UUID] = None
-    time_spent_seconds: int
-    lessons_completed: int
-    lessons_total: int
 
-    model_config = ConfigDict(from_attributes=True)
-
-
-# Progress schemas
-class LessonProgressUpdate(BaseModel):
-    """Schema for updating lesson progress."""
-    status: Optional[ProgressStatus] = None
-    progress_percentage: Optional[float] = Field(None, ge=0, le=100)
-    last_position_seconds: Optional[int] = Field(None, ge=0)
-    completed: Optional[bool] = None
+    @field_validator("progress_percentage", "quiz_score")
+    @classmethod
+    def round_percentages(cls, v: Optional[float]) -> Optional[float]:
+        """Round percentages to 2 decimal places."""
+        return round(v, 2) if v is not None else None
 
 
-class LessonProgressInDB(BaseModel):
-    """Lesson progress schema for database."""
-    id: int
-    enrollment_id: int
-    lesson_id: int
-    status: ProgressStatus
-    progress_percentage: float
+class CourseProgress(BaseSchema):
+    """Course progress tracking."""
+
+    course_id: UUID
+    user_id: UUID
+    status: CourseProgressStatus = Field(CourseProgressStatus.NOT_STARTED)
     started_at: Optional[datetime] = None
+    last_accessed_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
-    last_position_seconds: Optional[int] = None
-    time_spent_seconds: int
-    view_count: int
-    created_at: datetime
-    updated_at: datetime
+    video_progress_seconds: int = Field(0, ge=0)
+    video_total_seconds: int = Field(0, ge=0)
+    video_completion_percentage: float = Field(0.0, ge=0, le=100)
+    content_sections_completed: List[str] = Field(default_factory=list)
+    quiz_attempts: int = Field(0, ge=0)
+    best_quiz_score: Optional[float] = Field(None, ge=0, le=100)
+    time_spent_minutes: int = Field(0, ge=0)
 
-    model_config = ConfigDict(from_attributes=True)
-
-
-class ModuleProgressInDB(BaseModel):
-    """Module progress schema for database."""
-    id: int
-    enrollment_id: int
-    module_id: int
-    status: ProgressStatus
-    progress_percentage: float
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    time_spent_seconds: int
-    lessons_completed: int
-    lessons_total: int
-    created_at: datetime
-    updated_at: datetime
-
-    model_config = ConfigDict(from_attributes=True)
+    @field_validator("video_completion_percentage", "best_quiz_score")
+    @classmethod
+    def round_percentages(cls, v: Optional[float]) -> Optional[float]:
+        """Round percentages to 2 decimal places."""
+        return round(v, 2) if v is not None else None
 
 
-class CourseProgressSummary(BaseModel):
-    """Course progress summary schema."""
-    enrollment: CourseEnrollmentPublic
-    modules_completed: int
-    modules_total: int
-    current_module: Optional[ModulePublic] = None
-    current_lesson: Optional[LessonPublic] = None
-    next_lesson: Optional[LessonPublic] = None
-    recent_activity: List[Dict[str, Any]] = []
+class ProgressUpdate(BaseSchema):
+    """Schema for updating course progress."""
+
+    video_progress_seconds: int = Field(..., ge=0)
+    content_section_completed: Optional[str] = Field(
+        None, description="ID of completed content section"
+    )
 
 
-# Review schemas
-class CourseReviewCreate(BaseModel):
-    """Schema for creating a course review."""
-    course_id: int
-    rating: int = Field(..., ge=1, le=5)
-    title: Optional[str] = Field(None, max_length=255)
-    comment: Optional[str] = None
+class QuizAnswer(BaseSchema):
+    """Quiz answer submission."""
+
+    question_id: str = Field(..., min_length=1)
+    answer_id: str = Field(..., min_length=1)
 
 
-class CourseReviewUpdate(BaseModel):
-    """Schema for updating a course review."""
-    rating: Optional[int] = Field(None, ge=1, le=5)
-    title: Optional[str] = Field(None, max_length=255)
-    comment: Optional[str] = None
+class QuizFeedback(BaseSchema):
+    """Feedback for a quiz answer."""
+
+    question_id: str
+    correct: bool
+    selected_answer_id: str
+    correct_answer_id: str
+    explanation: Optional[str] = None
+    points_earned: int = Field(0, ge=0)
 
 
-class CourseReviewInDB(BaseModel):
-    """Course review schema for database."""
-    id: int
-    user_id: int
-    course_id: int
-    enrollment_id: int
-    rating: int
-    title: Optional[str] = None
-    comment: Optional[str] = None
-    is_verified: bool
-    helpful_count: int
-    created_at: datetime
-    updated_at: datetime
-    user_name: Optional[str] = None  # Populated from join
+class QuizResult(BaseSchema):
+    """Quiz result response."""
 
-    model_config = ConfigDict(from_attributes=True)
+    score: float = Field(..., ge=0, le=100)
+    passed: bool
+    passing_score: float = Field(..., ge=0, le=100)
+    correct_answers: int = Field(..., ge=0)
+    total_questions: int = Field(..., gt=0)
+    points_earned: int = Field(..., ge=0)
+    total_points: int = Field(..., gt=0)
+    feedback: List[QuizFeedback] = Field(default_factory=list)
+    attempt_number: int = Field(..., ge=1)
+    can_retry: bool = Field(True)
+    certificate_id: Optional[UUID] = Field(
+        None, description="Certificate ID if passed and available"
+    )
 
-
-# Announcement schemas
-class CourseAnnouncementCreate(BaseModel):
-    """Schema for creating a course announcement."""
-    course_id: int
-    title: str = Field(..., min_length=1, max_length=255)
-    content: str
-    is_pinned: bool = False
+    @field_validator("score", "passing_score")
+    @classmethod
+    def round_scores(cls, v: float) -> float:
+        """Round scores to 2 decimal places."""
+        return round(v, 2)
 
 
-class CourseAnnouncementUpdate(BaseModel):
-    """Schema for updating a course announcement."""
-    title: Optional[str] = Field(None, min_length=1, max_length=255)
-    content: Optional[str] = None
-    is_pinned: Optional[bool] = None
+class CourseEnrollment(BaseSchema):
+    """Course enrollment record."""
+
+    id: UUID
+    course_id: UUID
+    user_id: UUID
+    enrolled_at: datetime
+    enrolled_by: Optional[UUID] = None
+    due_date: Optional[datetime] = None
+    is_mandatory: bool = False
+    completion_reminder_sent: bool = False
 
 
-class CourseAnnouncementInDB(BaseModel):
-    """Course announcement schema for database."""
-    id: int
-    course_id: int
-    author_id: Optional[int] = None
-    title: str
-    content: str
-    is_pinned: bool
-    created_at: datetime
-    updated_at: datetime
-    author_name: Optional[str] = None  # Populated from join
+class CourseCertificate(BaseSchema):
+    """Course completion certificate."""
 
-    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    user_id: UUID
+    course_id: UUID
+    issued_at: datetime
+    certificate_number: str
+    validation_code: str
+    pdf_url: Optional[str] = None
+    expires_at: Optional[datetime] = None
 
 
-# Update forward references
-CourseDetail.model_rebuild()
-ModulePublic.model_rebuild()
-LessonPublic.model_rebuild()
-LessonDetail.model_rebuild()
+class CourseStatistics(BaseSchema):
+    """Course statistics and analytics."""
+
+    course_id: UUID
+    total_enrollments: int = Field(0, ge=0)
+    active_learners: int = Field(0, ge=0)
+    completion_rate: float = Field(0.0, ge=0, le=100)
+    average_score: float = Field(0.0, ge=0, le=100)
+    average_time_to_complete_hours: float = Field(0.0, ge=0)
+    failure_rate: float = Field(0.0, ge=0, le=100)
+    satisfaction_rating: Optional[float] = Field(None, ge=1, le=5)

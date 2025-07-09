@@ -1,226 +1,305 @@
-"""Database monitoring and query performance tracking."""
+"""Database monitoring utilities."""
 
+import asyncio
 import time
-import functools
-from typing import Any, Callable, Optional
-from contextlib import asynccontextmanager
+from typing import Any, Dict, List, Optional
 
-from sqlalchemy import event
+from sqlalchemy import event, text
 from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session
 from sqlalchemy.pool import Pool
-from loguru import logger
 
-from core.monitoring import db_query_duration, monitored_db_query
-from core.logging import log_performance_issue
+from core.logging import logger
+from prometheus_client import Counter, Gauge, Histogram
+
+from core.monitoring import DATABASE_CONNECTIONS
+
+# Additional database metrics
+DB_QUERY_DURATION = Histogram(
+    "database_query_duration_seconds",
+    "Database query execution time",
+    ["query_type", "table"]
+)
+
+DB_QUERY_COUNT = Counter(
+    "database_queries_total",
+    "Total database queries",
+    ["query_type", "table"]
+)
+
+DB_CONNECTION_ERRORS = Counter(
+    "database_connection_errors_total",
+    "Total database connection errors"
+)
+
+DB_TRANSACTION_COUNT = Counter(
+    "database_transactions_total",
+    "Total database transactions",
+    ["status"]
+)
+
+DB_POOL_SIZE = Gauge(
+    "database_pool_size",
+    "Database connection pool size"
+)
+
+DB_POOL_CHECKED_OUT = Gauge(
+    "database_pool_checked_out",
+    "Database connections checked out from pool"
+)
+
+DB_POOL_OVERFLOW = Gauge(
+    "database_pool_overflow",
+    "Database pool overflow connections"
+)
 
 
 class DatabaseMonitor:
-    """Monitor database performance and connection pool."""
+    """Database monitoring utilities."""
     
     def __init__(self):
-        self.slow_query_threshold = 0.5  # 500ms
-        self.query_stats = {}
+        """Initialize database monitor."""
+        self.slow_query_threshold = 1.0  # seconds
+        self.query_stats: Dict[str, Dict[str, Any]] = {}
     
-    def setup_listeners(self, engine: Engine):
-        """Set up SQLAlchemy event listeners for monitoring."""
-        # Monitor query execution time
-        @event.listens_for(Engine, "before_cursor_execute")
-        def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
-            conn.info.setdefault('query_start_time', []).append(time.time())
-            logger.debug(f"Query started: {statement[:100]}...")
+    def setup_engine_monitoring(self, engine: Engine) -> None:
+        """
+        Set up monitoring for a database engine.
         
-        @event.listens_for(Engine, "after_cursor_execute")
-        def after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
-            total = time.time() - conn.info['query_start_time'].pop(-1)
+        Args:
+            engine: SQLAlchemy engine to monitor
+        """
+        # Monitor connection pool
+        @event.listens_for(engine, "connect")
+        def receive_connect(dbapi_conn, connection_record):
+            """Track new connections."""
+            connection_record.info['connect_time'] = time.time()
+            logger.debug("New database connection established")
+        
+        @event.listens_for(engine, "checkout")
+        def receive_checkout(dbapi_conn, connection_record, connection_proxy):
+            """Track connection checkouts."""
+            checkout_time = time.time()
+            connection_record.info['checkout_time'] = checkout_time
+            self._update_pool_metrics(engine.pool)
+        
+        @event.listens_for(engine, "checkin")
+        def receive_checkin(dbapi_conn, connection_record):
+            """Track connection checkins."""
+            checkin_time = time.time()
+            checkout_time = connection_record.info.get('checkout_time', checkin_time)
+            duration = checkin_time - checkout_time
             
-            # Track metrics
-            query_type = self._get_query_type(statement)
-            db_query_duration.labels(query_type=query_type).observe(total)
+            if duration > 30:  # Log long-held connections
+                logger.warning(f"Connection held for {duration:.2f} seconds")
+            
+            self._update_pool_metrics(engine.pool)
+        
+        # Monitor queries
+        @event.listens_for(engine, "before_cursor_execute")
+        def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+            """Track query start."""
+            context._query_start_time = time.time()
+        
+        @event.listens_for(engine, "after_cursor_execute")
+        def after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+            """Track query completion."""
+            duration = time.time() - context._query_start_time
+            
+            # Parse query type and table
+            query_type, table = self._parse_query(statement)
+            
+            # Update metrics
+            DB_QUERY_DURATION.labels(query_type=query_type, table=table).observe(duration)
+            DB_QUERY_COUNT.labels(query_type=query_type, table=table).inc()
             
             # Log slow queries
-            if total > self.slow_query_threshold:
-                log_performance_issue(
-                    "slow_query",
-                    total,
-                    query=statement[:200],
-                    query_type=query_type,
-                    parameters=str(parameters)[:100] if parameters else None
-                )
-                
+            if duration > self.slow_query_threshold:
                 logger.warning(
-                    f"Slow query detected ({total:.2f}s): {statement[:100]}...",
+                    f"Slow query detected ({duration:.2f}s): {statement[:100]}...",
                     extra={
-                        "performance": True,
-                        "query_time": total,
-                        "query": statement,
-                        "query_type": query_type
+                        "query_type": query_type,
+                        "table": table,
+                        "duration": duration,
+                        "statement": statement[:500],
                     }
                 )
+            
+            # Update query stats
+            self._update_query_stats(query_type, table, duration)
         
-        # Monitor connection pool
-        @event.listens_for(Pool, "connect")
-        def pool_connect(dbapi_conn, connection_record):
-            logger.debug("New database connection created")
+        @event.listens_for(engine, "handle_error")
+        def handle_error(exception_context):
+            """Track database errors."""
+            DB_CONNECTION_ERRORS.inc()
+            logger.error(
+                f"Database error: {exception_context.original_exception}",
+                exc_info=exception_context.original_exception
+            )
         
-        @event.listens_for(Pool, "checkout")
-        def pool_checkout(dbapi_conn, connection_record, connection_proxy):
-            logger.debug("Connection checked out from pool")
-        
-        @event.listens_for(Pool, "checkin")
-        def pool_checkin(dbapi_conn, connection_record):
-            logger.debug("Connection returned to pool")
+        # Initial pool metrics
+        self._update_pool_metrics(engine.pool)
+        logger.info("Database monitoring configured")
     
-    def _get_query_type(self, statement: str) -> str:
-        """Determine query type from SQL statement."""
+    def _parse_query(self, statement: str) -> tuple[str, str]:
+        """
+        Parse query to extract type and table name.
+        
+        Args:
+            statement: SQL statement
+            
+        Returns:
+            Tuple of (query_type, table_name)
+        """
         statement_upper = statement.strip().upper()
         
+        # Determine query type
         if statement_upper.startswith("SELECT"):
-            return "select"
+            query_type = "SELECT"
         elif statement_upper.startswith("INSERT"):
-            return "insert"
+            query_type = "INSERT"
         elif statement_upper.startswith("UPDATE"):
-            return "update"
+            query_type = "UPDATE"
         elif statement_upper.startswith("DELETE"):
-            return "delete"
+            query_type = "DELETE"
         elif statement_upper.startswith("CREATE"):
-            return "create"
-        elif statement_upper.startswith("ALTER"):
-            return "alter"
+            query_type = "CREATE"
         elif statement_upper.startswith("DROP"):
-            return "drop"
+            query_type = "DROP"
+        elif statement_upper.startswith("ALTER"):
+            query_type = "ALTER"
         else:
-            return "other"
+            query_type = "OTHER"
+        
+        # Try to extract table name
+        table = "unknown"
+        try:
+            if query_type in ["SELECT", "DELETE"]:
+                # Look for FROM clause
+                from_index = statement_upper.find("FROM")
+                if from_index != -1:
+                    after_from = statement[from_index + 4:].strip()
+                    table = after_from.split()[0].strip('"').strip("'").lower()
+            elif query_type in ["INSERT", "UPDATE"]:
+                # Look for INTO or UPDATE clause
+                parts = statement_upper.split()
+                if len(parts) > 2:
+                    table = parts[2].strip('"').strip("'").lower()
+        except Exception:
+            pass
+        
+        return query_type, table
+    
+    def _update_pool_metrics(self, pool: Pool) -> None:
+        """Update connection pool metrics."""
+        try:
+            DB_POOL_SIZE.set(pool.size())
+            DB_POOL_CHECKED_OUT.set(pool.checked_out())
+            DB_POOL_OVERFLOW.set(pool.overflow())
+            DATABASE_CONNECTIONS.set(pool.size() + pool.overflow())
+        except Exception as e:
+            logger.error(f"Error updating pool metrics: {e}")
+    
+    def _update_query_stats(self, query_type: str, table: str, duration: float) -> None:
+        """Update internal query statistics."""
+        key = f"{query_type}:{table}"
+        
+        if key not in self.query_stats:
+            self.query_stats[key] = {
+                "count": 0,
+                "total_duration": 0,
+                "min_duration": float('inf'),
+                "max_duration": 0,
+            }
+        
+        stats = self.query_stats[key]
+        stats["count"] += 1
+        stats["total_duration"] += duration
+        stats["min_duration"] = min(stats["min_duration"], duration)
+        stats["max_duration"] = max(stats["max_duration"], duration)
+    
+    def get_query_stats(self) -> Dict[str, Dict[str, Any]]:
+        """
+        Get query statistics.
+        
+        Returns:
+            Dictionary of query statistics
+        """
+        result = {}
+        for key, stats in self.query_stats.items():
+            avg_duration = stats["total_duration"] / stats["count"] if stats["count"] > 0 else 0
+            result[key] = {
+                **stats,
+                "avg_duration": avg_duration,
+            }
+        return result
+    
+    async def check_database_health(self, session: Session) -> Dict[str, Any]:
+        """
+        Check database health.
+        
+        Args:
+            session: Database session
+            
+        Returns:
+            Health check results
+        """
+        health = {
+            "status": "healthy",
+            "checks": {},
+            "metrics": {},
+        }
+        
+        try:
+            # Basic connectivity check
+            start = time.time()
+            result = session.execute(text("SELECT 1"))
+            result.scalar()
+            health["checks"]["connectivity"] = {
+                "status": "ok",
+                "latency_ms": (time.time() - start) * 1000,
+            }
+            
+            # Check table counts
+            tables = ["users", "companies", "courses", "enrollments"]
+            for table in tables:
+                try:
+                    result = session.execute(text(f"SELECT COUNT(*) FROM {table}"))
+                    count = result.scalar()
+                    health["metrics"][f"{table}_count"] = count
+                except Exception as e:
+                    health["checks"][f"{table}_accessible"] = {
+                        "status": "error",
+                        "error": str(e),
+                    }
+            
+            # Check connection pool
+            if hasattr(session.bind, "pool"):
+                pool = session.bind.pool
+                health["metrics"]["pool_size"] = pool.size()
+                health["metrics"]["pool_checked_out"] = pool.checked_out()
+                health["metrics"]["pool_overflow"] = pool.overflow()
+            
+            # Add query stats
+            health["metrics"]["query_stats"] = self.get_query_stats()
+            
+        except Exception as e:
+            health["status"] = "unhealthy"
+            health["error"] = str(e)
+            logger.error(f"Database health check failed: {e}")
+        
+        return health
 
 
 # Global database monitor instance
 db_monitor = DatabaseMonitor()
 
 
-def monitor_query(query_name: str = None):
+def track_transaction(status: str = "committed"):
     """
-    Decorator for monitoring database query performance.
+    Track a database transaction.
     
-    Usage:
-        @monitor_query("get_user_by_email")
-        async def get_user_by_email(db: AsyncSession, email: str):
-            ...
+    Args:
+        status: Transaction status (committed, rolled_back, failed)
     """
-    def decorator(func: Callable) -> Callable:
-        @functools.wraps(func)
-        async def async_wrapper(*args, **kwargs):
-            name = query_name or f"{func.__module__}.{func.__name__}"
-            
-            async with monitored_db_query(name):
-                return await func(*args, **kwargs)
-        
-        @functools.wraps(func)
-        def sync_wrapper(*args, **kwargs):
-            name = query_name or f"{func.__module__}.{func.__name__}"
-            start_time = time.time()
-            
-            try:
-                result = func(*args, **kwargs)
-                duration = time.time() - start_time
-                
-                db_query_duration.labels(query_type=name).observe(duration)
-                
-                if duration > db_monitor.slow_query_threshold:
-                    logger.warning(
-                        f"Slow query '{name}' took {duration:.2f}s"
-                    )
-                
-                return result
-            except Exception as e:
-                duration = time.time() - start_time
-                logger.error(
-                    f"Query '{name}' failed after {duration:.2f}s: {e}"
-                )
-                raise
-        
-        return async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
-    
-    return decorator
-
-
-class QueryAnalyzer:
-    """Analyze query patterns and suggest optimizations."""
-    
-    def __init__(self):
-        self.query_patterns = {}
-        self.optimization_suggestions = []
-    
-    def analyze_slow_queries(self, queries: list) -> list:
-        """Analyze slow queries and provide optimization suggestions."""
-        suggestions = []
-        
-        for query in queries:
-            # Check for missing indexes
-            if "WHERE" in query and "INDEX" not in query:
-                suggestions.append({
-                    "type": "missing_index",
-                    "query": query,
-                    "suggestion": "Consider adding an index on the WHERE clause columns"
-                })
-            
-            # Check for SELECT *
-            if "SELECT *" in query:
-                suggestions.append({
-                    "type": "select_star",
-                    "query": query,
-                    "suggestion": "Avoid SELECT *, specify only needed columns"
-                })
-            
-            # Check for N+1 queries
-            if self._detect_n_plus_one(query):
-                suggestions.append({
-                    "type": "n_plus_one",
-                    "query": query,
-                    "suggestion": "Use eager loading or joins to avoid N+1 queries"
-                })
-        
-        return suggestions
-    
-    def _detect_n_plus_one(self, query: str) -> bool:
-        """Detect potential N+1 query patterns."""
-        # Simple heuristic: multiple similar queries in short time
-        query_pattern = self._get_query_pattern(query)
-        
-        if query_pattern not in self.query_patterns:
-            self.query_patterns[query_pattern] = {
-                "count": 0,
-                "last_seen": time.time()
-            }
-        
-        pattern_info = self.query_patterns[query_pattern]
-        current_time = time.time()
-        
-        # If similar query executed multiple times within 1 second
-        if current_time - pattern_info["last_seen"] < 1:
-            pattern_info["count"] += 1
-            if pattern_info["count"] > 10:
-                return True
-        else:
-            pattern_info["count"] = 1
-        
-        pattern_info["last_seen"] = current_time
-        return False
-    
-    def _get_query_pattern(self, query: str) -> str:
-        """Extract query pattern by removing specific values."""
-        import re
-        
-        # Remove quoted strings
-        pattern = re.sub(r"'[^']*'", "'?'", query)
-        # Remove numbers
-        pattern = re.sub(r'\b\d+\b', '?', pattern)
-        
-        return pattern
-
-
-# Export utilities
-__all__ = [
-    "DatabaseMonitor",
-    "db_monitor",
-    "monitor_query",
-    "QueryAnalyzer",
-]
+    DB_TRANSACTION_COUNT.labels(status=status).inc()

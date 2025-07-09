@@ -1,23 +1,23 @@
-"""Email campaign models."""
+"""Email campaign, template, and tracking models."""
 
-from __future__ import annotations
 from datetime import datetime
-from typing import Optional, List, Dict, Any
-from enum import Enum
+from typing import TYPE_CHECKING, List, Optional
+
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint, text
+from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import UUID, ENUM, JSON
 import uuid
 
-from sqlalchemy import (
-    Column, String, Integer, Boolean, DateTime, Text, JSON,
-    ForeignKey, UniqueConstraint, Index, Float, Enum as SQLEnum
-)
-from sqlalchemy.orm import relationship, backref
-from sqlalchemy.dialects.postgresql import UUID
+from .base import BaseUUIDModel
 
-from models.base import Base
+if TYPE_CHECKING:
+    from .user import User
+    from .company import Company
 
 
-class EmailTemplateType(str, Enum):
-    """Email template types."""
+class EmailTemplateType:
+    """Email template type enumeration."""
+    
     TRANSACTIONAL = "transactional"
     CAMPAIGN = "campaign"
     NEWSLETTER = "newsletter"
@@ -28,8 +28,21 @@ class EmailTemplateType(str, Enum):
     SECURITY_ALERT = "security_alert"
 
 
-class EmailStatus(str, Enum):
-    """Email send status."""
+class CampaignStatus:
+    """Campaign status enumeration."""
+    
+    DRAFT = "draft"
+    SCHEDULED = "scheduled"
+    SENDING = "sending"
+    SENT = "sent"
+    PAUSED = "paused"
+    CANCELLED = "cancelled"
+    COMPLETED = "completed"
+
+
+class EmailStatus:
+    """Email delivery status enumeration."""
+    
     PENDING = "pending"
     SENT = "sent"
     DELIVERED = "delivered"
@@ -41,19 +54,9 @@ class EmailStatus(str, Enum):
     MARKED_SPAM = "marked_spam"
 
 
-class CampaignStatus(str, Enum):
-    """Campaign status."""
-    DRAFT = "draft"
-    SCHEDULED = "scheduled"
-    SENDING = "sending"
-    SENT = "sent"
-    PAUSED = "paused"
-    CANCELLED = "cancelled"
-    COMPLETED = "completed"
-
-
-class EmailFrequency(str, Enum):
-    """Email frequency preferences."""
+class EmailFrequency:
+    """Email frequency preference enumeration."""
+    
     IMMEDIATELY = "immediately"
     DAILY = "daily"
     WEEKLY = "weekly"
@@ -61,262 +64,452 @@ class EmailFrequency(str, Enum):
     NEVER = "never"
 
 
-class EmailTemplate(Base):
-    """Email template model."""
+class EmailTemplate(BaseUUIDModel):
+    """Email template model for reusable email content."""
+    
     __tablename__ = "email_templates"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    # Basic Information
     name = Column(String(255), nullable=False)
-    slug = Column(String(255), unique=True, nullable=False)
-    type = Column(SQLEnum(EmailTemplateType), nullable=False)
+    slug = Column(String(255), nullable=False, unique=True, index=True)
+    type = Column(
+        ENUM('transactional', 'campaign', 'newsletter', 'notification', 'welcome', 'course_update', 'phishing_alert', 'security_alert', name='emailtemplatetype', create_type=False),
+        nullable=False
+    )
+    
+    # Email Content
     subject = Column(String(500), nullable=False)
     html_content = Column(Text, nullable=False)
-    text_content = Column(Text)
-    variables = Column(JSON, default=dict)  # List of template variables
-    preview_text = Column(String(500))
-    from_name = Column(String(255))
-    from_email = Column(String(255))
-    reply_to = Column(String(255))
+    text_content = Column(Text, nullable=True)
+    preview_text = Column(String(500), nullable=True)
     
-    # Metadata
-    is_active = Column(Boolean, default=True)
-    is_default = Column(Boolean, default=False)
-    created_by_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    # Template Variables
+    variables = Column(JSON, nullable=True)  # List of variable names and descriptions
     
-    # Performance tracking
-    total_sent = Column(Integer, default=0)
-    total_opened = Column(Integer, default=0)
-    total_clicked = Column(Integer, default=0)
-    avg_open_rate = Column(Float, default=0.0)
-    avg_click_rate = Column(Float, default=0.0)
+    # Sender Information
+    from_name = Column(String(255), nullable=True)
+    from_email = Column(String(255), nullable=True)
+    reply_to = Column(String(255), nullable=True)
+    
+    # Status and Settings
+    is_active = Column(Boolean, nullable=True, default=True)
+    is_default = Column(Boolean, nullable=True, default=False)
+    
+    # Creator
+    created_by_id = Column(Integer, ForeignKey('users.id'), nullable=True)
+    
+    # Statistics
+    total_sent = Column(Integer, nullable=True, default=0)
+    total_opened = Column(Integer, nullable=True, default=0)
+    total_clicked = Column(Integer, nullable=True, default=0)
+    avg_open_rate = Column(Float, nullable=True, default=0.0)
+    avg_click_rate = Column(Float, nullable=True, default=0.0)
     
     # Relationships
-    created_by = relationship("User", backref="created_email_templates")
-    campaigns = relationship("EmailCampaign", back_populates="template")
+    created_by: Optional["User"] = relationship("User", back_populates="created_email_templates")
+    campaigns: List["EmailCampaign"] = relationship("EmailCampaign", back_populates="template")
+    email_logs: List["EmailLog"] = relationship("EmailLog", back_populates="template")
     
-    # Indexes
-    __table_args__ = (
-        Index("idx_email_template_type_active", "type", "is_active"),
-        Index("idx_email_template_slug", "slug"),
-    )
+    def update_statistics(self) -> None:
+        """Update template statistics based on email logs."""
+        if not self.email_logs:
+            return
+        
+        total_sent = len([log for log in self.email_logs if log.sent_at])
+        total_opened = len([log for log in self.email_logs if log.opened_at])
+        total_clicked = len([log for log in self.email_logs if log.clicked_at])
+        
+        self.total_sent = total_sent
+        self.total_opened = total_opened
+        self.total_clicked = total_clicked
+        
+        if total_sent > 0:
+            self.avg_open_rate = (total_opened / total_sent) * 100
+            self.avg_click_rate = (total_clicked / total_sent) * 100
+    
+    def __repr__(self) -> str:
+        """String representation of EmailTemplate."""
+        return f"<EmailTemplate {self.name} ({self.type})>"
 
 
-class EmailCampaign(Base):
-    """Email campaign model."""
+class EmailCampaign(BaseUUIDModel):
+    """Email campaign model for marketing and communication campaigns."""
+    
     __tablename__ = "email_campaigns"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    # Basic Information
     name = Column(String(255), nullable=False)
-    description = Column(Text)
-    template_id = Column(UUID(as_uuid=True), ForeignKey("email_templates.id"))
-    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"))
+    description = Column(Text, nullable=True)
     
-    # Campaign settings
-    status = Column(SQLEnum(CampaignStatus), default=CampaignStatus.DRAFT)
-    scheduled_at = Column(DateTime)
-    sent_at = Column(DateTime)
-    completed_at = Column(DateTime)
+    # Foreign Keys
+    template_id = Column(UUID(as_uuid=True), ForeignKey('email_templates.id'), nullable=True)
+    company_id = Column(Integer, ForeignKey('companies.id'), nullable=True)
+    created_by_id = Column(Integer, ForeignKey('users.id'), nullable=True)
+    
+    # Campaign Status
+    status = Column(
+        ENUM('draft', 'scheduled', 'sending', 'sent', 'paused', 'cancelled', 'completed', name='campaignstatus', create_type=False),
+        nullable=True,
+        default='draft'
+    )
+    
+    # Scheduling
+    scheduled_at = Column(DateTime(timezone=True), nullable=True, index=True)
+    sent_at = Column(DateTime(timezone=True), nullable=True)
+    completed_at = Column(DateTime(timezone=True), nullable=True)
     
     # Targeting
-    target_all_users = Column(Boolean, default=False)
-    target_user_roles = Column(JSON, default=list)  # List of roles
-    target_user_ids = Column(JSON, default=list)  # Specific user IDs
-    target_segments = Column(JSON, default=dict)  # Custom segments
-    exclude_unsubscribed = Column(Boolean, default=True)
+    target_all_users = Column(Boolean, nullable=True, default=False)
+    target_user_roles = Column(JSON, nullable=True)  # List of user roles
+    target_user_ids = Column(JSON, nullable=True)  # List of specific user IDs
+    target_segments = Column(JSON, nullable=True)  # Custom segments/filters
+    exclude_unsubscribed = Column(Boolean, nullable=True, default=True)
     
-    # Content customization
-    custom_subject = Column(String(500))
-    custom_preview_text = Column(String(500))
-    custom_variables = Column(JSON, default=dict)
+    # Custom Content
+    custom_subject = Column(String(500), nullable=True)
+    custom_preview_text = Column(String(500), nullable=True)
+    custom_variables = Column(JSON, nullable=True)  # Variable values for template
     
-    # Performance tracking
-    total_recipients = Column(Integer, default=0)
-    total_sent = Column(Integer, default=0)
-    total_delivered = Column(Integer, default=0)
-    total_opened = Column(Integer, default=0)
-    total_clicked = Column(Integer, default=0)
-    total_bounced = Column(Integer, default=0)
-    total_unsubscribed = Column(Integer, default=0)
+    # Statistics
+    total_recipients = Column(Integer, nullable=True, default=0)
+    total_sent = Column(Integer, nullable=True, default=0)
+    total_delivered = Column(Integer, nullable=True, default=0)
+    total_opened = Column(Integer, nullable=True, default=0)
+    total_clicked = Column(Integer, nullable=True, default=0)
+    total_bounced = Column(Integer, nullable=True, default=0)
+    total_unsubscribed = Column(Integer, nullable=True, default=0)
     
     # Rates
-    delivery_rate = Column(Float, default=0.0)
-    open_rate = Column(Float, default=0.0)
-    click_rate = Column(Float, default=0.0)
-    bounce_rate = Column(Float, default=0.0)
-    unsubscribe_rate = Column(Float, default=0.0)
-    
-    # Metadata
-    created_by_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    delivery_rate = Column(Float, nullable=True, default=0.0)
+    open_rate = Column(Float, nullable=True, default=0.0)
+    click_rate = Column(Float, nullable=True, default=0.0)
+    bounce_rate = Column(Float, nullable=True, default=0.0)
+    unsubscribe_rate = Column(Float, nullable=True, default=0.0)
     
     # Relationships
-    template = relationship("EmailTemplate", back_populates="campaigns")
-    company = relationship("Company", backref="email_campaigns")
-    created_by = relationship("User", backref="created_campaigns")
-    emails = relationship("EmailLog", back_populates="campaign", cascade="all, delete-orphan")
-    
-    # Indexes
-    __table_args__ = (
-        Index("idx_campaign_status_company", "status", "company_id"),
-        Index("idx_campaign_scheduled", "scheduled_at", "status"),
+    template: Optional["EmailTemplate"] = relationship("EmailTemplate", back_populates="campaigns")
+    company: Optional["Company"] = relationship("Company", back_populates="email_campaigns")
+    created_by: Optional["User"] = relationship("User", back_populates="created_email_campaigns")
+    email_logs: List["EmailLog"] = relationship(
+        "EmailLog",
+        back_populates="campaign",
+        cascade="all, delete-orphan"
     )
+    
+    @property
+    def is_draft(self) -> bool:
+        """Check if campaign is in draft status."""
+        return self.status == CampaignStatus.DRAFT
+    
+    @property
+    def is_scheduled(self) -> bool:
+        """Check if campaign is scheduled."""
+        return self.status == CampaignStatus.SCHEDULED
+    
+    @property
+    def is_active(self) -> bool:
+        """Check if campaign is currently active."""
+        return self.status in [CampaignStatus.SENDING, CampaignStatus.SENT]
+    
+    @property
+    def is_completed(self) -> bool:
+        """Check if campaign is completed."""
+        return self.status == CampaignStatus.COMPLETED
+    
+    def update_statistics(self) -> None:
+        """Update campaign statistics based on email logs."""
+        if not self.email_logs:
+            return
+        
+        self.total_recipients = len(self.email_logs)
+        self.total_sent = len([log for log in self.email_logs if log.sent_at])
+        self.total_delivered = len([log for log in self.email_logs if log.delivered_at])
+        self.total_opened = len([log for log in self.email_logs if log.opened_at])
+        self.total_clicked = len([log for log in self.email_logs if log.clicked_at])
+        self.total_bounced = len([log for log in self.email_logs if log.bounced_at])
+        self.total_unsubscribed = len([log for log in self.email_logs if log.unsubscribed_at])
+        
+        if self.total_sent > 0:
+            self.delivery_rate = (self.total_delivered / self.total_sent) * 100
+            self.open_rate = (self.total_opened / self.total_sent) * 100
+            self.click_rate = (self.total_clicked / self.total_sent) * 100
+            self.bounce_rate = (self.total_bounced / self.total_sent) * 100
+            self.unsubscribe_rate = (self.total_unsubscribed / self.total_sent) * 100
+    
+    def __repr__(self) -> str:
+        """String representation of EmailCampaign."""
+        return f"<EmailCampaign {self.name} ({self.status})>"
 
 
-class EmailLog(Base):
-    """Email send log."""
+class EmailLog(BaseUUIDModel):
+    """Email log model for tracking individual email deliveries."""
+    
     __tablename__ = "email_logs"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    campaign_id = Column(UUID(as_uuid=True), ForeignKey("email_campaigns.id"))
-    template_id = Column(UUID(as_uuid=True), ForeignKey("email_templates.id"))
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    # Foreign Keys
+    campaign_id = Column(UUID(as_uuid=True), ForeignKey('email_campaigns.id'), nullable=True)
+    template_id = Column(UUID(as_uuid=True), ForeignKey('email_templates.id'), nullable=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=True, index=True)
     
-    # Email details
+    # Email Information
     to_email = Column(String(255), nullable=False)
     from_email = Column(String(255), nullable=False)
     subject = Column(String(500), nullable=False)
-    status = Column(SQLEnum(EmailStatus), default=EmailStatus.PENDING)
     
-    # Tracking
-    sent_at = Column(DateTime)
-    delivered_at = Column(DateTime)
-    opened_at = Column(DateTime)
-    first_opened_at = Column(DateTime)
-    clicked_at = Column(DateTime)
-    first_clicked_at = Column(DateTime)
-    bounced_at = Column(DateTime)
-    unsubscribed_at = Column(DateTime)
+    # Delivery Status
+    status = Column(
+        ENUM('pending', 'sent', 'delivered', 'opened', 'clicked', 'bounced', 'failed', 'unsubscribed', 'marked_spam', name='emailstatus', create_type=False),
+        nullable=True,
+        default='pending'
+    )
     
-    # Tracking details
-    open_count = Column(Integer, default=0)
-    click_count = Column(Integer, default=0)
-    clicked_links = Column(JSON, default=list)  # List of clicked link URLs
+    # Timestamps
+    sent_at = Column(DateTime(timezone=True), nullable=True, index=True)
+    delivered_at = Column(DateTime(timezone=True), nullable=True)
+    opened_at = Column(DateTime(timezone=True), nullable=True)
+    first_opened_at = Column(DateTime(timezone=True), nullable=True)
+    clicked_at = Column(DateTime(timezone=True), nullable=True)
+    first_clicked_at = Column(DateTime(timezone=True), nullable=True)
+    bounced_at = Column(DateTime(timezone=True), nullable=True)
+    unsubscribed_at = Column(DateTime(timezone=True), nullable=True)
     
-    # Error handling
-    error_message = Column(Text)
-    bounce_type = Column(String(50))  # hard, soft, etc.
+    # Interaction Counts
+    open_count = Column(Integer, nullable=True, default=0)
+    click_count = Column(Integer, nullable=True, default=0)
+    clicked_links = Column(JSON, nullable=True)  # List of clicked URLs
     
-    # Email provider details
-    provider = Column(String(50))  # smtp, sendgrid, ses, etc.
-    message_id = Column(String(255))  # Provider's message ID
+    # Error Information
+    error_message = Column(Text, nullable=True)
+    bounce_type = Column(String(50), nullable=True)  # hard, soft, etc.
     
-    # Metadata
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    # Provider Information
+    provider = Column(String(50), nullable=True)  # sendgrid, ses, etc.
+    message_id = Column(String(255), nullable=True, index=True)
     
     # Relationships
-    campaign = relationship("EmailCampaign", back_populates="emails")
-    template = relationship("EmailTemplate")
-    user = relationship("User", backref="email_logs")
-    events = relationship("EmailEvent", back_populates="email_log", cascade="all, delete-orphan")
-    
-    # Indexes
-    __table_args__ = (
-        Index("idx_email_log_user_status", "user_id", "status"),
-        Index("idx_email_log_campaign_status", "campaign_id", "status"),
-        Index("idx_email_log_sent_at", "sent_at"),
-        Index("idx_email_log_message_id", "message_id"),
+    campaign: Optional["EmailCampaign"] = relationship("EmailCampaign", back_populates="email_logs")
+    template: Optional["EmailTemplate"] = relationship("EmailTemplate", back_populates="email_logs")
+    user: Optional["User"] = relationship("User", back_populates="email_logs")
+    events: List["EmailEvent"] = relationship(
+        "EmailEvent",
+        back_populates="email_log",
+        cascade="all, delete-orphan"
     )
+    
+    @property
+    def was_delivered(self) -> bool:
+        """Check if email was delivered."""
+        return self.delivered_at is not None
+    
+    @property
+    def was_opened(self) -> bool:
+        """Check if email was opened."""
+        return self.opened_at is not None
+    
+    @property
+    def was_clicked(self) -> bool:
+        """Check if email was clicked."""
+        return self.clicked_at is not None
+    
+    @property
+    def was_bounced(self) -> bool:
+        """Check if email bounced."""
+        return self.bounced_at is not None
+    
+    def record_open(self, timestamp: Optional[datetime] = None) -> None:
+        """Record an email open event."""
+        timestamp = timestamp or datetime.utcnow()
+        self.open_count += 1
+        self.opened_at = timestamp
+        if not self.first_opened_at:
+            self.first_opened_at = timestamp
+        self.status = EmailStatus.OPENED
+    
+    def record_click(self, url: str, timestamp: Optional[datetime] = None) -> None:
+        """Record an email click event."""
+        timestamp = timestamp or datetime.utcnow()
+        self.click_count += 1
+        self.clicked_at = timestamp
+        if not self.first_clicked_at:
+            self.first_clicked_at = timestamp
+        
+        if not self.clicked_links:
+            self.clicked_links = []
+        if url not in self.clicked_links:
+            self.clicked_links.append(url)
+        
+        self.status = EmailStatus.CLICKED
+    
+    def __repr__(self) -> str:
+        """String representation of EmailLog."""
+        return f"<EmailLog {self.to_email} ({self.status})>"
 
 
-class EmailEvent(Base):
-    """Email event tracking."""
+class EmailEvent(BaseUUIDModel):
+    """Email event model for tracking detailed email interactions."""
+    
     __tablename__ = "email_events"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    email_log_id = Column(UUID(as_uuid=True), ForeignKey("email_logs.id"), nullable=False)
+    # Foreign Keys
+    email_log_id = Column(UUID(as_uuid=True), ForeignKey('email_logs.id'), nullable=False, index=True)
+    
+    # Event Information
     event_type = Column(String(50), nullable=False)  # open, click, bounce, etc.
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(DateTime(timezone=True), nullable=True, index=True)
     
-    # Event details
-    ip_address = Column(String(45))
-    user_agent = Column(Text)
-    location = Column(JSON)  # GeoIP data
-    device_type = Column(String(50))  # desktop, mobile, tablet
-    os = Column(String(50))
-    browser = Column(String(50))
+    # Client Information
+    ip_address = Column(String(45), nullable=True)
+    user_agent = Column(Text, nullable=True)
+    location = Column(JSON, nullable=True)  # GeoIP data
     
-    # Click specific
-    clicked_url = Column(Text)
-    click_position = Column(Integer)  # Position of link in email
+    # Device Information
+    device_type = Column(String(50), nullable=True)  # desktop, mobile, tablet
+    os = Column(String(50), nullable=True)
+    browser = Column(String(50), nullable=True)
     
-    # Bounce specific
-    bounce_reason = Column(Text)
+    # Click Information
+    clicked_url = Column(Text, nullable=True)
+    click_position = Column(Integer, nullable=True)  # Position of link in email
+    
+    # Bounce Information
+    bounce_reason = Column(Text, nullable=True)
     
     # Relationships
-    email_log = relationship("EmailLog", back_populates="events")
+    email_log: "EmailLog" = relationship("EmailLog", back_populates="events")
     
-    # Indexes
-    __table_args__ = (
-        Index("idx_email_event_log_type", "email_log_id", "event_type"),
-        Index("idx_email_event_timestamp", "timestamp"),
-    )
+    def __repr__(self) -> str:
+        """String representation of EmailEvent."""
+        return f"<EmailEvent {self.event_type} ({self.timestamp})>"
 
 
-class EmailPreference(Base):
-    """User email preferences."""
+class EmailPreferences(BaseUUIDModel):
+    """Email preferences model for user subscription settings."""
+    
     __tablename__ = "email_preferences"
+    __table_args__ = (
+        UniqueConstraint('user_id', name='uq_email_preferences_user'),
+        UniqueConstraint('unsubscribe_token', name='uq_email_preferences_token'),
+    )
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, unique=True)
+    # Foreign Keys
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
     
-    # Global preferences
-    is_subscribed = Column(Boolean, default=True)
-    unsubscribed_at = Column(DateTime)
-    unsubscribe_token = Column(String(255), unique=True)
+    # Global Subscription
+    is_subscribed = Column(Boolean, nullable=True, default=True)
+    unsubscribed_at = Column(DateTime(timezone=True), nullable=True)
+    unsubscribe_token = Column(String(255), nullable=True, index=True)
     
-    # Category preferences
-    marketing_emails = Column(Boolean, default=True)
-    course_updates = Column(Boolean, default=True)
-    security_alerts = Column(Boolean, default=True)
-    newsletter = Column(Boolean, default=True)
-    promotional = Column(Boolean, default=True)
+    # Email Categories
+    marketing_emails = Column(Boolean, nullable=True, default=True)
+    course_updates = Column(Boolean, nullable=True, default=True)
+    security_alerts = Column(Boolean, nullable=True, default=True)
+    newsletter = Column(Boolean, nullable=True, default=True)
+    promotional = Column(Boolean, nullable=True, default=True)
     
-    # Frequency preferences
-    email_frequency = Column(SQLEnum(EmailFrequency), default=EmailFrequency.IMMEDIATELY)
-    digest_day = Column(Integer)  # 0-6 for weekly digest
-    digest_hour = Column(Integer, default=9)  # Hour of day for digest
-    
-    # Metadata
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    # Frequency Settings
+    email_frequency = Column(
+        ENUM('immediately', 'daily', 'weekly', 'monthly', 'never', name='emailfrequency', create_type=False),
+        nullable=True,
+        default='immediately'
+    )
+    digest_day = Column(Integer, nullable=True)  # 0-6 (Monday-Sunday)
+    digest_hour = Column(Integer, nullable=True, default=9)  # 0-23
     
     # Relationships
-    user = relationship("User", backref=backref("email_preference", uselist=False))
+    user: "User" = relationship("User", back_populates="email_preferences", uselist=False)
     
-    # Indexes
-    __table_args__ = (
-        Index("idx_email_pref_user", "user_id"),
-        Index("idx_email_pref_token", "unsubscribe_token"),
-    )
+    def unsubscribe_all(self) -> None:
+        """Unsubscribe from all email communications."""
+        self.is_subscribed = False
+        self.unsubscribed_at = datetime.utcnow()
+        self.marketing_emails = False
+        self.course_updates = False
+        self.security_alerts = False
+        self.newsletter = False
+        self.promotional = False
+    
+    def can_receive_email(self, email_type: EmailTemplateType) -> bool:
+        """Check if user can receive a specific type of email."""
+        if not self.is_subscribed:
+            return False
+        
+        # Security alerts always go through if user is subscribed
+        if email_type == EmailTemplateType.SECURITY_ALERT:
+            return self.security_alerts
+        
+        # Map email types to preferences
+        type_map = {
+            EmailTemplateType.CAMPAIGN: self.marketing_emails,
+            EmailTemplateType.NEWSLETTER: self.newsletter,
+            EmailTemplateType.COURSE_UPDATE: self.course_updates,
+            EmailTemplateType.PHISHING_ALERT: self.security_alerts,
+            EmailTemplateType.NOTIFICATION: True,  # Always allow notifications
+            EmailTemplateType.TRANSACTIONAL: True,  # Always allow transactional
+            EmailTemplateType.WELCOME: True,  # Always allow welcome emails
+        }
+        
+        return type_map.get(email_type, True)
+    
+    def __repr__(self) -> str:
+        """String representation of EmailPreferences."""
+        return f"<EmailPreferences User:{self.user_id} (Subscribed: {self.is_subscribed})>"
 
 
-class EmailBounce(Base):
-    """Email bounce tracking."""
+class EmailBounce(BaseUUIDModel):
+    """Email bounce tracking model for managing suppression list."""
+    
     __tablename__ = "email_bounces"
-    
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    email = Column(String(255), nullable=False)
-    bounce_type = Column(String(50), nullable=False)  # hard, soft, complaint
-    bounce_count = Column(Integer, default=1)
-    last_bounce_at = Column(DateTime, default=datetime.utcnow)
-    is_suppressed = Column(Boolean, default=False)
-    suppressed_at = Column(DateTime)
-    
-    # Bounce details
-    reason = Column(Text)
-    diagnostic_code = Column(Text)
-    
-    # Metadata
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    # Indexes
     __table_args__ = (
-        Index("idx_email_bounce_email", "email"),
-        Index("idx_email_bounce_suppressed", "is_suppressed"),
-        UniqueConstraint("email", name="uq_email_bounce_email"),
+        UniqueConstraint('email', name='uq_email_bounce_email'),
     )
+    
+    # Email Information
+    email = Column(String(255), nullable=False, index=True)
+    bounce_type = Column(String(50), nullable=False)  # hard, soft, complaint
+    
+    # Bounce Tracking
+    bounce_count = Column(Integer, nullable=True, default=1)
+    last_bounce_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Suppression
+    is_suppressed = Column(Boolean, nullable=True, default=False, index=True)
+    suppressed_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Additional Information
+    reason = Column(Text, nullable=True)
+    diagnostic_code = Column(Text, nullable=True)
+    
+    @property
+    def should_suppress(self) -> bool:
+        """Check if email should be suppressed based on bounce history."""
+        if self.is_suppressed:
+            return True
+        
+        # Hard bounces = immediate suppression
+        if self.bounce_type == 'hard':
+            return True
+        
+        # Soft bounces = suppress after 3 attempts
+        if self.bounce_type == 'soft' and self.bounce_count >= 3:
+            return True
+        
+        # Complaints = immediate suppression
+        if self.bounce_type == 'complaint':
+            return True
+        
+        return False
+    
+    def record_bounce(self, bounce_type: Optional[str] = None) -> None:
+        """Record a new bounce event."""
+        self.bounce_count += 1
+        self.last_bounce_at = datetime.utcnow()
+        if bounce_type:
+            self.bounce_type = bounce_type
+        
+        if self.should_suppress:
+            self.is_suppressed = True
+            self.suppressed_at = datetime.utcnow()
+    
+    def __repr__(self) -> str:
+        """String representation of EmailBounce."""
+        return f"<EmailBounce {self.email} ({self.bounce_type})>"

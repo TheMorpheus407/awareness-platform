@@ -8,9 +8,9 @@ from uuid import uuid4
 from fastapi import status
 from sqlalchemy.orm import Session
 
-from backend.models import Company, User, Subscription, PaymentMethod, Invoice, Payment
-from backend.models import SubscriptionStatus, PaymentMethodType, InvoiceStatus, PaymentStatus
-from backend.services.stripe_service import StripeService
+from models import Company, User, Subscription, PaymentMethod, Invoice, Payment
+from models import SubscriptionStatus, PaymentMethodType, InvoiceStatus, PaymentStatus
+from services.stripe_service import StripeService
 
 
 class TestPaymentEndpoints:

@@ -1,0 +1,296 @@
+/* Design System - Global Styles */
+/* Premium design system with advanced animations */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+/* CSS Reset with Design System Defaults */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-body);
+  color: var(--color-text-primary);
+  background-color: var(--color-surface-primary);
+  transition: background-color var(--duration-normal) var(--easing-smooth),
+              color var(--duration-normal) var(--easing-smooth);
+}
+
+/* Selection */
+::selection {
+  background-color: var(--color-brand-primary-200);
+  color: var(--color-brand-primary-900);
+}
+
+/* Focus Visible */
+:focus-visible {
+  outline: 2px solid var(--color-brand-primary-500);
+  outline-offset: 2px;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-neutral-100);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-400);
+  border-radius: var(--radius-full);
+  border: 3px solid var(--color-neutral-100);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral-500);
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-track {
+  background: var(--color-neutral-800);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-600);
+  border-color: var(--color-neutral-800);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral-500);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-2px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(2px);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(14, 165, 233, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(14, 165, 233, 0.8);
+  }
+}
+
+/* Utility Classes */
+.ds-animate-fadeIn {
+  animation: fadeIn var(--duration-enter) var(--easing-smoothOut) both;
+}
+
+.ds-animate-fadeInUp {
+  animation: fadeInUp var(--duration-enter) var(--easing-smoothOut) both;
+}
+
+.ds-animate-fadeInDown {
+  animation: fadeInDown var(--duration-enter) var(--easing-smoothOut) both;
+}
+
+.ds-animate-scaleIn {
+  animation: scaleIn var(--duration-enter) var(--easing-smoothOut) both;
+}
+
+.ds-animate-spin {
+  animation: spin var(--duration-slowest) linear infinite;
+}
+
+.ds-animate-pulse {
+  animation: pulse var(--duration-pulse) var(--easing-smoothInOut) infinite;
+}
+
+.ds-animate-bounce {
+  animation: bounce var(--duration-slower) var(--easing-spring) infinite;
+}
+
+/* Stagger Animation Delays */
+.ds-stagger-1 { animation-delay: 50ms; }
+.ds-stagger-2 { animation-delay: 100ms; }
+.ds-stagger-3 { animation-delay: 150ms; }
+.ds-stagger-4 { animation-delay: 200ms; }
+.ds-stagger-5 { animation-delay: 250ms; }
+.ds-stagger-6 { animation-delay: 300ms; }
+
+/* Accessibility */
+.ds-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Focus Trap */
+.ds-focus-trap {
+  position: relative;
+}
+
+.ds-focus-trap:focus-within {
+  z-index: 10;
+}
+
+/* Loading States */
+.ds-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-neutral-200) 0%,
+    var(--color-neutral-100) 50%,
+    var(--color-neutral-200) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer var(--duration-skeleton) var(--easing-linear) infinite;
+  border-radius: var(--radius-md);
+}
+
+.dark .ds-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-neutral-700) 0%,
+    var(--color-neutral-600) 50%,
+    var(--color-neutral-700) 100%
+  );
+}

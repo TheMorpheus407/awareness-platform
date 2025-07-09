@@ -1,0 +1,233 @@
+/* Card Component Styles */
+
+.ds-card {
+  position: relative;
+  background: var(--color-surface-primary);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  transition: var(--transition-card);
+  transform-origin: center;
+  will-change: transform, box-shadow;
+}
+
+/* Variant Styles */
+.ds-card--default {
+  box-shadow: var(--shadow-elevation-1);
+  border: 1px solid var(--color-neutral-200);
+}
+
+.ds-card--elevated {
+  box-shadow: var(--shadow-elevation-3);
+}
+
+.ds-card--outlined {
+  box-shadow: none;
+  border: 1px solid var(--color-neutral-300);
+}
+
+.ds-card--filled {
+  box-shadow: none;
+  background: var(--color-neutral-100);
+  border: none;
+}
+
+.ds-card--interactive {
+  cursor: pointer;
+  box-shadow: var(--shadow-elevation-2);
+}
+
+.ds-card--interactive:hover {
+  box-shadow: var(--shadow-elevation-4);
+}
+
+/* Padding Variants */
+.ds-card--padding-none {
+  padding: 0;
+}
+
+.ds-card--padding-sm {
+  padding: var(--spacing-4);
+}
+
+.ds-card--padding-md {
+  padding: var(--spacing-6);
+}
+
+.ds-card--padding-lg {
+  padding: var(--spacing-8);
+}
+
+/* States */
+.ds-card--hover {
+  cursor: pointer;
+}
+
+.ds-card--hover:hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+.ds-card--loading {
+  pointer-events: none;
+}
+
+/* Card Content */
+.ds-card__content {
+  position: relative;
+  z-index: 1;
+}
+
+/* Card Header */
+.ds-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-4);
+}
+
+.ds-card__header-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.ds-card__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.ds-card__subtitle {
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-secondary);
+  margin: var(--spacing-1) 0 0;
+}
+
+.ds-card__header-action {
+  flex-shrink: 0;
+  margin-left: var(--spacing-4);
+}
+
+/* Card Body */
+.ds-card__body {
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-body);
+  color: var(--color-text-primary);
+}
+
+/* Card Footer */
+.ds-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--spacing-6);
+  padding-top: var(--spacing-4);
+}
+
+.ds-card__footer--divider {
+  border-top: 1px solid var(--color-neutral-200);
+}
+
+/* Card Media */
+.ds-card__media {
+  position: relative;
+  margin: calc(var(--spacing-6) * -1);
+  margin-bottom: var(--spacing-4);
+  overflow: hidden;
+  background: var(--color-neutral-100);
+}
+
+.ds-card--padding-none .ds-card__media {
+  margin: 0;
+}
+
+.ds-card__media-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Glow Effect */
+.ds-card__glow {
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(
+    135deg,
+    var(--color-brand-primary-500),
+    var(--color-brand-secondary-500)
+  );
+  opacity: 0;
+  filter: blur(12px);
+  z-index: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-normal) var(--easing-smooth);
+}
+
+.ds-card--glow:hover .ds-card__glow {
+  opacity: 0.3;
+}
+
+/* Loading State */
+.ds-card__loading {
+  position: absolute;
+  inset: 0;
+  background: var(--color-surface-primary);
+  opacity: 0.9;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ds-card__loading-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer var(--duration-skeleton) var(--easing-linear) infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Dark Mode */
+.dark .ds-card {
+  background: var(--color-neutral-800);
+}
+
+.dark .ds-card--default {
+  border-color: var(--color-neutral-700);
+}
+
+.dark .ds-card--outlined {
+  border-color: var(--color-neutral-600);
+}
+
+.dark .ds-card--filled {
+  background: var(--color-neutral-900);
+}
+
+.dark .ds-card__footer--divider {
+  border-color: var(--color-neutral-700);
+}
+
+.dark .ds-card__media {
+  background: var(--color-neutral-900);
+}
+
+.dark .ds-card__loading {
+  background: var(--color-neutral-800);
+}

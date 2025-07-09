@@ -1,0 +1,217 @@
+/* Toast Component Styles */
+
+.ds-toast-container {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  padding: var(--spacing-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+/* Position Variants */
+.ds-toast-container--top-left {
+  top: 0;
+  left: 0;
+  align-items: flex-start;
+}
+
+.ds-toast-container--top-center {
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  align-items: center;
+}
+
+.ds-toast-container--top-right {
+  top: 0;
+  right: 0;
+  align-items: flex-end;
+}
+
+.ds-toast-container--bottom-left {
+  bottom: 0;
+  left: 0;
+  align-items: flex-start;
+}
+
+.ds-toast-container--bottom-center {
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  align-items: center;
+}
+
+.ds-toast-container--bottom-right {
+  bottom: 0;
+  right: 0;
+  align-items: flex-end;
+}
+
+/* Toast Base */
+.ds-toast {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  min-width: 320px;
+  max-width: 480px;
+  padding: var(--spacing-4);
+  background: var(--color-surface-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-elevation-4);
+  pointer-events: all;
+  cursor: grab;
+  overflow: hidden;
+}
+
+.ds-toast:active {
+  cursor: grabbing;
+}
+
+/* Type Variants */
+.ds-toast--info {
+  border-left: 4px solid var(--color-semantic-info-DEFAULT);
+}
+
+.ds-toast--info .ds-toast__icon {
+  color: var(--color-semantic-info-DEFAULT);
+}
+
+.ds-toast--success {
+  border-left: 4px solid var(--color-semantic-success-DEFAULT);
+}
+
+.ds-toast--success .ds-toast__icon {
+  color: var(--color-semantic-success-DEFAULT);
+}
+
+.ds-toast--warning {
+  border-left: 4px solid var(--color-semantic-warning-DEFAULT);
+}
+
+.ds-toast--warning .ds-toast__icon {
+  color: var(--color-semantic-warning-DEFAULT);
+}
+
+.ds-toast--error {
+  border-left: 4px solid var(--color-semantic-error-DEFAULT);
+}
+
+.ds-toast--error .ds-toast__icon {
+  color: var(--color-semantic-error-DEFAULT);
+}
+
+/* Toast Elements */
+.ds-toast__icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.ds-toast__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.ds-toast__title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.ds-toast__description {
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-secondary);
+  margin: var(--spacing-1) 0 0;
+}
+
+.ds-toast__action {
+  display: inline-flex;
+  align-items: center;
+  margin-top: var(--spacing-2);
+  padding: var(--spacing-1) var(--spacing-2);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-brand-primary-500);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition-button);
+}
+
+.ds-toast__action:hover {
+  background: var(--color-brand-primary-50);
+  color: var(--color-brand-primary-600);
+}
+
+.ds-toast__close {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  color: var(--color-text-tertiary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.ds-toast__close:hover {
+  color: var(--color-text-secondary);
+  background: var(--color-neutral-100);
+}
+
+/* Progress Bar */
+.ds-toast__progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: currentColor;
+  opacity: 0.2;
+  transform-origin: left;
+}
+
+.ds-toast--info .ds-toast__progress {
+  color: var(--color-semantic-info-DEFAULT);
+}
+
+.ds-toast--success .ds-toast__progress {
+  color: var(--color-semantic-success-DEFAULT);
+}
+
+.ds-toast--warning .ds-toast__progress {
+  color: var(--color-semantic-warning-DEFAULT);
+}
+
+.ds-toast--error .ds-toast__progress {
+  color: var(--color-semantic-error-DEFAULT);
+}
+
+/* Dark Mode */
+.dark .ds-toast {
+  background: var(--color-neutral-800);
+  box-shadow: var(--shadow-elevation-5);
+}
+
+.dark .ds-toast__close:hover {
+  background: var(--color-neutral-700);
+}
+
+.dark .ds-toast__action:hover {
+  background: var(--color-neutral-700);
+}

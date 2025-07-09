@@ -1,74 +1,86 @@
-"""Redis caching configuration and utilities."""
+"""Redis cache configuration and utilities."""
 
 import json
 import pickle
-from typing import Any, Optional, Union
 from datetime import timedelta
-from functools import wraps
-import hashlib
+from typing import Any, Callable, Optional, Union
 
 import redis.asyncio as redis
-from redis.exceptions import RedisError
-from fastapi import Request
+from redis.asyncio.connection import ConnectionPool
 
-from .config import settings
-from .logging import get_logger
-
-logger = get_logger(__name__)
+from core.config import settings
+from core.logging import logger
+from core.monitoring import track_cache_hit, track_cache_miss
 
 
-class CacheManager:
-    """Manages Redis cache connections and operations."""
+class CacheBackend:
+    """Redis cache backend with async support."""
     
-    def __init__(self, redis_url: str):
-        self.redis_url = redis_url
-        self._redis: Optional[redis.Redis] = None
+    def __init__(self):
+        """Initialize cache backend."""
+        self._pool: Optional[ConnectionPool] = None
+        self._client: Optional[redis.Redis] = None
     
-    async def connect(self):
+    async def connect(self) -> None:
         """Connect to Redis."""
         try:
-            self._redis = await redis.from_url(
-                self.redis_url,
-                encoding="utf-8",
-                decode_responses=True,
-                max_connections=50,
-                health_check_interval=30,
-                socket_keepalive=True,
-                socket_keepalive_options={
-                    1: 1,  # TCP_KEEPIDLE
-                    2: 60,  # TCP_KEEPINTVL
-                    3: 3,  # TCP_KEEPCNT
-                }
+            self._pool = ConnectionPool.from_url(
+                settings.REDIS_URL,
+                password=settings.REDIS_PASSWORD,
+                max_connections=settings.REDIS_POOL_SIZE,
+                decode_responses=settings.REDIS_DECODE_RESPONSES,
             )
-            await self._redis.ping()
+            self._client = redis.Redis(connection_pool=self._pool)
+            await self._client.ping()
             logger.info("Connected to Redis cache")
         except Exception as e:
             logger.error(f"Failed to connect to Redis: {e}")
-            self._redis = None
+            raise
     
-    async def disconnect(self):
+    async def disconnect(self) -> None:
         """Disconnect from Redis."""
-        if self._redis:
-            await self._redis.close()
-            logger.info("Disconnected from Redis cache")
+        if self._client:
+            await self._client.close()
+        if self._pool:
+            await self._pool.disconnect()
+        logger.info("Disconnected from Redis cache")
     
-    async def get(self, key: str) -> Optional[Any]:
-        """Get value from cache."""
-        if not self._redis:
-            return None
+    async def get(self, key: str, default: Any = None) -> Any:
+        """
+        Get value from cache.
         
+        Args:
+            key: Cache key
+            default: Default value if key not found
+            
+        Returns:
+            Cached value or default
+        """
         try:
-            value = await self._redis.get(key)
-            if value:
+            if not self._client:
+                return default
+            
+            value = await self._client.get(key)
+            if value is None:
+                track_cache_miss()
+                return default
+            
+            track_cache_hit()
+            
+            # Try to deserialize JSON first, fall back to pickle
+            if isinstance(value, bytes):
                 try:
-                    # Try to deserialize JSON
                     return json.loads(value)
                 except json.JSONDecodeError:
-                    # Return as string if not JSON
+                    return pickle.loads(value)
+            else:
+                try:
+                    return json.loads(value)
+                except json.JSONDecodeError:
                     return value
-        except RedisError as e:
-            logger.error(f"Redis get error: {e}")
-        return None
+        except Exception as e:
+            logger.error(f"Cache get error for key {key}: {e}")
+            return default
     
     async def set(
         self,
@@ -76,240 +88,230 @@ class CacheManager:
         value: Any,
         expire: Optional[Union[int, timedelta]] = None
     ) -> bool:
-        """Set value in cache with optional expiration."""
-        if not self._redis:
-            return False
+        """
+        Set value in cache.
         
-        try:
-            # Serialize to JSON if not string
-            if not isinstance(value, str):
-                value = json.dumps(value)
+        Args:
+            key: Cache key
+            value: Value to cache
+            expire: Expiration time in seconds or timedelta
             
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            if not self._client:
+                return False
+            
+            # Convert timedelta to seconds
+            if isinstance(expire, timedelta):
+                expire = int(expire.total_seconds())
+            
+            # Serialize value
+            try:
+                serialized = json.dumps(value)
+            except (TypeError, ValueError):
+                serialized = pickle.dumps(value)
+            
+            # Set with optional expiration
             if expire:
-                if isinstance(expire, timedelta):
-                    expire = int(expire.total_seconds())
-                await self._redis.setex(key, expire, value)
+                await self._client.setex(key, expire, serialized)
             else:
-                await self._redis.set(key, value)
+                await self._client.set(key, serialized)
+            
             return True
-        except RedisError as e:
-            logger.error(f"Redis set error: {e}")
-        return False
+        except Exception as e:
+            logger.error(f"Cache set error for key {key}: {e}")
+            return False
     
     async def delete(self, key: str) -> bool:
-        """Delete key from cache."""
-        if not self._redis:
-            return False
+        """
+        Delete value from cache.
         
+        Args:
+            key: Cache key
+            
+        Returns:
+            True if successful, False otherwise
+        """
         try:
-            await self._redis.delete(key)
+            if not self._client:
+                return False
+            
+            await self._client.delete(key)
             return True
-        except RedisError as e:
-            logger.error(f"Redis delete error: {e}")
-        return False
-    
-    async def delete_pattern(self, pattern: str) -> int:
-        """Delete all keys matching pattern."""
-        if not self._redis:
-            return 0
-        
-        try:
-            keys = await self._redis.keys(pattern)
-            if keys:
-                return await self._redis.delete(*keys)
-        except RedisError as e:
-            logger.error(f"Redis delete pattern error: {e}")
-        return 0
+        except Exception as e:
+            logger.error(f"Cache delete error for key {key}: {e}")
+            return False
     
     async def exists(self, key: str) -> bool:
-        """Check if key exists in cache."""
-        if not self._redis:
+        """
+        Check if key exists in cache.
+        
+        Args:
+            key: Cache key
+            
+        Returns:
+            True if exists, False otherwise
+        """
+        try:
+            if not self._client:
+                return False
+            
+            return await self._client.exists(key) > 0
+        except Exception as e:
+            logger.error(f"Cache exists error for key {key}: {e}")
             return False
-        
-        try:
-            return await self._redis.exists(key) > 0
-        except RedisError as e:
-            logger.error(f"Redis exists error: {e}")
-        return False
     
-    async def increment(self, key: str, amount: int = 1) -> Optional[int]:
-        """Increment a counter in cache."""
-        if not self._redis:
-            return None
+    async def expire(self, key: str, seconds: int) -> bool:
+        """
+        Set expiration time for a key.
         
+        Args:
+            key: Cache key
+            seconds: Expiration time in seconds
+            
+        Returns:
+            True if successful, False otherwise
+        """
         try:
-            return await self._redis.incrby(key, amount)
-        except RedisError as e:
-            logger.error(f"Redis increment error: {e}")
-        return None
+            if not self._client:
+                return False
+            
+            return await self._client.expire(key, seconds)
+        except Exception as e:
+            logger.error(f"Cache expire error for key {key}: {e}")
+            return False
     
-    async def get_ttl(self, key: str) -> Optional[int]:
-        """Get time to live for a key."""
-        if not self._redis:
-            return None
+    async def ttl(self, key: str) -> int:
+        """
+        Get time to live for a key.
         
+        Args:
+            key: Cache key
+            
+        Returns:
+            TTL in seconds, -2 if key doesn't exist, -1 if no TTL
+        """
         try:
-            ttl = await self._redis.ttl(key)
-            return ttl if ttl >= 0 else None
-        except RedisError as e:
-            logger.error(f"Redis TTL error: {e}")
-        return None
+            if not self._client:
+                return -2
+            
+            return await self._client.ttl(key)
+        except Exception as e:
+            logger.error(f"Cache TTL error for key {key}: {e}")
+            return -2
+    
+    async def incr(self, key: str, amount: int = 1) -> Optional[int]:
+        """
+        Increment value in cache.
+        
+        Args:
+            key: Cache key
+            amount: Amount to increment by
+            
+        Returns:
+            New value or None if error
+        """
+        try:
+            if not self._client:
+                return None
+            
+            return await self._client.incrby(key, amount)
+        except Exception as e:
+            logger.error(f"Cache incr error for key {key}: {e}")
+            return None
+    
+    async def clear_pattern(self, pattern: str) -> int:
+        """
+        Delete all keys matching pattern.
+        
+        Args:
+            pattern: Pattern to match (e.g., "user:*")
+            
+        Returns:
+            Number of keys deleted
+        """
+        try:
+            if not self._client:
+                return 0
+            
+            keys = []
+            async for key in self._client.scan_iter(match=pattern):
+                keys.append(key)
+            
+            if keys:
+                return await self._client.delete(*keys)
+            return 0
+        except Exception as e:
+            logger.error(f"Cache clear pattern error for {pattern}: {e}")
+            return 0
 
 
 # Global cache instance
-cache_manager = CacheManager(settings.REDIS_URL or "redis://localhost:6379")
+cache = CacheBackend()
 
 
-def cache_key_wrapper(prefix: str):
-    """Generate cache key with prefix."""
-    def generate_key(*args, **kwargs):
-        # Create a unique key from arguments
-        key_parts = [str(arg) for arg in args]
-        key_parts.extend(f"{k}:{v}" for k, v in sorted(kwargs.items()))
-        key_data = ":".join(key_parts)
+def cache_key(*args: Any) -> str:
+    """
+    Generate cache key from arguments.
+    
+    Args:
+        *args: Arguments to build key from
         
-        # Hash if too long
-        if len(key_data) > 200:
-            key_data = hashlib.md5(key_data.encode()).hexdigest()
-        
-        return f"{prefix}:{key_data}"
-    return generate_key
+    Returns:
+        Cache key string
+    """
+    return ":".join(str(arg) for arg in args)
 
 
 def cached(
-    expire: Union[int, timedelta] = 3600,
-    prefix: str = "cache",
-    key_func: Optional[callable] = None
+    expire: Optional[Union[int, timedelta]] = 300,
+    key_prefix: Optional[str] = None,
+    key_builder: Optional[Callable] = None
 ):
     """
     Decorator for caching function results.
     
     Args:
-        expire: Cache expiration time in seconds or timedelta
-        prefix: Cache key prefix
-        key_func: Custom function to generate cache key
+        expire: Expiration time in seconds or timedelta
+        key_prefix: Prefix for cache key
+        key_builder: Custom key builder function
+        
+    Returns:
+        Decorated function
     """
-    def decorator(func):
-        @wraps(func)
+    def decorator(func: Callable) -> Callable:
         async def wrapper(*args, **kwargs):
-            # Generate cache key
-            if key_func:
-                cache_key = key_func(*args, **kwargs)
+            # Build cache key
+            if key_builder:
+                cache_key_str = key_builder(*args, **kwargs)
             else:
-                # Default key generation
-                key_gen = cache_key_wrapper(f"{prefix}:{func.__name__}")
-                cache_key = key_gen(*args, **kwargs)
+                # Default key builder
+                func_name = func.__name__
+                if key_prefix:
+                    parts = [key_prefix, func_name]
+                else:
+                    parts = [func_name]
+                
+                # Add args and kwargs to key
+                if args:
+                    parts.extend(str(arg) for arg in args)
+                if kwargs:
+                    parts.extend(f"{k}:{v}" for k, v in sorted(kwargs.items()))
+                
+                cache_key_str = cache_key(*parts)
             
             # Try to get from cache
-            cached_value = await cache_manager.get(cache_key)
+            cached_value = await cache.get(cache_key_str)
             if cached_value is not None:
-                logger.debug(f"Cache hit for key: {cache_key}")
                 return cached_value
             
-            # Execute function
+            # Call function and cache result
             result = await func(*args, **kwargs)
-            
-            # Store in cache
-            await cache_manager.set(cache_key, result, expire)
-            logger.debug(f"Cached result for key: {cache_key}")
+            await cache.set(cache_key_str, result, expire)
             
             return result
+        
         return wrapper
     return decorator
-
-
-class RateLimiter:
-    """Redis-based rate limiter."""
-    
-    def __init__(self, max_requests: int = 60, window: int = 60):
-        self.max_requests = max_requests
-        self.window = window
-    
-    async def is_allowed(self, identifier: str) -> bool:
-        """Check if request is allowed."""
-        key = f"rate_limit:{identifier}"
-        
-        try:
-            current = await cache_manager.increment(key)
-            
-            if current == 1:
-                # First request, set expiration
-                await cache_manager._redis.expire(key, self.window)
-            
-            return current <= self.max_requests
-        except Exception as e:
-            logger.error(f"Rate limiter error: {e}")
-            # Allow request on error
-            return True
-    
-    async def get_remaining(self, identifier: str) -> tuple[int, int]:
-        """Get remaining requests and reset time."""
-        key = f"rate_limit:{identifier}"
-        
-        try:
-            current = await cache_manager.get(key)
-            if current:
-                current = int(current)
-                remaining = max(0, self.max_requests - current)
-                ttl = await cache_manager.get_ttl(key) or 0
-                return remaining, ttl
-        except Exception:
-            pass
-        
-        return self.max_requests, 0
-
-
-# Cache key generators for common use cases
-def user_cache_key(user_id: Union[str, int]) -> str:
-    """Generate cache key for user data."""
-    return f"user:{user_id}"
-
-
-def company_cache_key(company_id: Union[str, int]) -> str:
-    """Generate cache key for company data."""
-    return f"company:{company_id}"
-
-
-def course_cache_key(course_id: Union[str, int]) -> str:
-    """Generate cache key for course data."""
-    return f"course:{course_id}"
-
-
-def session_cache_key(session_id: str) -> str:
-    """Generate cache key for session data."""
-    return f"session:{session_id}"
-
-
-# Cache invalidation helpers
-async def invalidate_user_cache(user_id: Union[str, int]):
-    """Invalidate all cache entries for a user."""
-    patterns = [
-        f"user:{user_id}*",
-        f"*:user:{user_id}:*",
-        f"session:*"  # Sessions might contain user data
-    ]
-    
-    for pattern in patterns:
-        await cache_manager.delete_pattern(pattern)
-
-
-async def invalidate_company_cache(company_id: Union[str, int]):
-    """Invalidate all cache entries for a company."""
-    patterns = [
-        f"company:{company_id}*",
-        f"*:company:{company_id}:*"
-    ]
-    
-    for pattern in patterns:
-        await cache_manager.delete_pattern(pattern)
-
-
-async def invalidate_course_cache(course_id: Union[str, int]):
-    """Invalidate all cache entries for a course."""
-    patterns = [
-        f"course:{course_id}*",
-        f"*:course:{course_id}:*"
-    ]
-    
-    for pattern in patterns:
-        await cache_manager.delete_pattern(pattern)

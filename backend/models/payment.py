@@ -1,34 +1,23 @@
-"""Payment-related models for Stripe integration."""
+"""Payment, subscription, and invoice models."""
 
 from datetime import datetime
-from typing import TYPE_CHECKING, Optional
-import enum
 from decimal import Decimal
+from typing import TYPE_CHECKING, List, Optional
 
-from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String, Text, Numeric, Index, JSON
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, Numeric, String, Text, UniqueConstraint, text
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import UUID, ENUM, JSON
+import uuid
 
-from .base import Base
+from .base import BaseUUIDModel
 
 if TYPE_CHECKING:
     from .company import Company
-    from .user import User
 
 
-class PaymentStatus(str, enum.Enum):
-    """Payment status enumeration."""
-    PENDING = "pending"
-    PROCESSING = "processing"
-    SUCCEEDED = "succeeded"
-    FAILED = "failed"
-    CANCELED = "canceled"
-    REFUNDED = "refunded"
-    REQUIRES_ACTION = "requires_action"
-
-
-class SubscriptionStatus(str, enum.Enum):
+class SubscriptionStatus:
     """Subscription status enumeration."""
+    
     TRIALING = "trialing"
     ACTIVE = "active"
     INCOMPLETE = "incomplete"
@@ -38,8 +27,25 @@ class SubscriptionStatus(str, enum.Enum):
     UNPAID = "unpaid"
 
 
-class InvoiceStatus(str, enum.Enum):
+class BillingInterval:
+    """Billing interval enumeration."""
+    
+    MONTHLY = "monthly"
+    YEARLY = "yearly"
+
+
+class PaymentMethodType:
+    """Payment method type enumeration."""
+    
+    CARD = "card"
+    SEPA_DEBIT = "sepa_debit"
+    BANK_TRANSFER = "bank_transfer"
+    INVOICE = "invoice"
+
+
+class InvoiceStatus:
     """Invoice status enumeration."""
+    
     DRAFT = "draft"
     OPEN = "open"
     PAID = "paid"
@@ -47,67 +53,64 @@ class InvoiceStatus(str, enum.Enum):
     VOID = "void"
 
 
-class PaymentMethodType(str, enum.Enum):
-    """Payment method type enumeration."""
-    CARD = "card"
-    SEPA_DEBIT = "sepa_debit"
-    BANK_TRANSFER = "bank_transfer"
-    INVOICE = "invoice"
+class PaymentStatus:
+    """Payment status enumeration."""
+    
+    PENDING = "pending"
+    PROCESSING = "processing"
+    SUCCEEDED = "succeeded"
+    FAILED = "failed"
+    CANCELED = "canceled"
+    REFUNDED = "refunded"
+    REQUIRES_ACTION = "requires_action"
 
 
-class BillingInterval(str, enum.Enum):
-    """Billing interval enumeration."""
-    MONTHLY = "monthly"
-    YEARLY = "yearly"
-
-
-class Subscription(Base):
+class Subscription(BaseUUIDModel):
     """Subscription model for managing company subscriptions."""
     
     __tablename__ = "subscriptions"
     
-    # Foreign keys
-    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False, index=True)
-    company = relationship("Company", back_populates="subscriptions")
+    # Foreign Keys
+    company_id = Column(Integer, ForeignKey('companies.id'), nullable=False, index=True)
     
-    # Relationships
-    invoices = relationship("Invoice", back_populates="subscription", lazy="dynamic")
-    usage_records = relationship("SubscriptionUsage", back_populates="subscription", lazy="dynamic")
-    
-    # Stripe identifiers
-    stripe_subscription_id = Column(String(255), unique=True, nullable=False, index=True)
+    # Stripe Information
+    stripe_subscription_id = Column(String(255), nullable=False, unique=True, index=True)
     stripe_customer_id = Column(String(255), nullable=False, index=True)
     stripe_price_id = Column(String(255), nullable=False)
     stripe_product_id = Column(String(255), nullable=False)
     
-    # Subscription details
-    status = Column(Enum(SubscriptionStatus), nullable=False, default=SubscriptionStatus.ACTIVE)
-    billing_interval = Column(Enum(BillingInterval), nullable=False, default=BillingInterval.MONTHLY)
+    # Subscription Details
+    status = Column(
+        ENUM('trialing', 'active', 'incomplete', 'incomplete_expired', 'past_due', 'canceled', 'unpaid', name='subscriptionstatus', create_type=False),
+        nullable=False
+    )
+    billing_interval = Column(
+        ENUM('monthly', 'yearly', name='billinginterval', create_type=False),
+        nullable=False
+    )
+    amount = Column(Numeric(precision=10, scale=2), nullable=False)
+    currency = Column(String(3), nullable=False, server_default='EUR')
     
-    # Pricing
-    amount = Column(Numeric(10, 2), nullable=False)  # Amount in euros
-    currency = Column(String(3), nullable=False, default="EUR")
-    
-    # Dates
+    # Period Information
     current_period_start = Column(DateTime(timezone=True), nullable=False)
     current_period_end = Column(DateTime(timezone=True), nullable=False)
+    
+    # Trial Information
     trial_start = Column(DateTime(timezone=True), nullable=True)
     trial_end = Column(DateTime(timezone=True), nullable=True)
+    
+    # Cancellation Information
     cancel_at = Column(DateTime(timezone=True), nullable=True)
     canceled_at = Column(DateTime(timezone=True), nullable=True)
     ended_at = Column(DateTime(timezone=True), nullable=True)
     
-    # Metadata
-    extra_metadata = Column(JSON, nullable=True)
+    # Additional Data
+    extra_data = Column(JSON, nullable=True)
     
-    # Indexes
-    __table_args__ = (
-        Index('idx_subscription_company_status', 'company_id', 'status'),
-        Index('idx_subscription_period', 'current_period_start', 'current_period_end'),
-    )
-    
-    def __repr__(self) -> str:
-        return f"<Subscription {self.stripe_subscription_id}>"
+    # Relationships
+    company: "Company" = relationship("Company", back_populates="subscriptions")
+    invoices: List["Invoice"] = relationship("Invoice", back_populates="subscription")
+    usage: List["SubscriptionUsage"] = relationship("SubscriptionUsage", back_populates="subscription")
     
     @property
     def is_active(self) -> bool:
@@ -120,41 +123,71 @@ class Subscription(Base):
         return self.status == SubscriptionStatus.TRIALING
     
     @property
-    def is_past_due(self) -> bool:
-        """Check if subscription payment is past due."""
-        return self.status == SubscriptionStatus.PAST_DUE
+    def is_canceled(self) -> bool:
+        """Check if subscription is canceled."""
+        return self.status == SubscriptionStatus.CANCELED
+    
+    @property
+    def has_payment_issues(self) -> bool:
+        """Check if subscription has payment issues."""
+        return self.status in [
+            SubscriptionStatus.PAST_DUE,
+            SubscriptionStatus.INCOMPLETE,
+            SubscriptionStatus.INCOMPLETE_EXPIRED,
+            SubscriptionStatus.UNPAID
+        ]
+    
+    @property
+    def monthly_amount(self) -> Decimal:
+        """Get monthly amount."""
+        if self.billing_interval == BillingInterval.YEARLY:
+            return self.amount / 12
+        return self.amount
+    
+    @property
+    def yearly_amount(self) -> Decimal:
+        """Get yearly amount."""
+        if self.billing_interval == BillingInterval.MONTHLY:
+            return self.amount * 12
+        return self.amount
+    
+    def __repr__(self) -> str:
+        """String representation of Subscription."""
+        return f"<Subscription {self.stripe_subscription_id} ({self.status})>"
 
 
-class PaymentMethod(Base):
+class PaymentMethod(BaseUUIDModel):
     """Payment method model for storing customer payment methods."""
     
     __tablename__ = "payment_methods"
     
-    # Foreign keys
-    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False, index=True)
-    company = relationship("Company", back_populates="payment_methods")
+    # Foreign Keys
+    company_id = Column(Integer, ForeignKey('companies.id'), nullable=False, index=True)
     
-    # Stripe identifiers
-    stripe_payment_method_id = Column(String(255), unique=True, nullable=False, index=True)
+    # Stripe Information
+    stripe_payment_method_id = Column(String(255), nullable=False, unique=True, index=True)
     stripe_customer_id = Column(String(255), nullable=False, index=True)
     
-    # Payment method details
-    type = Column(Enum(PaymentMethodType), nullable=False)
-    is_default = Column(Boolean, nullable=False, default=False)
+    # Payment Method Details
+    type = Column(
+        ENUM('card', 'sepa_debit', 'bank_transfer', 'invoice', name='paymentmethodtype', create_type=False),
+        nullable=False
+    )
+    is_default = Column(Boolean, nullable=False, server_default=text('false'))
     
-    # Card details (only for card type)
+    # Card Information (if type is card)
     card_brand = Column(String(50), nullable=True)
     card_last4 = Column(String(4), nullable=True)
     card_exp_month = Column(Integer, nullable=True)
     card_exp_year = Column(Integer, nullable=True)
     card_country = Column(String(2), nullable=True)
     
-    # Bank account details (for SEPA/bank transfer)
+    # Bank Information (if type is sepa_debit or bank_transfer)
     bank_name = Column(String(255), nullable=True)
     bank_last4 = Column(String(4), nullable=True)
     bank_country = Column(String(2), nullable=True)
     
-    # Billing details
+    # Billing Information
     billing_name = Column(String(255), nullable=True)
     billing_email = Column(String(255), nullable=True)
     billing_phone = Column(String(50), nullable=True)
@@ -165,58 +198,87 @@ class PaymentMethod(Base):
     billing_address_postal_code = Column(String(20), nullable=True)
     billing_address_country = Column(String(2), nullable=True)
     
-    # Metadata
-    extra_metadata = Column(JSON, nullable=True)
+    # Additional Data
+    extra_data = Column(JSON, nullable=True)
     
-    def __repr__(self) -> str:
-        return f"<PaymentMethod {self.stripe_payment_method_id}>"
+    # Soft delete
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Relationships
+    company: "Company" = relationship("Company", back_populates="payment_methods")
+    payments: List["Payment"] = relationship("Payment", back_populates="payment_method")
+    
+    @property
+    def is_card(self) -> bool:
+        """Check if payment method is a card."""
+        return self.type == PaymentMethodType.CARD
+    
+    @property
+    def is_bank_account(self) -> bool:
+        """Check if payment method is a bank account."""
+        return self.type in [PaymentMethodType.SEPA_DEBIT, PaymentMethodType.BANK_TRANSFER]
     
     @property
     def display_name(self) -> str:
-        """Get a display name for the payment method."""
-        if self.type == PaymentMethodType.CARD:
-            return f"{self.card_brand} •••• {self.card_last4}"
-        elif self.type in [PaymentMethodType.SEPA_DEBIT, PaymentMethodType.BANK_TRANSFER]:
-            return f"{self.bank_name} •••• {self.bank_last4}"
-        return str(self.type.value)
+        """Get display name for payment method."""
+        if self.is_card:
+            return f"{self.card_brand} ****{self.card_last4}"
+        elif self.is_bank_account:
+            return f"{self.bank_name} ****{self.bank_last4}"
+        return str(self.type)
+    
+    @property
+    def is_expired(self) -> bool:
+        """Check if payment method is expired (for cards)."""
+        if not self.is_card:
+            return False
+        now = datetime.utcnow()
+        if self.card_exp_year and self.card_exp_month:
+            exp_date = datetime(self.card_exp_year, self.card_exp_month, 1)
+            return now > exp_date
+        return False
+    
+    def __repr__(self) -> str:
+        """String representation of PaymentMethod."""
+        return f"<PaymentMethod {self.type} {self.display_name}>"
 
 
-class Invoice(Base):
-    """Invoice model for tracking billing history."""
+class Invoice(BaseUUIDModel):
+    """Invoice model for subscription billing."""
     
     __tablename__ = "invoices"
     
-    # Foreign keys
-    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False, index=True)
-    company = relationship("Company", back_populates="invoices")
-    subscription_id = Column(UUID(as_uuid=True), ForeignKey("subscriptions.id"), nullable=True, index=True)
-    subscription = relationship("Subscription", back_populates="invoices")
+    # Foreign Keys
+    company_id = Column(Integer, ForeignKey('companies.id'), nullable=False, index=True)
+    subscription_id = Column(UUID(as_uuid=True), ForeignKey('subscriptions.id'), nullable=True, index=True)
     
-    # Relationships
-    payments = relationship("Payment", back_populates="invoice", lazy="dynamic")
-    
-    # Stripe identifiers
-    stripe_invoice_id = Column(String(255), unique=True, nullable=False, index=True)
+    # Stripe Information
+    stripe_invoice_id = Column(String(255), nullable=False, unique=True, index=True)
     stripe_customer_id = Column(String(255), nullable=False, index=True)
     stripe_charge_id = Column(String(255), nullable=True)
     stripe_payment_intent_id = Column(String(255), nullable=True)
     
-    # Invoice details
-    invoice_number = Column(String(100), unique=True, nullable=False, index=True)
-    status = Column(Enum(InvoiceStatus), nullable=False, default=InvoiceStatus.DRAFT)
+    # Invoice Details
+    invoice_number = Column(String(100), nullable=False, unique=True, index=True)
+    status = Column(
+        ENUM('draft', 'open', 'paid', 'uncollectible', 'void', name='invoicestatus', create_type=False),
+        nullable=False
+    )
     
     # Amounts (in cents)
     subtotal = Column(Integer, nullable=False)
-    tax = Column(Integer, nullable=False, default=0)
+    tax = Column(Integer, nullable=False, server_default=text('0'))
     total = Column(Integer, nullable=False)
-    amount_paid = Column(Integer, nullable=False, default=0)
-    amount_remaining = Column(Integer, nullable=False, default=0)
-    currency = Column(String(3), nullable=False, default="EUR")
+    amount_paid = Column(Integer, nullable=False, server_default=text('0'))
+    amount_remaining = Column(Integer, nullable=False, server_default=text('0'))
+    currency = Column(String(3), nullable=False, server_default='EUR')
     
-    # Dates
+    # Period Information
     period_start = Column(DateTime(timezone=True), nullable=False)
     period_end = Column(DateTime(timezone=True), nullable=False)
-    due_date = Column(DateTime(timezone=True), nullable=True)
+    
+    # Dates
+    due_date = Column(DateTime(timezone=True), nullable=True, index=True)
     paid_at = Column(DateTime(timezone=True), nullable=True)
     voided_at = Column(DateTime(timezone=True), nullable=True)
     
@@ -224,21 +286,14 @@ class Invoice(Base):
     invoice_pdf_url = Column(Text, nullable=True)
     hosted_invoice_url = Column(Text, nullable=True)
     
-    # Metadata
-    extra_metadata = Column(JSON, nullable=True)
-    
-    # Line items stored as JSON
+    # Additional Data
+    extra_data = Column(JSON, nullable=True)
     line_items = Column(JSON, nullable=True)
     
-    # Indexes
-    __table_args__ = (
-        Index('idx_invoice_company_status', 'company_id', 'status'),
-        Index('idx_invoice_period', 'period_start', 'period_end'),
-        Index('idx_invoice_due_date', 'due_date'),
-    )
-    
-    def __repr__(self) -> str:
-        return f"<Invoice {self.invoice_number}>"
+    # Relationships
+    company: "Company" = relationship("Company", back_populates="invoices")
+    subscription: Optional["Subscription"] = relationship("Subscription", back_populates="invoices")
+    payments: List["Payment"] = relationship("Payment", back_populates="invoice")
     
     @property
     def is_paid(self) -> bool:
@@ -246,74 +301,84 @@ class Invoice(Base):
         return self.status == InvoiceStatus.PAID
     
     @property
-    def is_overdue(self) -> bool:
-        """Check if invoice is overdue."""
-        if self.due_date and self.status == InvoiceStatus.OPEN:
-            return datetime.utcnow() > self.due_date
-        return False
+    def is_open(self) -> bool:
+        """Check if invoice is open."""
+        return self.status == InvoiceStatus.OPEN
     
     @property
-    def amount_in_euros(self) -> Decimal:
-        """Get total amount in euros."""
+    def is_overdue(self) -> bool:
+        """Check if invoice is overdue."""
+        if not self.due_date or self.is_paid:
+            return False
+        return datetime.utcnow() > self.due_date
+    
+    @property
+    def amount_in_currency(self) -> Decimal:
+        """Get total amount in currency units (not cents)."""
         return Decimal(self.total) / 100
     
     @property
-    def tax_in_euros(self) -> Decimal:
-        """Get tax amount in euros."""
-        return Decimal(self.tax) / 100
+    def tax_rate(self) -> Decimal:
+        """Calculate tax rate percentage."""
+        if self.subtotal == 0:
+            return Decimal(0)
+        return (Decimal(self.tax) / Decimal(self.subtotal)) * 100
+    
+    def __repr__(self) -> str:
+        """String representation of Invoice."""
+        return f"<Invoice {self.invoice_number} ({self.status})>"
 
 
-class Payment(Base):
-    """Payment model for tracking individual payments."""
+class Payment(BaseUUIDModel):
+    """Payment model for tracking payment transactions."""
     
     __tablename__ = "payments"
     
-    # Foreign keys
-    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False, index=True)
-    company = relationship("Company", back_populates="payments")
-    invoice_id = Column(UUID(as_uuid=True), ForeignKey("invoices.id"), nullable=True, index=True)
-    invoice = relationship("Invoice", back_populates="payments")
-    payment_method_id = Column(UUID(as_uuid=True), ForeignKey("payment_methods.id"), nullable=True, index=True)
-    payment_method = relationship("PaymentMethod")
+    # Foreign Keys
+    company_id = Column(Integer, ForeignKey('companies.id'), nullable=False, index=True)
+    invoice_id = Column(UUID(as_uuid=True), ForeignKey('invoices.id'), nullable=True, index=True)
+    payment_method_id = Column(UUID(as_uuid=True), ForeignKey('payment_methods.id'), nullable=True, index=True)
     
-    # Stripe identifiers
-    stripe_payment_intent_id = Column(String(255), unique=True, nullable=False, index=True)
+    # Stripe Information
+    stripe_payment_intent_id = Column(String(255), nullable=False, unique=True, index=True)
     stripe_charge_id = Column(String(255), nullable=True, index=True)
     
-    # Payment details
-    status = Column(Enum(PaymentStatus), nullable=False, default=PaymentStatus.PENDING)
+    # Payment Details
+    status = Column(
+        ENUM('pending', 'processing', 'succeeded', 'failed', 'canceled', 'refunded', 'requires_action', name='paymentstatus', create_type=False),
+        nullable=False
+    )
     amount = Column(Integer, nullable=False)  # Amount in cents
-    currency = Column(String(3), nullable=False, default="EUR")
+    currency = Column(String(3), nullable=False, server_default='EUR')
     description = Column(Text, nullable=True)
     
-    # Payment method details (snapshot at time of payment)
-    payment_method_type = Column(Enum(PaymentMethodType), nullable=False)
+    # Payment Method Information
+    payment_method_type = Column(
+        ENUM('card', 'sepa_debit', 'bank_transfer', 'invoice', name='paymentmethodtype', create_type=False),
+        nullable=False
+    )
     payment_method_details = Column(JSON, nullable=True)
     
-    # Dates
-    paid_at = Column(DateTime(timezone=True), nullable=True)
+    # Timestamps
+    paid_at = Column(DateTime(timezone=True), nullable=True, index=True)
     failed_at = Column(DateTime(timezone=True), nullable=True)
     refunded_at = Column(DateTime(timezone=True), nullable=True)
     
-    # Error details
+    # Failure Information
     failure_code = Column(String(100), nullable=True)
     failure_message = Column(Text, nullable=True)
     
-    # Refund details
-    refund_amount = Column(Integer, nullable=True)
+    # Refund Information
+    refund_amount = Column(Integer, nullable=True)  # Amount in cents
     refund_reason = Column(String(255), nullable=True)
     
-    # Metadata
-    extra_metadata = Column(JSON, nullable=True)
+    # Additional Data
+    extra_data = Column(JSON, nullable=True)
     
-    # Indexes
-    __table_args__ = (
-        Index('idx_payment_company_status', 'company_id', 'status'),
-        Index('idx_payment_paid_at', 'paid_at'),
-    )
-    
-    def __repr__(self) -> str:
-        return f"<Payment {self.stripe_payment_intent_id}>"
+    # Relationships
+    company: "Company" = relationship("Company", back_populates="payments")
+    invoice: Optional["Invoice"] = relationship("Invoice", back_populates="payments")
+    payment_method: Optional["PaymentMethod"] = relationship("PaymentMethod", back_populates="payments")
     
     @property
     def is_successful(self) -> bool:
@@ -326,47 +391,79 @@ class Payment(Base):
         return self.status == PaymentStatus.FAILED
     
     @property
-    def amount_in_euros(self) -> Decimal:
-        """Get amount in euros."""
+    def is_refunded(self) -> bool:
+        """Check if payment was refunded."""
+        return self.status == PaymentStatus.REFUNDED or self.refunded_at is not None
+    
+    @property
+    def is_pending(self) -> bool:
+        """Check if payment is pending."""
+        return self.status in [PaymentStatus.PENDING, PaymentStatus.PROCESSING]
+    
+    @property
+    def amount_in_currency(self) -> Decimal:
+        """Get amount in currency units (not cents)."""
         return Decimal(self.amount) / 100
+    
+    @property
+    def refund_amount_in_currency(self) -> Optional[Decimal]:
+        """Get refund amount in currency units (not cents)."""
+        if self.refund_amount is None:
+            return None
+        return Decimal(self.refund_amount) / 100
+    
+    @property
+    def net_amount(self) -> int:
+        """Get net amount after refunds (in cents)."""
+        if self.refund_amount:
+            return self.amount - self.refund_amount
+        return self.amount
+    
+    def __repr__(self) -> str:
+        """String representation of Payment."""
+        return f"<Payment {self.stripe_payment_intent_id} ({self.status})>"
 
 
-class SubscriptionUsage(Base):
-    """Track usage-based billing metrics."""
+class SubscriptionUsage(BaseUUIDModel):
+    """Subscription usage tracking model for metered billing."""
     
     __tablename__ = "subscription_usage"
     
-    # Foreign keys
-    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False, index=True)
-    company = relationship("Company", back_populates="usage_records")
-    subscription_id = Column(UUID(as_uuid=True), ForeignKey("subscriptions.id"), nullable=False, index=True)
-    subscription = relationship("Subscription", back_populates="usage_records")
+    # Foreign Keys
+    company_id = Column(Integer, ForeignKey('companies.id'), nullable=False, index=True)
+    subscription_id = Column(UUID(as_uuid=True), ForeignKey('subscriptions.id'), nullable=False, index=True)
     
-    # Usage details
-    metric_name = Column(String(100), nullable=False)  # e.g., 'active_users', 'training_completions'
+    # Usage Information
+    metric_name = Column(String(100), nullable=False)
     quantity = Column(Integer, nullable=False)
-    unit = Column(String(50), nullable=False)  # e.g., 'user', 'completion'
+    unit = Column(String(50), nullable=False)
     
-    # Period
+    # Period Information
     period_start = Column(DateTime(timezone=True), nullable=False)
     period_end = Column(DateTime(timezone=True), nullable=False)
     
-    # Billing
-    unit_price = Column(Numeric(10, 4), nullable=True)  # Price per unit in euros
-    total_amount = Column(Numeric(10, 2), nullable=True)  # Total amount in euros
+    # Billing Information
+    unit_price = Column(Numeric(precision=10, scale=4), nullable=True)
+    total_amount = Column(Numeric(precision=10, scale=2), nullable=True)
     
-    # Stripe
+    # Stripe Information
     stripe_usage_record_id = Column(String(255), nullable=True, index=True)
     
-    # Indexes
-    __table_args__ = (
-        Index('idx_usage_company_period', 'company_id', 'period_start', 'period_end'),
-        Index('idx_usage_metric', 'metric_name', 'period_start'),
-    )
+    # Relationships
+    company: "Company" = relationship("Company", back_populates="subscription_usage")
+    subscription: "Subscription" = relationship("Subscription", back_populates="usage")
+    
+    @property
+    def is_billable(self) -> bool:
+        """Check if usage is billable."""
+        return self.unit_price is not None and self.unit_price > 0
+    
+    def calculate_amount(self) -> Decimal:
+        """Calculate total amount for usage."""
+        if self.unit_price:
+            return Decimal(self.quantity) * self.unit_price
+        return Decimal(0)
     
     def __repr__(self) -> str:
-        return f"<SubscriptionUsage {self.metric_name} - {self.quantity}>"
-
-
-# Update relationships in existing models
-# This will be done in a separate step to update company.py and user.py
+        """String representation of SubscriptionUsage."""
+        return f"<SubscriptionUsage {self.metric_name} ({self.quantity} {self.unit})>"

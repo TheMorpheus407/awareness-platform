@@ -1,218 +1,296 @@
-"""Analytics schemas."""
+"""
+Analytics and reporting schemas for the application.
+"""
 
 from datetime import date, datetime
-from decimal import Decimal
 from enum import Enum
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import Field, field_validator
+
+from .base import BaseSchema
 
 
-class AnalyticsDateRange(str, Enum):
-    """Date range options for analytics."""
-    TODAY = "today"
-    LAST_7_DAYS = "last_7_days"
-    LAST_30_DAYS = "last_30_days"
-    LAST_90_DAYS = "last_90_days"
-    LAST_YEAR = "last_year"
-    CUSTOM = "custom"
+class ComplianceStatus(str, Enum):
+    """Compliance status levels."""
+
+    COMPLIANT = "compliant"
+    NON_COMPLIANT = "non-compliant"
+    PARTIALLY_COMPLIANT = "partially-compliant"
 
 
-class ExportFormat(str, Enum):
-    """Export format options."""
-    CSV = "csv"
-    EXCEL = "excel"
-    PDF = "pdf"
+class ComplianceStandard(str, Enum):
+    """Supported compliance standards."""
+
+    NIS2 = "nis2"
+    DSGVO = "dsgvo"
+    ISO27001 = "iso27001"
+    TISAX = "tisax"
+    BAIT = "bait"
+
+
+class ReportFormat(str, Enum):
+    """Available report formats."""
+
     JSON = "json"
+    PDF = "pdf"
+    CSV = "csv"
+    XLSX = "xlsx"
 
 
-class AnalyticsDataType(str, Enum):
-    """Types of analytics data."""
-    DASHBOARD = "dashboard"
-    COURSES = "courses"
-    USERS = "users"
-    REVENUE = "revenue"
-    PHISHING = "phishing"
-    ENGAGEMENT = "engagement"
+class TrendDirection(str, Enum):
+    """Trend direction indicators."""
+
+    IMPROVING = "improving"
+    STABLE = "stable"
+    DECLINING = "declining"
 
 
-# Analytics Event Schemas
-class AnalyticsEventCreate(BaseModel):
-    """Schema for creating analytics events."""
-    event_type: str = Field(..., max_length=50)
-    event_category: str = Field(..., max_length=50)
-    event_action: str = Field(..., max_length=100)
-    event_label: Optional[str] = Field(None, max_length=255)
-    event_value: Optional[Decimal] = None
-    session_id: Optional[str] = Field(None, max_length=100)
-    metadata: Optional[Dict[str, Any]] = None
+class TimeFrame(str, Enum):
+    """Time frame options for analytics."""
+
+    DAILY = "daily"
+    WEEKLY = "weekly"
+    MONTHLY = "monthly"
+    QUARTERLY = "quarterly"
+    YEARLY = "yearly"
 
 
-class AnalyticsEventResponse(BaseModel):
-    """Response schema for analytics events."""
-    model_config = ConfigDict(from_attributes=True)
-    
-    id: UUID
-    event_type: str
-    event_category: str
-    event_action: str
-    event_label: Optional[str]
-    event_value: Optional[Decimal]
-    user_id: Optional[UUID]
-    company_id: Optional[UUID]
-    session_id: Optional[str]
-    metadata: Optional[Dict[str, Any]]
-    created_at: datetime
+class ComplianceReport(BaseSchema):
+    """Compliance report response."""
+
+    report_type: ComplianceStandard
+    company_id: UUID
+    period: Dict[str, date] = Field(
+        ..., description="Reporting period with 'start' and 'end' dates"
+    )
+    compliance_status: ComplianceStatus
+    compliance_score: float = Field(..., ge=0, le=100)
+    details: Dict[str, Any] = Field(
+        ..., description="Detailed compliance information"
+    )
+    requirements_met: List[str] = Field(
+        default_factory=list, description="List of met requirements"
+    )
+    requirements_pending: List[str] = Field(
+        default_factory=list, description="List of pending requirements"
+    )
+    recommendations: List[str] = Field(
+        default_factory=list, description="Improvement recommendations"
+    )
+    generated_at: datetime
+    next_review_date: Optional[date] = None
+    auditor_notes: Optional[str] = None
+
+    @field_validator("period")
+    @classmethod
+    def validate_period(cls, v: Dict[str, date]) -> Dict[str, date]:
+        """Ensure period has valid start and end dates."""
+        if "start" not in v or "end" not in v:
+            raise ValueError("Period must have 'start' and 'end' dates")
+        if v["start"] > v["end"]:
+            raise ValueError("Start date must be before end date")
+        return v
 
 
-# Dashboard Metrics
-class UserMetrics(BaseModel):
-    """User-related metrics."""
-    total: int
-    active: int
-    new_this_period: int
+class CompanyMetrics(BaseSchema):
+    """Company-level metrics."""
+
+    total_users: int = Field(0, ge=0)
+    active_users: int = Field(0, ge=0)
+    inactive_users: int = Field(0, ge=0)
+    average_risk_score: float = Field(50.0, ge=0, le=100)
+    high_risk_users: int = Field(0, ge=0)
+    medium_risk_users: int = Field(0, ge=0)
+    low_risk_users: int = Field(0, ge=0)
+    users_with_2fa: int = Field(0, ge=0)
+    password_policy_compliant: int = Field(0, ge=0)
+
+    @field_validator("average_risk_score")
+    @classmethod
+    def round_risk_score(cls, v: float) -> float:
+        """Round risk score to 2 decimal places."""
+        return round(v, 2)
 
 
-class CourseMetrics(BaseModel):
-    """Course-related metrics."""
-    total: int
-    enrollments: int
-    completions: int
-    completion_rate: float
-    avg_progress: float
+class TrainingMetrics(BaseSchema):
+    """Training-related metrics."""
+
+    courses_completed_this_month: int = Field(0, ge=0)
+    courses_in_progress: int = Field(0, ge=0)
+    average_completion_rate: float = Field(0.0, ge=0, le=100)
+    average_quiz_score: float = Field(0.0, ge=0, le=100)
+    overdue_trainings: int = Field(0, ge=0)
+    trainings_due_this_week: int = Field(0, ge=0)
+    most_completed_course: Optional[str] = None
+    least_completed_course: Optional[str] = None
+    average_time_to_complete_hours: float = Field(0.0, ge=0)
+    certificates_issued_this_month: int = Field(0, ge=0)
+
+    @field_validator("average_completion_rate", "average_quiz_score")
+    @classmethod
+    def round_percentages(cls, v: float) -> float:
+        """Round percentages to 2 decimal places."""
+        return round(v, 2)
 
 
-class EngagementMetrics(BaseModel):
-    """User engagement metrics."""
-    avg_time_spent_minutes: float
-    avg_courses_per_user: float
-    daily_active_users: int
+class PhishingMetrics(BaseSchema):
+    """Phishing campaign metrics."""
+
+    campaigns_this_quarter: int = Field(0, ge=0)
+    campaigns_total: int = Field(0, ge=0)
+    average_click_rate: float = Field(0.0, ge=0, le=100)
+    average_report_rate: float = Field(0.0, ge=0, le=100)
+    improvement_rate: float = Field(
+        0.0, description="Percentage improvement from baseline"
+    )
+    users_never_clicked: int = Field(0, ge=0)
+    repeat_clickers: int = Field(0, ge=0)
+    time_to_click_median_minutes: Optional[float] = None
+    most_effective_template: Optional[str] = None
+    department_most_vulnerable: Optional[str] = None
+
+    @field_validator("average_click_rate", "average_report_rate", "improvement_rate")
+    @classmethod
+    def round_percentages(cls, v: float) -> float:
+        """Round percentages to 2 decimal places."""
+        return round(v, 2)
 
 
-class RevenueMetrics(BaseModel):
-    """Revenue metrics (admin only)."""
-    total_revenue: float
-    active_subscriptions: int
-    mrr: float  # Monthly Recurring Revenue
+class ComplianceOverview(BaseSchema):
+    """Single compliance standard overview."""
+
+    standard: ComplianceStandard
+    status: ComplianceStatus
+    score: float = Field(0.0, ge=0, le=100)
+    last_assessment: Optional[date] = None
+    next_assessment: Optional[date] = None
+    critical_findings: int = Field(0, ge=0)
+    action_items: int = Field(0, ge=0)
 
 
-class DashboardMetrics(BaseModel):
-    """Comprehensive dashboard metrics."""
-    date_range: AnalyticsDateRange
+class ExecutiveDashboard(BaseSchema):
+    """Executive dashboard data."""
+
+    company_metrics: CompanyMetrics
+    training_metrics: TrainingMetrics
+    phishing_metrics: PhishingMetrics
+    compliance_overview: List[ComplianceOverview]
+    security_score: float = Field(
+        50.0, ge=0, le=100, description="Overall security posture score"
+    )
+    month_over_month_improvement: float = Field(
+        0.0, description="Percentage change from last month"
+    )
+    top_risks: List[str] = Field(
+        default_factory=list, max_length=5, description="Top 5 risk areas"
+    )
+    upcoming_deadlines: List[Dict[str, Any]] = Field(
+        default_factory=list, description="Upcoming compliance deadlines"
+    )
+    generated_at: datetime
+
+    @field_validator("security_score", "month_over_month_improvement")
+    @classmethod
+    def round_scores(cls, v: float) -> float:
+        """Round scores to 2 decimal places."""
+        return round(v, 2)
+
+
+class RiskTrend(BaseSchema):
+    """Risk score trend data point."""
+
+    date: date
+    average_risk_score: float = Field(..., ge=0, le=100)
+    high_risk_count: int = Field(..., ge=0)
+    medium_risk_count: int = Field(..., ge=0)
+    low_risk_count: int = Field(..., ge=0)
+    total_users: int = Field(..., ge=0)
+    events: List[str] = Field(
+        default_factory=list, description="Notable events on this date"
+    )
+
+
+class DepartmentTrend(BaseSchema):
+    """Department risk trend information."""
+
+    department: str
+    trend: TrendDirection
+    current_score: float = Field(..., ge=0, le=100)
+    previous_score: float = Field(..., ge=0, le=100)
+    change_percentage: float
+    high_risk_users: int = Field(0, ge=0)
+    training_completion_rate: float = Field(0.0, ge=0, le=100)
+
+    @field_validator("current_score", "previous_score", "change_percentage", "training_completion_rate")
+    @classmethod
+    def round_values(cls, v: float) -> float:
+        """Round values to 2 decimal places."""
+        return round(v, 2)
+
+
+class RiskTrends(BaseSchema):
+    """Risk trend analysis response."""
+
+    timeframe: TimeFrame
+    data_points: List[RiskTrend]
+    departments: List[DepartmentTrend]
+    overall_trend: TrendDirection
+    predicted_next_month: float = Field(
+        50.0, ge=0, le=100, description="ML-predicted risk score for next month"
+    )
+    risk_factors: List[str] = Field(
+        default_factory=list, description="Key risk factors identified"
+    )
+    recommendations: List[str] = Field(
+        default_factory=list, description="Recommended actions"
+    )
+
+
+class UserRiskProfile(BaseSchema):
+    """Individual user risk profile."""
+
+    user_id: UUID
+    current_risk_score: float = Field(..., ge=0, le=100)
+    risk_factors: List[Dict[str, Any]] = Field(
+        ..., description="Individual risk factors and their weights"
+    )
+    training_status: str
+    phishing_susceptibility: str = Field(
+        ..., description="Low, Medium, or High"
+    )
+    last_incident: Optional[datetime] = None
+    recommendations: List[str]
+
+
+class SecurityMetrics(BaseSchema):
+    """Overall security metrics."""
+
+    mfa_adoption_rate: float = Field(0.0, ge=0, le=100)
+    password_strength_average: float = Field(0.0, ge=0, le=100)
+    incident_response_time_hours: float = Field(0.0, ge=0)
+    vulnerabilities_found: int = Field(0, ge=0)
+    vulnerabilities_patched: int = Field(0, ge=0)
+    security_training_coverage: float = Field(0.0, ge=0, le=100)
+    last_security_audit: Optional[date] = None
+    security_maturity_level: int = Field(1, ge=1, le=5)
+
+
+class ReportRequest(BaseSchema):
+    """Generic report request parameters."""
+
     start_date: date
     end_date: date
-    users: UserMetrics
-    courses: CourseMetrics
-    engagement: EngagementMetrics
-    revenue: Optional[RevenueMetrics] = None
+    format: ReportFormat = Field(ReportFormat.JSON)
+    include_details: bool = Field(True)
+    departments: Optional[List[str]] = None
+    compliance_standards: Optional[List[ComplianceStandard]] = None
 
-
-# Course Analytics
-class CourseAnalyticsResponse(BaseModel):
-    """Course analytics response."""
-    model_config = ConfigDict(from_attributes=True)
-    
-    id: UUID
-    course_id: UUID
-    company_id: Optional[UUID]
-    date: date
-    enrollments_count: int
-    completions_count: int
-    avg_progress: Decimal
-    avg_score: Decimal
-    total_time_spent: int
-    unique_users: int
-    created_at: datetime
-    updated_at: datetime
-
-
-# User Engagement
-class UserEngagementResponse(BaseModel):
-    """User engagement response."""
-    model_config = ConfigDict(from_attributes=True)
-    
-    id: UUID
-    user_id: UUID
-    company_id: Optional[UUID]
-    date: date
-    login_count: int
-    page_views: int
-    time_spent: int
-    courses_started: int
-    courses_completed: int
-    quizzes_taken: int
-    avg_quiz_score: Optional[Decimal]
-    phishing_attempts: int
-    phishing_reported: int
-    created_at: datetime
-    updated_at: datetime
-
-
-# Revenue Analytics
-class RevenueAnalyticsResponse(BaseModel):
-    """Revenue analytics response."""
-    model_config = ConfigDict(from_attributes=True)
-    
-    id: UUID
-    company_id: UUID
-    date: date
-    subscription_revenue: Decimal
-    one_time_revenue: Decimal
-    total_revenue: Decimal
-    new_subscriptions: int
-    cancelled_subscriptions: int
-    active_subscriptions: int
-    mrr: Decimal
-    arr: Decimal
-    currency: str
-    created_at: datetime
-    updated_at: datetime
-
-
-# Phishing Analytics
-class PhishingAnalyticsResponse(BaseModel):
-    """Phishing analytics response."""
-    model_config = ConfigDict(from_attributes=True)
-    
-    id: UUID
-    company_id: UUID
-    campaign_id: Optional[UUID]
-    date: date
-    emails_sent: int
-    emails_opened: int
-    links_clicked: int
-    credentials_entered: int
-    reported_suspicious: int
-    open_rate: Decimal
-    click_rate: Decimal
-    report_rate: Decimal
-    created_at: datetime
-    updated_at: datetime
-
-
-# Realtime Metrics
-class RealtimeMetricResponse(BaseModel):
-    """Realtime metric response."""
-    model_config = ConfigDict(from_attributes=True)
-    
-    id: UUID
-    metric_name: str
-    metric_value: Decimal
-    metric_type: str
-    company_id: Optional[UUID]
-    dimension: Optional[str]
-    dimension_value: Optional[str]
-    timestamp: datetime
-    ttl: int
-
-
-# Export Request
-class AnalyticsExportRequest(BaseModel):
-    """Request for exporting analytics data."""
-    format: ExportFormat
-    data_types: List[AnalyticsDataType]
-    date_range: AnalyticsDateRange
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
-    filters: Optional[Dict[str, Any]] = None
+    @field_validator("end_date")
+    @classmethod
+    def validate_date_range(cls, v: date, info) -> date:
+        """Ensure end date is after start date."""
+        if "start_date" in info.data and v < info.data["start_date"]:
+            raise ValueError("End date must be after start date")
+        return v

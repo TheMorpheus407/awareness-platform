@@ -1,71 +1,96 @@
-"""Models package."""
+"""Database models package."""
 
+from .base import (
+    Base,
+    BaseModel,
+    BaseUUIDModel,
+    IntegerPrimaryKeyMixin,
+    UUIDPrimaryKeyMixin,
+    TimestampMixin,
+    SoftDeleteMixin
+)
+
+# User and Company models
 from .user import User, UserRole
 from .company import Company, CompanySize, CompanyStatus, SubscriptionTier
-from .password_reset_token import PasswordResetToken
-from .course import (
-    Course, Module, Lesson, CourseContent,
-    Quiz, QuizQuestion, QuizAttempt, QuizAnswer,
-    CourseEnrollment, ModuleProgress, LessonProgress,
-    CourseReview, CourseAnnouncement,
-    UserCourseProgress,  # Backward compatibility
-    ContentType, DifficultyLevel, CourseStatus, ProgressStatus
-)
+
+# Course models
+from .course import Course, Quiz, QuizQuestion, UserCourseProgress
+
+# Phishing models
 from .phishing import PhishingCampaign, PhishingTemplate, PhishingResult
-from .audit import AuditLog, AuditAnalyticsEvent
-from .two_fa_attempt import TwoFAAttempt
+
+# Analytics and Audit models
+from .analytics import AnalyticsEvent
+from .audit import AuditLog
+
+# Payment models
 from .payment import (
-    Subscription, SubscriptionStatus, BillingInterval,
-    PaymentMethod, PaymentMethodType,
-    Invoice, InvoiceStatus,
-    Payment, PaymentStatus,
+    Subscription,
+    SubscriptionStatus,
+    BillingInterval,
+    PaymentMethod,
+    PaymentMethodType,
+    Invoice,
+    InvoiceStatus,
+    Payment,
+    PaymentStatus,
     SubscriptionUsage
 )
-from .analytics import (
-    AnalyticsEvent,
-    CourseAnalytics, UserEngagement, RevenueAnalytics,
-    PhishingAnalytics, RealtimeMetric
-)
+
+# Email campaign models
 from .email_campaign import (
-    EmailTemplate, EmailTemplateType,
-    EmailCampaign, CampaignStatus,
-    EmailLog, EmailStatus,
-    EmailEvent, EmailPreference, EmailFrequency,
+    EmailTemplate,
+    EmailTemplateType,
+    EmailCampaign,
+    CampaignStatus,
+    EmailLog,
+    EmailStatus,
+    EmailEvent,
+    EmailPreferences,
+    EmailFrequency,
     EmailBounce
 )
 
+# Authentication models
+from .two_fa_attempt import TwoFAAttempt
+from .password_reset_token import PasswordResetToken
+
+# Re-export all models and enums
 __all__ = [
+    # Base classes
+    "Base",
+    "BaseModel",
+    "BaseUUIDModel",
+    "IntegerPrimaryKeyMixin",
+    "UUIDPrimaryKeyMixin",
+    "TimestampMixin",
+    "SoftDeleteMixin",
+    
+    # User and Company
     "User",
     "UserRole",
     "Company",
     "CompanySize",
     "CompanyStatus",
     "SubscriptionTier",
-    "PasswordResetToken",
+    
+    # Course
     "Course",
-    "Module",
-    "Lesson",
-    "CourseContent",
     "Quiz",
     "QuizQuestion",
-    "QuizAttempt",
-    "QuizAnswer",
-    "CourseEnrollment",
-    "ModuleProgress",
-    "LessonProgress",
-    "CourseReview",
-    "CourseAnnouncement",
     "UserCourseProgress",
-    "ContentType",
-    "DifficultyLevel",
-    "CourseStatus",
-    "ProgressStatus",
+    
+    # Phishing
     "PhishingCampaign",
     "PhishingTemplate",
     "PhishingResult",
-    "AuditLog",
+    
+    # Analytics and Audit
     "AnalyticsEvent",
-    "TwoFAAttempt",
+    "AuditLog",
+    
+    # Payment
     "Subscription",
     "SubscriptionStatus",
     "BillingInterval",
@@ -76,11 +101,8 @@ __all__ = [
     "Payment",
     "PaymentStatus",
     "SubscriptionUsage",
-    "CourseAnalytics",
-    "UserEngagement",
-    "RevenueAnalytics",
-    "PhishingAnalytics",
-    "RealtimeMetric",
+    
+    # Email Campaign
     "EmailTemplate",
     "EmailTemplateType",
     "EmailCampaign",
@@ -88,7 +110,11 @@ __all__ = [
     "EmailLog",
     "EmailStatus",
     "EmailEvent",
-    "EmailPreference",
+    "EmailPreferences",
     "EmailFrequency",
     "EmailBounce",
+    
+    # Authentication
+    "TwoFAAttempt",
+    "PasswordResetToken",
 ]

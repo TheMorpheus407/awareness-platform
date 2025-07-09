@@ -5,9 +5,9 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sqlalchemy.orm import Session
-from backend.db.session import SessionLocal
-from backend.models import PhishingTemplate
-from backend.data.phishing_templates import PHISHING_TEMPLATES
+from db.session import SessionLocal
+from models import PhishingTemplate
+from data.phishing_templates import PHISHING_TEMPLATES
 
 
 def seed_phishing_templates(db: Session):

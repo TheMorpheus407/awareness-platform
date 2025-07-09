@@ -1,210 +1,210 @@
-"""Analytics models for the awareness platform."""
+"""Analytics event tracking model."""
 
-from datetime import datetime
-from decimal import Decimal
-from typing import Optional
-from uuid import UUID
+from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import (
-    Column, String, Integer, DateTime, ForeignKey, JSON, Date,
-    Numeric, UniqueConstraint, Index, func, text
-)
-from sqlalchemy.dialects.postgresql import UUID as PostgresUUID
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text, text
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import JSON
 
-from models.base import Base
+from .base import BaseModel
+
+if TYPE_CHECKING:
+    from .user import User
+    from .company import Company
 
 
-class AnalyticsEvent(Base):
-    """Track all analytics events in the system."""
+class AnalyticsEvent(BaseModel):
+    """Analytics event model for tracking user activities and system events."""
     
     __tablename__ = "analytics_events"
-    __table_args__ = {"schema": "analytics"}
     
-    id = Column(PostgresUUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
-    event_type = Column(String(50), nullable=False)  # page_view, course_start, quiz_complete
-    event_category = Column(String(50), nullable=False)  # navigation, learning, assessment
-    event_action = Column(String(100), nullable=False)  # view, click, submit, complete
-    event_label = Column(String(255))  # Additional context
-    event_value = Column(Numeric(10, 2))  # Numeric value if applicable
+    # Foreign Keys
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='SET NULL'), nullable=True, index=True)
+    company_id = Column(Integer, ForeignKey('companies.id', ondelete='CASCADE'), nullable=True, index=True)
     
-    user_id = Column(PostgresUUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"))
-    company_id = Column(PostgresUUID(as_uuid=True), ForeignKey("companies.id", ondelete="SET NULL"))
-    session_id = Column(String(100))
-    event_metadata = Column(JSON)  # Additional event data
+    # Event Information
+    event_type = Column(String(100), nullable=False, index=True)
+    event_category = Column(String(100), nullable=False)
+    event_data = Column(JSON, nullable=True)
     
-    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    # Session Information
+    session_id = Column(String(255), nullable=True)
     
-    # Relationships
-    user = relationship("User", back_populates="analytics_events")
-    company = relationship("Company", back_populates="analytics_events")
-    
-    # Indexes
-    __table_args__ = (
-        Index("idx_analytics_events_user_created", "user_id", "created_at"),
-        Index("idx_analytics_events_company_created", "company_id", "created_at"),
-        Index("idx_analytics_events_type_category", "event_type", "event_category"),
-        {"schema": "analytics"}
-    )
-
-
-class CourseAnalytics(Base):
-    """Aggregated course analytics by day and company."""
-    
-    __tablename__ = "course_analytics"
-    __table_args__ = {"schema": "analytics"}
-    
-    id = Column(PostgresUUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
-    course_id = Column(PostgresUUID(as_uuid=True), ForeignKey("courses.id", ondelete="CASCADE"), nullable=False)
-    company_id = Column(PostgresUUID(as_uuid=True), ForeignKey("companies.id", ondelete="CASCADE"))
-    date = Column(Date, nullable=False)
-    
-    enrollments_count = Column(Integer, default=0)
-    completions_count = Column(Integer, default=0)
-    avg_progress = Column(Numeric(5, 2), default=0)
-    avg_score = Column(Numeric(5, 2), default=0)
-    total_time_spent = Column(Integer, default=0)  # in minutes
-    unique_users = Column(Integer, default=0)
-    
-    created_at = Column(DateTime, nullable=False, server_default=func.now())
-    updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+    # Request Information
+    ip_address = Column(String(45), nullable=True)
+    user_agent = Column(Text, nullable=True)
     
     # Relationships
-    course = relationship("Course", back_populates="analytics")
-    company = relationship("Company", back_populates="course_analytics")
+    user: Optional["User"] = relationship("User", back_populates="analytics_events")
+    company: Optional["Company"] = relationship("Company", back_populates="analytics_events")
     
-    __table_args__ = (
-        UniqueConstraint("course_id", "company_id", "date", name="uq_course_company_date"),
-        Index("idx_course_analytics_course_date", "course_id", "date"),
-        Index("idx_course_analytics_company_date", "company_id", "date"),
-        {"schema": "analytics"}
-    )
-
-
-class UserEngagement(Base):
-    """Track user engagement metrics by day."""
+    # Common event types
+    class EventType:
+        # Authentication events
+        LOGIN = "user.login"
+        LOGOUT = "user.logout"
+        LOGIN_FAILED = "user.login_failed"
+        PASSWORD_RESET = "user.password_reset"
+        PASSWORD_CHANGED = "user.password_changed"
+        TWO_FA_ENABLED = "user.2fa_enabled"
+        TWO_FA_DISABLED = "user.2fa_disabled"
+        
+        # Course events
+        COURSE_STARTED = "course.started"
+        COURSE_PROGRESS = "course.progress"
+        COURSE_COMPLETED = "course.completed"
+        QUIZ_STARTED = "quiz.started"
+        QUIZ_COMPLETED = "quiz.completed"
+        CERTIFICATE_ISSUED = "certificate.issued"
+        
+        # Phishing events
+        PHISHING_CAMPAIGN_CREATED = "phishing.campaign_created"
+        PHISHING_CAMPAIGN_STARTED = "phishing.campaign_started"
+        PHISHING_CAMPAIGN_COMPLETED = "phishing.campaign_completed"
+        PHISHING_EMAIL_SENT = "phishing.email_sent"
+        PHISHING_EMAIL_OPENED = "phishing.email_opened"
+        PHISHING_LINK_CLICKED = "phishing.link_clicked"
+        PHISHING_DATA_SUBMITTED = "phishing.data_submitted"
+        PHISHING_REPORTED = "phishing.reported"
+        
+        # Email campaign events
+        EMAIL_CAMPAIGN_CREATED = "email.campaign_created"
+        EMAIL_CAMPAIGN_SENT = "email.campaign_sent"
+        EMAIL_OPENED = "email.opened"
+        EMAIL_CLICKED = "email.clicked"
+        EMAIL_UNSUBSCRIBED = "email.unsubscribed"
+        
+        # Company events
+        COMPANY_CREATED = "company.created"
+        COMPANY_UPDATED = "company.updated"
+        COMPANY_SUBSCRIPTION_CHANGED = "company.subscription_changed"
+        USER_INVITED = "company.user_invited"
+        USER_REMOVED = "company.user_removed"
+        
+        # Payment events
+        PAYMENT_INITIATED = "payment.initiated"
+        PAYMENT_SUCCEEDED = "payment.succeeded"
+        PAYMENT_FAILED = "payment.failed"
+        SUBSCRIPTION_CREATED = "subscription.created"
+        SUBSCRIPTION_UPDATED = "subscription.updated"
+        SUBSCRIPTION_CANCELLED = "subscription.cancelled"
+        
+        # System events
+        API_REQUEST = "system.api_request"
+        ERROR_OCCURRED = "system.error"
+        PERFORMANCE_ALERT = "system.performance_alert"
+        SECURITY_ALERT = "system.security_alert"
     
-    __tablename__ = "user_engagement"
-    __table_args__ = {"schema": "analytics"}
+    # Event categories
+    class EventCategory:
+        AUTHENTICATION = "authentication"
+        COURSE = "course"
+        PHISHING = "phishing"
+        EMAIL = "email"
+        COMPANY = "company"
+        PAYMENT = "payment"
+        SYSTEM = "system"
+        USER_ACTIVITY = "user_activity"
     
-    id = Column(PostgresUUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
-    user_id = Column(PostgresUUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    company_id = Column(PostgresUUID(as_uuid=True), ForeignKey("companies.id", ondelete="CASCADE"))
-    date = Column(Date, nullable=False)
+    @classmethod
+    def log_event(
+        cls,
+        event_type: str,
+        event_category: str,
+        user_id: Optional[int] = None,
+        company_id: Optional[int] = None,
+        event_data: Optional[dict] = None,
+        session_id: Optional[str] = None,
+        ip_address: Optional[str] = None,
+        user_agent: Optional[str] = None
+    ) -> "AnalyticsEvent":
+        """
+        Create and return a new analytics event.
+        
+        Note: This method creates the event instance but doesn't save it to the database.
+        The caller is responsible for adding it to the session and committing.
+        """
+        return cls(
+            event_type=event_type,
+            event_category=event_category,
+            user_id=user_id,
+            company_id=company_id,
+            event_data=event_data,
+            session_id=session_id,
+            ip_address=ip_address,
+            user_agent=user_agent
+        )
     
-    login_count = Column(Integer, default=0)
-    page_views = Column(Integer, default=0)
-    time_spent = Column(Integer, default=0)  # in minutes
-    courses_started = Column(Integer, default=0)
-    courses_completed = Column(Integer, default=0)
-    quizzes_taken = Column(Integer, default=0)
-    avg_quiz_score = Column(Numeric(5, 2))
-    phishing_attempts = Column(Integer, default=0)
-    phishing_reported = Column(Integer, default=0)
+    @classmethod
+    def log_user_login(
+        cls,
+        user_id: int,
+        company_id: int,
+        ip_address: Optional[str] = None,
+        user_agent: Optional[str] = None,
+        session_id: Optional[str] = None
+    ) -> "AnalyticsEvent":
+        """Log a user login event."""
+        return cls.log_event(
+            event_type=cls.EventType.LOGIN,
+            event_category=cls.EventCategory.AUTHENTICATION,
+            user_id=user_id,
+            company_id=company_id,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            session_id=session_id
+        )
     
-    created_at = Column(DateTime, nullable=False, server_default=func.now())
-    updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+    @classmethod
+    def log_course_progress(
+        cls,
+        user_id: int,
+        company_id: int,
+        course_id: int,
+        progress_percentage: int,
+        session_id: Optional[str] = None
+    ) -> "AnalyticsEvent":
+        """Log course progress event."""
+        return cls.log_event(
+            event_type=cls.EventType.COURSE_PROGRESS,
+            event_category=cls.EventCategory.COURSE,
+            user_id=user_id,
+            company_id=company_id,
+            event_data={
+                "course_id": course_id,
+                "progress_percentage": progress_percentage
+            },
+            session_id=session_id
+        )
     
-    # Relationships
-    user = relationship("User", back_populates="engagement_metrics")
-    company = relationship("Company", back_populates="user_engagement")
+    @classmethod
+    def log_phishing_interaction(
+        cls,
+        user_id: int,
+        company_id: int,
+        campaign_id: int,
+        interaction_type: str,
+        ip_address: Optional[str] = None,
+        user_agent: Optional[str] = None
+    ) -> "AnalyticsEvent":
+        """Log phishing campaign interaction event."""
+        event_type_map = {
+            "opened": cls.EventType.PHISHING_EMAIL_OPENED,
+            "clicked": cls.EventType.PHISHING_LINK_CLICKED,
+            "submitted": cls.EventType.PHISHING_DATA_SUBMITTED,
+            "reported": cls.EventType.PHISHING_REPORTED
+        }
+        
+        return cls.log_event(
+            event_type=event_type_map.get(interaction_type, cls.EventType.PHISHING_EMAIL_OPENED),
+            event_category=cls.EventCategory.PHISHING,
+            user_id=user_id,
+            company_id=company_id,
+            event_data={"campaign_id": campaign_id},
+            ip_address=ip_address,
+            user_agent=user_agent
+        )
     
-    __table_args__ = (
-        UniqueConstraint("user_id", "date", name="uq_user_date"),
-        Index("idx_user_engagement_user_date", "user_id", "date"),
-        Index("idx_user_engagement_company_date", "company_id", "date"),
-        {"schema": "analytics"}
-    )
-
-
-class RevenueAnalytics(Base):
-    """Track revenue metrics by company and day."""
-    
-    __tablename__ = "revenue_analytics"
-    __table_args__ = {"schema": "analytics"}
-    
-    id = Column(PostgresUUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
-    company_id = Column(PostgresUUID(as_uuid=True), ForeignKey("companies.id", ondelete="CASCADE"), nullable=False)
-    date = Column(Date, nullable=False)
-    
-    subscription_revenue = Column(Numeric(10, 2), default=0)
-    one_time_revenue = Column(Numeric(10, 2), default=0)
-    total_revenue = Column(Numeric(10, 2), default=0)
-    new_subscriptions = Column(Integer, default=0)
-    cancelled_subscriptions = Column(Integer, default=0)
-    active_subscriptions = Column(Integer, default=0)
-    mrr = Column(Numeric(10, 2), default=0)  # Monthly Recurring Revenue
-    arr = Column(Numeric(10, 2), default=0)  # Annual Recurring Revenue
-    currency = Column(String(3), default="EUR")
-    
-    created_at = Column(DateTime, nullable=False, server_default=func.now())
-    updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
-    
-    # Relationships
-    company = relationship("Company", back_populates="revenue_analytics")
-    
-    __table_args__ = (
-        UniqueConstraint("company_id", "date", name="uq_company_revenue_date"),
-        Index("idx_revenue_analytics_company_date", "company_id", "date"),
-        {"schema": "analytics"}
-    )
-
-
-class PhishingAnalytics(Base):
-    """Track phishing simulation metrics."""
-    
-    __tablename__ = "phishing_analytics"
-    __table_args__ = {"schema": "analytics"}
-    
-    id = Column(PostgresUUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
-    company_id = Column(PostgresUUID(as_uuid=True), ForeignKey("companies.id", ondelete="CASCADE"), nullable=False)
-    campaign_id = Column(PostgresUUID(as_uuid=True), ForeignKey("phishing_campaigns.id", ondelete="SET NULL"))
-    date = Column(Date, nullable=False)
-    
-    emails_sent = Column(Integer, default=0)
-    emails_opened = Column(Integer, default=0)
-    links_clicked = Column(Integer, default=0)
-    credentials_entered = Column(Integer, default=0)
-    reported_suspicious = Column(Integer, default=0)
-    open_rate = Column(Numeric(5, 2), default=0)
-    click_rate = Column(Numeric(5, 2), default=0)
-    report_rate = Column(Numeric(5, 2), default=0)
-    
-    created_at = Column(DateTime, nullable=False, server_default=func.now())
-    updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
-    
-    # Relationships
-    company = relationship("Company", back_populates="phishing_analytics")
-    campaign = relationship("PhishingCampaign", back_populates="analytics")
-    
-    __table_args__ = (
-        UniqueConstraint("company_id", "campaign_id", "date", name="uq_company_campaign_date"),
-        Index("idx_phishing_analytics_company_date", "company_id", "date"),
-        {"schema": "analytics"}
-    )
-
-
-class RealtimeMetric(Base):
-    """Store real-time metrics for dashboard display."""
-    
-    __tablename__ = "realtime_metrics"
-    __table_args__ = {"schema": "analytics"}
-    
-    id = Column(PostgresUUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
-    metric_name = Column(String(100), nullable=False)
-    metric_value = Column(Numeric(20, 4), nullable=False)
-    metric_type = Column(String(50), nullable=False)  # counter, gauge, percentage
-    company_id = Column(PostgresUUID(as_uuid=True), ForeignKey("companies.id", ondelete="CASCADE"))
-    dimension = Column(String(100))  # e.g., course_id, user_role
-    dimension_value = Column(String(255))
-    timestamp = Column(DateTime, nullable=False, server_default=func.now())
-    ttl = Column(Integer, default=3600)  # Time to live in seconds
-    
-    # Relationships
-    company = relationship("Company", back_populates="realtime_metrics")
-    
-    __table_args__ = (
-        Index("idx_realtime_metrics_name_company", "metric_name", "company_id"),
-        Index("idx_realtime_metrics_timestamp", "timestamp"),
-        {"schema": "analytics"}
-    )
+    def __repr__(self) -> str:
+        """String representation of AnalyticsEvent."""
+        return f"<AnalyticsEvent {self.event_type} ({self.event_category})>"

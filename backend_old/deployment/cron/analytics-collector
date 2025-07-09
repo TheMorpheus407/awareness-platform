@@ -1,9 +1,0 @@
-#!/bin/bash
-# Cron job configuration for analytics collector
-# Add this to crontab: 0 2 * * * /path/to/analytics-collector
-
-# Daily analytics collection at 2 AM
-0 2 * * * cd /opt/awareness-platform/backend && /usr/local/bin/python scripts/collect_analytics.py >> /var/log/awareness-platform/analytics.log 2>&1
-
-# Refresh materialized views every 6 hours
-0 */6 * * * cd /opt/awareness-platform/backend && /usr/local/bin/python -c "from db.session import SessionLocal; db = SessionLocal(); db.execute('SELECT analytics.refresh_company_overview()'); db.commit(); db.close()" >> /var/log/awareness-platform/analytics.log 2>&1

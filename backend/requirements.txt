@@ -32,6 +32,7 @@ prometheus-client==0.19.0
 
 # Additional utilities
 pytz==2023.3.post1
+psutil==5.9.8
 
 # Rate limiting
 slowapi==0.1.9

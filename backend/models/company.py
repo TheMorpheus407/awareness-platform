@@ -1,36 +1,44 @@
-"""Company model."""
+"""Company model for organization management."""
 
 from typing import TYPE_CHECKING, List, Optional
-import enum
 
-from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, String, Text
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, text
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import ENUM
 
-from .base import Base
+from .base import BaseModel, SoftDeleteMixin
 
 if TYPE_CHECKING:
     from .user import User
-    from .payment import Subscription, PaymentMethod, Invoice, Payment, SubscriptionUsage
+    from .course import UserCourseProgress
+    from .phishing import PhishingCampaign, PhishingTemplate
+    from .analytics import AnalyticsEvent
+    from .audit import AuditLog
+    from .email_campaign import EmailCampaign
+    from .payment import Subscription, PaymentMethod, Invoice, Payment
 
 
-class CompanySize(str, enum.Enum):
+class CompanySize:
     """Company size enumeration."""
+    
     SMALL = "small"
     MEDIUM = "medium"
     LARGE = "large"
     ENTERPRISE = "enterprise"
 
 
-class CompanyStatus(str, enum.Enum):
+class CompanyStatus:
     """Company status enumeration."""
+    
     TRIAL = "trial"
     ACTIVE = "active"
     SUSPENDED = "suspended"
     CANCELLED = "cancelled"
 
 
-class SubscriptionTier(str, enum.Enum):
+class SubscriptionTier:
     """Subscription tier enumeration."""
+    
     FREE = "free"
     BASIC = "basic"
     STARTER = "starter"
@@ -39,92 +47,210 @@ class SubscriptionTier(str, enum.Enum):
     ENTERPRISE = "enterprise"
 
 
-class Company(Base):
-    """Company model for multi-tenant support."""
+class Company(BaseModel, SoftDeleteMixin):
+    """Company model for organization management."""
     
     __tablename__ = "companies"
     
-    # Basic information
-    name = Column(String(255), nullable=False)
+    # Basic Information
+    name = Column(String(255), nullable=False, index=True)
     domain = Column(String(255), nullable=False, unique=True, index=True)
-    size = Column(Enum(CompanySize), nullable=False, default=CompanySize.SMALL)
-    status = Column(Enum(CompanyStatus), nullable=False, default=CompanyStatus.TRIAL)
     
-    # Subscription
-    subscription_tier = Column(Enum(SubscriptionTier), nullable=False, default=SubscriptionTier.FREE)
-    max_users = Column(Integer, nullable=False, default=10)
+    # Company Details
+    size = Column(
+        ENUM('small', 'medium', 'large', 'enterprise', name='companysize', create_type=False),
+        nullable=False,
+        server_default='small'
+    )
+    status = Column(
+        ENUM('trial', 'active', 'suspended', 'cancelled', name='companystatus', create_type=False),
+        nullable=False,
+        server_default='trial'
+    )
+    subscription_tier = Column(
+        ENUM('free', 'basic', 'starter', 'premium', 'professional', 'enterprise', name='subscriptiontier', create_type=False),
+        nullable=False,
+        server_default='free',
+        index=True
+    )
+    max_users = Column(Integer, nullable=False, server_default=text('10'))
     
-    # Company details
+    # Business Information
     industry = Column(String(100), nullable=True)
-    country = Column(String(2), nullable=False, default="DE")
-    timezone = Column(String(50), nullable=False, default="Europe/Berlin")
+    website = Column(String(255), nullable=True)
+    logo_url = Column(String(500), nullable=True)
     
-    # Branding
-    logo_url = Column(Text, nullable=True)
-    primary_color = Column(String(7), nullable=True, default="#1976d2")
-    secondary_color = Column(String(7), nullable=True, default="#dc004e")
+    # Contact Information
+    country = Column(String(100), nullable=True)
+    city = Column(String(100), nullable=True)
+    address = Column(String(255), nullable=True)
+    postal_code = Column(String(20), nullable=True)
+    phone = Column(String(20), nullable=True)
     
-    # Subscription
-    trial_ends_at = Column(DateTime(timezone=True), nullable=True)
-    subscription_ends_at = Column(DateTime(timezone=True), nullable=True)
-    max_users = Column(Integer, nullable=False, default=50)
-    
-    # Soft delete
-    deleted_at = Column(DateTime(timezone=True), nullable=True)
+    # Status
+    is_active = Column(Boolean, nullable=False, server_default=text('true'), index=True)
     
     # Relationships
-    users = relationship("User", back_populates="company", lazy="dynamic")
-    subscriptions = relationship("Subscription", back_populates="company", lazy="dynamic", cascade="all, delete-orphan")
-    payment_methods = relationship("PaymentMethod", back_populates="company", lazy="dynamic", cascade="all, delete-orphan")
-    invoices = relationship("Invoice", back_populates="company", lazy="dynamic", cascade="all, delete-orphan")
-    payments = relationship("Payment", back_populates="company", lazy="dynamic", cascade="all, delete-orphan")
-    usage_records = relationship("SubscriptionUsage", back_populates="company", lazy="dynamic", cascade="all, delete-orphan")
+    users: List["User"] = relationship(
+        "User",
+        back_populates="company",
+        cascade="all, delete-orphan"
+    )
+    user_course_progress: List["UserCourseProgress"] = relationship(
+        "UserCourseProgress",
+        back_populates="company",
+        cascade="all, delete-orphan"
+    )
+    phishing_campaigns: List["PhishingCampaign"] = relationship(
+        "PhishingCampaign",
+        back_populates="company",
+        cascade="all, delete-orphan"
+    )
+    phishing_templates: List["PhishingTemplate"] = relationship(
+        "PhishingTemplate",
+        back_populates="company",
+        cascade="all, delete-orphan"
+    )
+    analytics_events: List["AnalyticsEvent"] = relationship(
+        "AnalyticsEvent",
+        back_populates="company"
+    )
+    audit_logs: List["AuditLog"] = relationship(
+        "AuditLog",
+        back_populates="company"
+    )
+    email_campaigns: List["EmailCampaign"] = relationship(
+        "EmailCampaign",
+        back_populates="company"
+    )
     
-    # Analytics relationships
-    analytics_events = relationship("AnalyticsEvent", back_populates="company", lazy="dynamic")
-    course_analytics = relationship("CourseAnalytics", back_populates="company", lazy="dynamic")
-    user_engagement = relationship("UserEngagement", back_populates="company", lazy="dynamic")
-    revenue_analytics = relationship("RevenueAnalytics", back_populates="company", lazy="dynamic")
-    phishing_analytics = relationship("PhishingAnalytics", back_populates="company", lazy="dynamic")
-    realtime_metrics = relationship("RealtimeMetric", back_populates="company", lazy="dynamic")
-    
-    def __repr__(self) -> str:
-        return f"<Company {self.name}>"
-    
-    @property
-    def employee_count(self) -> int:
-        """Get the number of employees in the company."""
-        return self.users.filter_by(is_active=True, deleted_at=None).count()
+    # Payment relationships (from migration 004)
+    subscriptions: List["Subscription"] = relationship(
+        "Subscription",
+        back_populates="company",
+        cascade="all, delete-orphan"
+    )
+    payment_methods: List["PaymentMethod"] = relationship(
+        "PaymentMethod",
+        back_populates="company",
+        cascade="all, delete-orphan"
+    )
+    invoices: List["Invoice"] = relationship(
+        "Invoice",
+        back_populates="company",
+        cascade="all, delete-orphan"
+    )
+    payments: List["Payment"] = relationship(
+        "Payment",
+        back_populates="company",
+        cascade="all, delete-orphan"
+    )
     
     @property
     def is_trial(self) -> bool:
-        """Check if company is in trial mode."""
+        """Check if company is in trial period."""
         return self.status == CompanyStatus.TRIAL
     
     @property
-    def is_active(self) -> bool:
-        """Check if company is active."""
-        return self.status == CompanyStatus.ACTIVE
+    def is_paid(self) -> bool:
+        """Check if company has a paid subscription."""
+        return self.subscription_tier != SubscriptionTier.FREE
     
     @property
-    def is_suspended(self) -> bool:
-        """Check if company is suspended."""
-        return self.status == CompanyStatus.SUSPENDED
+    def can_add_users(self, count: int = 1) -> bool:
+        """Check if company can add more users."""
+        if self.subscription_tier == SubscriptionTier.ENTERPRISE:
+            return True
+        current_users = len([u for u in self.users if u.is_active])
+        return current_users + count <= self.max_users
     
     @property
-    def active_subscription(self) -> Optional["Subscription"]:
-        """Get the current active subscription."""
-        from .payment import SubscriptionStatus
-        return self.subscriptions.filter_by(
-            status=SubscriptionStatus.ACTIVE
-        ).order_by("created_at.desc()").first()
+    def active_users_count(self) -> int:
+        """Get count of active users."""
+        return len([u for u in self.users if u.is_active and not u.is_deleted])
     
     @property
-    def has_active_subscription(self) -> bool:
-        """Check if company has an active subscription."""
-        return self.active_subscription is not None
+    def has_custom_branding(self) -> bool:
+        """Check if company tier supports custom branding."""
+        return self.subscription_tier in [
+            SubscriptionTier.PROFESSIONAL,
+            SubscriptionTier.ENTERPRISE
+        ]
     
     @property
-    def default_payment_method(self) -> Optional["PaymentMethod"]:
-        """Get the default payment method."""
-        return self.payment_methods.filter_by(is_default=True).first()
+    def has_advanced_analytics(self) -> bool:
+        """Check if company tier supports advanced analytics."""
+        return self.subscription_tier in [
+            SubscriptionTier.PREMIUM,
+            SubscriptionTier.PROFESSIONAL,
+            SubscriptionTier.ENTERPRISE
+        ]
+    
+    @property
+    def has_api_access(self) -> bool:
+        """Check if company tier supports API access."""
+        return self.subscription_tier == SubscriptionTier.ENTERPRISE
+    
+    def get_feature_limits(self) -> dict:
+        """Get feature limits based on subscription tier."""
+        limits = {
+            SubscriptionTier.FREE: {
+                "max_users": 10,
+                "max_courses": 5,
+                "max_phishing_campaigns": 1,
+                "custom_branding": False,
+                "advanced_analytics": False,
+                "api_access": False,
+                "priority_support": False
+            },
+            SubscriptionTier.BASIC: {
+                "max_users": 25,
+                "max_courses": 10,
+                "max_phishing_campaigns": 3,
+                "custom_branding": False,
+                "advanced_analytics": False,
+                "api_access": False,
+                "priority_support": False
+            },
+            SubscriptionTier.STARTER: {
+                "max_users": 50,
+                "max_courses": 20,
+                "max_phishing_campaigns": 5,
+                "custom_branding": False,
+                "advanced_analytics": False,
+                "api_access": False,
+                "priority_support": False
+            },
+            SubscriptionTier.PREMIUM: {
+                "max_users": 100,
+                "max_courses": 50,
+                "max_phishing_campaigns": 10,
+                "custom_branding": False,
+                "advanced_analytics": True,
+                "api_access": False,
+                "priority_support": True
+            },
+            SubscriptionTier.PROFESSIONAL: {
+                "max_users": 500,
+                "max_courses": -1,  # Unlimited
+                "max_phishing_campaigns": -1,  # Unlimited
+                "custom_branding": True,
+                "advanced_analytics": True,
+                "api_access": False,
+                "priority_support": True
+            },
+            SubscriptionTier.ENTERPRISE: {
+                "max_users": -1,  # Unlimited
+                "max_courses": -1,  # Unlimited
+                "max_phishing_campaigns": -1,  # Unlimited
+                "custom_branding": True,
+                "advanced_analytics": True,
+                "api_access": True,
+                "priority_support": True
+            }
+        }
+        return limits.get(self.subscription_tier, limits[SubscriptionTier.FREE])
+    
+    def __repr__(self) -> str:
+        """String representation of Company."""
+        return f"<Company {self.name} ({self.domain})>"

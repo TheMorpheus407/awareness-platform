@@ -1,15 +1,24 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+/* Import Design System */
+@import './design-system/styles/global.css';
+
+/* Tailwind CSS */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Initialize Design System on Load */
 @layer base {
+  :root {
+    /* Design system tokens will be injected here by JavaScript */
+  }
+
   body {
     @apply antialiased;
   }
 }
 
 @layer components {
+  /* Legacy component styles - consider migrating to design system components */
   .btn-primary {
     @apply px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
   }
@@ -26,11 +35,11 @@
     @apply bg-white rounded-lg shadow-sm border border-secondary-200 p-6;
   }
   
-  /* Landing page animations */
+  /* Landing page animations - Enhanced with design system */
   .hero-gradient {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--color-brand-primary-500) 0%, var(--color-brand-secondary-500) 100%);
     background-size: 200% 200%;
-    animation: gradient-shift 15s ease infinite;
+    animation: gradient-shift 15s var(--easing-smooth) infinite;
   }
   
   @keyframes gradient-shift {
@@ -40,15 +49,27 @@
   }
   
   .feature-card {
-    @apply transform transition-all duration-300 hover:scale-105 hover:-translate-y-2;
+    @apply transform transition-all;
+    transition: var(--transition-card);
+  }
+  
+  .feature-card:hover {
+    transform: scale(1.05) translateY(-8px);
+    box-shadow: var(--shadow-elevation-4);
   }
   
   .pricing-card {
-    @apply transform transition-all duration-300 hover:scale-105;
+    @apply transform transition-all;
+    transition: var(--transition-card);
+  }
+  
+  .pricing-card:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-elevation-4);
   }
   
   .floating {
-    animation: floating 3s ease-in-out infinite;
+    animation: floating 3s var(--easing-smoothInOut) infinite;
   }
   
   @keyframes floating {
@@ -58,11 +79,47 @@
   }
   
   .fade-in {
-    animation: fadeIn 0.8s ease-in;
+    animation: fadeIn var(--duration-enter) var(--easing-smoothOut);
   }
   
   @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { 
+      opacity: 0; 
+      transform: translateY(20px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+  }
+
+  /* Premium hover effects */
+  .hover-lift {
+    transition: var(--transition-transform);
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-elevation-3);
+  }
+
+  .hover-glow {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hover-glow::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(135deg, var(--color-brand-primary-500), var(--color-brand-secondary-500));
+    opacity: 0;
+    filter: blur(12px);
+    transition: opacity var(--duration-normal) var(--easing-smooth);
+    z-index: -1;
+  }
+
+  .hover-glow:hover::before {
+    opacity: 0.3;
   }
 }

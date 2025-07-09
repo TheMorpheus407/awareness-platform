@@ -1,6 +1,6 @@
 """Default phishing email templates."""
 
-from backend.schemas.phishing import TemplateCategory, TemplateDifficulty
+from schemas.phishing import TemplateCategory, TemplateDifficulty
 
 PHISHING_TEMPLATES = [
     {

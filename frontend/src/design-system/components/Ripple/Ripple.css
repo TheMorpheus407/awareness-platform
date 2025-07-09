@@ -1,0 +1,19 @@
+/* Ripple Effect Styles */
+
+.ds-ripple-container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+}
+
+.ds-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: currentColor;
+  pointer-events: none;
+  transform-origin: center;
+  will-change: transform, opacity;
+}

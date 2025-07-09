@@ -1,219 +1,155 @@
-"""Custom logging configuration with loguru."""
+"""Logging configuration using loguru."""
 
-import sys
 import json
+import logging
+import sys
 from pathlib import Path
-from typing import Dict, Any
-from datetime import datetime
+from typing import Any, Dict
 
 from loguru import logger
-from fastapi import Request
 
 from core.config import settings
 
 
-class CustomFormatter:
-    """Custom formatter for structured logging."""
+class InterceptHandler(logging.Handler):
+    """Intercept standard logging messages and redirect to loguru."""
     
-    @staticmethod
-    def format_record(record: Dict[str, Any]) -> str:
-        """Format log record as structured JSON."""
-        log_entry = {
-            "timestamp": datetime.utcnow().isoformat(),
-            "level": record["level"].name,
-            "message": record["message"],
-            "module": record["name"],
-            "function": record["function"],
-            "line": record["line"],
-        }
+    def emit(self, record: logging.LogRecord) -> None:
+        """Emit a log record to loguru."""
+        # Get corresponding Loguru level if it exists
+        try:
+            level = logger.level(record.levelname).name
+        except ValueError:
+            level = record.levelno
         
-        # Add extra fields
-        if record.get("extra"):
-            log_entry["extra"] = record["extra"]
+        # Find caller from where originated the logged message
+        frame, depth = logging.currentframe(), 2
+        while frame.f_code.co_filename == logging.__file__:
+            frame = frame.f_back
+            depth += 1
         
-        # Add exception info if present
-        if record.get("exception"):
-            log_entry["exception"] = {
-                "type": record["exception"].type.__name__,
-                "value": str(record["exception"].value),
-                "traceback": record["exception"].traceback
-            }
-        
-        return json.dumps(log_entry) + "\n"
+        logger.opt(depth=depth, exception=record.exc_info).log(
+            level, record.getMessage()
+        )
 
 
-def setup_logging():
+def serialize_record(record: Dict[str, Any]) -> str:
+    """Serialize log record to JSON format."""
+    subset = {
+        "timestamp": record["time"].timestamp(),
+        "message": record["message"],
+        "level": record["level"].name,
+        "module": record["module"],
+        "function": record["function"],
+        "line": record["line"],
+    }
+    
+    # Add extra fields
+    if record.get("extra"):
+        subset.update(record["extra"])
+    
+    # Add exception info if present
+    if record.get("exception"):
+        subset["exception"] = str(record["exception"])
+    
+    return json.dumps(subset)
+
+
+def setup_logging() -> None:
     """Configure logging for the application."""
     # Remove default logger
     logger.remove()
     
-    # Console logger (human-readable)
-    if settings.ENVIRONMENT == "development":
+    # Console logging with colors
+    if settings.is_development:
         logger.add(
-            sys.stdout,
-            format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
+            sys.stderr,
+            format="<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | "
+                   "<level>{level: <8}</level> | "
+                   "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> | "
+                   "<level>{message}</level>",
             level=settings.LOG_LEVEL,
             colorize=True,
             backtrace=True,
             diagnose=True,
         )
     else:
-        # Production: structured JSON logs
+        # Production: JSON logs without colors
         logger.add(
             sys.stdout,
-            format=CustomFormatter.format_record,
+            format=serialize_record,
             level=settings.LOG_LEVEL,
+            colorize=False,
             serialize=True,
-            backtrace=True,
-            diagnose=False,  # Don't include local variables in production
+            backtrace=False,
+            diagnose=False,
         )
     
-    # File logger (always JSON)
-    log_dir = Path("logs")
-    log_dir.mkdir(exist_ok=True)
+    # File logging
+    if settings.is_production:
+        log_dir = Path("/var/log/cybersecurity-platform")
+        log_dir.mkdir(parents=True, exist_ok=True)
+        
+        # General application logs
+        logger.add(
+            log_dir / "app.log",
+            rotation="500 MB",
+            retention="30 days",
+            compression="zip",
+            level="INFO",
+            format=serialize_record,
+            serialize=True,
+            backtrace=False,
+            diagnose=False,
+        )
+        
+        # Error logs
+        logger.add(
+            log_dir / "error.log",
+            rotation="100 MB",
+            retention="60 days",
+            compression="zip",
+            level="ERROR",
+            format=serialize_record,
+            serialize=True,
+            backtrace=True,
+            diagnose=True,
+        )
+        
+        # Access logs
+        logger.add(
+            log_dir / "access.log",
+            rotation="1 day",
+            retention="7 days",
+            compression="zip",
+            level="INFO",
+            filter=lambda record: "access" in record["extra"],
+            format=serialize_record,
+            serialize=True,
+        )
     
-    logger.add(
-        log_dir / "app.log",
-        format=CustomFormatter.format_record,
-        level=settings.LOG_LEVEL,
-        rotation="500 MB",
-        retention="30 days",
-        compression="zip",
-        serialize=True,
-        backtrace=True,
-        diagnose=False,
-    )
+    # Intercept standard logging
+    logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
     
-    # Error logger (separate file for errors)
-    logger.add(
-        log_dir / "errors.log",
-        format=CustomFormatter.format_record,
-        level="ERROR",
-        rotation="100 MB",
-        retention="90 days",
-        compression="zip",
-        serialize=True,
-        backtrace=True,
-        diagnose=True,  # Include local variables for errors
-    )
+    # Intercept uvicorn logs
+    for logger_name in ["uvicorn", "uvicorn.error", "uvicorn.access"]:
+        logging_logger = logging.getLogger(logger_name)
+        logging_logger.handlers = [InterceptHandler()]
+        logging_logger.propagate = False
     
-    # Security logger (for auth events)
-    logger.add(
-        log_dir / "security.log",
-        format=CustomFormatter.format_record,
-        level="INFO",
-        filter=lambda record: "security" in record["extra"],
-        rotation="100 MB",
-        retention="1 year",
-        compression="zip",
-        serialize=True,
-    )
+    # Intercept sqlalchemy logs
+    for logger_name in ["sqlalchemy.engine", "sqlalchemy.pool"]:
+        logging_logger = logging.getLogger(logger_name)
+        logging_logger.handlers = [InterceptHandler()]
+        logging_logger.propagate = False
+        # Set appropriate level for SQL logs
+        if settings.is_development and settings.LOG_LEVEL == "DEBUG":
+            logging_logger.setLevel(logging.DEBUG)
+        else:
+            logging_logger.setLevel(logging.WARNING)
     
-    # Performance logger (for slow queries and requests)
-    logger.add(
-        log_dir / "performance.log",
-        format=CustomFormatter.format_record,
-        level="WARNING",
-        filter=lambda record: "performance" in record["extra"],
-        rotation="100 MB",
-        retention="30 days",
-        compression="zip",
-        serialize=True,
-    )
-    
-    # Audit logger (for compliance)
-    logger.add(
-        log_dir / "audit.log",
-        format=CustomFormatter.format_record,
-        level="INFO",
-        filter=lambda record: "audit" in record["extra"],
-        rotation="100 MB",
-        retention="5 years",  # Keep audit logs for compliance
-        compression="zip",
-        serialize=True,
-    )
+    logger.info(f"Logging configured with level: {settings.LOG_LEVEL}")
 
 
-def log_request(request: Request, response_time: float, status_code: int):
-    """Log HTTP request with context."""
-    logger.info(
-        f"{request.method} {request.url.path}",
-        extra={
-            "request_id": request.headers.get("X-Request-ID", "unknown"),
-            "method": request.method,
-            "path": request.url.path,
-            "query": dict(request.query_params),
-            "status_code": status_code,
-            "response_time_ms": round(response_time * 1000, 2),
-            "client_host": request.client.host if request.client else None,
-            "user_agent": request.headers.get("User-Agent"),
-        }
-    )
-
-
-def log_security_event(event_type: str, user_id: str = None, **kwargs):
-    """Log security-related events."""
-    logger.info(
-        f"Security event: {event_type}",
-        extra={
-            "security": True,
-            "event_type": event_type,
-            "user_id": user_id,
-            "timestamp": datetime.utcnow().isoformat(),
-            **kwargs
-        }
-    )
-
-
-def log_audit_event(action: str, user_id: str, resource: str, **kwargs):
-    """Log audit events for compliance."""
-    logger.info(
-        f"Audit: {action} on {resource}",
-        extra={
-            "audit": True,
-            "action": action,
-            "user_id": user_id,
-            "resource": resource,
-            "timestamp": datetime.utcnow().isoformat(),
-            **kwargs
-        }
-    )
-
-
-def log_performance_issue(issue_type: str, duration: float, **kwargs):
-    """Log performance issues."""
-    logger.warning(
-        f"Performance issue: {issue_type}",
-        extra={
-            "performance": True,
-            "issue_type": issue_type,
-            "duration_seconds": round(duration, 3),
-            "timestamp": datetime.utcnow().isoformat(),
-            **kwargs
-        }
-    )
-
-
-def log_business_event(event: str, **kwargs):
-    """Log business events (registrations, payments, etc.)."""
-    logger.info(
-        f"Business event: {event}",
-        extra={
-            "business": True,
-            "event": event,
-            "timestamp": datetime.utcnow().isoformat(),
-            **kwargs
-        }
-    )
-
-
-# Export logger and functions
-__all__ = [
-    "logger",
-    "setup_logging",
-    "log_request",
-    "log_security_event",
-    "log_audit_event",
-    "log_performance_issue",
-    "log_business_event",
-]
+# Export logger instance
+__all__ = ["logger", "setup_logging"]
