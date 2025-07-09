@@ -8,7 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: ${{ github.repository_owner }}/${{ github.event.repository.name }}
 
 jobs:
   # Backend Tests with Pytest Fix
@@ -372,7 +372,7 @@ jobs:
         context: ./backend/backend
         file: ./backend/backend/Dockerfile.prod
         push: true
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
+        tags: ${{ env.REGISTRY }}/themorpheus407/awareness-platform/backend:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
         
@@ -382,7 +382,7 @@ jobs:
         context: ./frontend
         file: ./frontend/Dockerfile.prod
         push: true
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
+        tags: ${{ env.REGISTRY }}/themorpheus407/awareness-platform/frontend:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
