@@ -3,7 +3,8 @@ import { Toaster } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { ProtectedRoute } from './components/Auth';
 import { MainLayout } from './components/Layout';
-import { Login, Register, Dashboard, Users, Companies, Landing, Analytics, Phishing } from './pages';
+import { Login, Register, Dashboard, Users, Companies, Analytics, Phishing } from './pages';
+import LandingEnhanced from './pages/LandingEnhanced';
 import { PricingPage, CheckoutForm, BillingDashboard } from './components/Payment';
 
 function App() {
@@ -34,7 +35,7 @@ function App() {
       
       <Routes>
         {/* Public routes */}
-        <Route path="/" element={<Landing />} />
+        <Route path="/" element={<LandingEnhanced />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/pricing" element={<PricingPage />} />
