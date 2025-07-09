@@ -10,12 +10,7 @@ import pyotp
 from api.dependencies.auth import get_current_active_user
 from api.dependencies.common import get_db
 from core.security import SecurityUtils
-from core.two_factor_auth import (
-    generate_secret,
-    generate_qr_code,
-    verify_token,
-    generate_backup_codes,
-)
+from core.two_factor_auth import TwoFactorAuth
 from models.user import User
 from models.two_fa_attempt import TwoFactorAttempt
 from schemas.auth import (
@@ -64,15 +59,15 @@ async def setup_two_factor(
         )
     
     # Generate secret and QR code
-    secret = generate_secret()
-    qr_code = generate_qr_code(
+    two_fa = TwoFactorAuth()
+    secret = two_fa.generate_secret()
+    qr_code = two_fa.generate_qr_code(
         secret,
-        current_user.email,
-        "Awareness Platform"
+        current_user.email
     )
     
     # Generate backup codes
-    backup_codes = generate_backup_codes()
+    backup_codes = two_fa.generate_backup_codes()
     
     # Store secret temporarily (will be confirmed on verification)
     current_user.two_factor_secret = secret
@@ -115,7 +110,8 @@ async def verify_two_factor(
         )
     
     # Verify the code
-    if not verify_token(current_user.two_factor_secret, verify_request.code):
+    two_fa = TwoFactorAuth()
+    if not two_fa.verify_token(current_user.two_factor_secret, verify_request.code):
         # Log failed attempt
         attempt = TwoFactorAttempt(
             user_id=current_user.id,
@@ -236,7 +232,8 @@ async def regenerate_backup_codes(
         )
     
     # Generate new backup codes
-    backup_codes = generate_backup_codes()
+    two_fa = TwoFactorAuth()
+    backup_codes = two_fa.generate_backup_codes()
     current_user.two_factor_backup_codes = backup_codes
     
     await db.commit()
@@ -315,7 +312,8 @@ async def verify_two_factor_login(
     is_valid = False
     
     # Try TOTP code first
-    if verify_token(user.two_factor_secret, login_request.code):
+    two_fa = TwoFactorAuth()
+    if two_fa.verify_token(user.two_factor_secret, login_request.code):
         is_valid = True
     else:
         # Try backup codes

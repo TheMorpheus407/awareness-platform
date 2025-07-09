@@ -10,7 +10,7 @@ from sqlalchemy import select
 
 from core.config import settings
 from core.exceptions import AuthenticationError, AuthorizationError
-from db.session import get_db
+from api.dependencies.common import get_db
 from models.user import User, UserRole
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")

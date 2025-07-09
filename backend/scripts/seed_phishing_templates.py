@@ -5,8 +5,8 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sqlalchemy.orm import Session
-from db.session import SessionLocal
-from models import PhishingTemplate
+from db.session import AsyncSessionLocal, engine
+from models.phishing import PhishingTemplate
 from data.phishing_templates import PHISHING_TEMPLATES
 
 

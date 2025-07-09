@@ -12,7 +12,7 @@ from api.dependencies.auth import get_current_active_user
 from api.dependencies.common import get_db
 from core.config import settings
 from core.security import SecurityUtils
-from core.two_factor_auth import generate_qr_code, generate_backup_codes
+from core.two_factor_auth import TwoFactorAuth
 from models.user import User
 from models.company import Company
 from models.two_fa_attempt import TwoFactorAttempt
@@ -194,7 +194,7 @@ async def register(
     # Create admin user for the company
     user = User(
         **user_data.model_dump(exclude={"password"}),
-        password_hash=get_password_hash(user_data.password),
+        password_hash=SecurityUtils.get_password_hash(user_data.password),
         company_id=company.id,
         role="company_admin",
         is_verified=False,
@@ -267,14 +267,14 @@ async def change_password(
         HTTPException: If current password is incorrect
     """
     # Verify current password
-    if not verify_password(password_data.current_password, current_user.password_hash):
+    if not SecurityUtils.verify_password(password_data.current_password, current_user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Incorrect password"
         )
     
     # Update password
-    current_user.password_hash = get_password_hash(password_data.new_password)
+    current_user.password_hash = SecurityUtils.get_password_hash(password_data.new_password)
     
     # Log password change
     attempt = TwoFactorAttempt(
