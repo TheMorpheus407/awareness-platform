@@ -346,6 +346,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [backend-tests, frontend-tests, e2e-tests]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.backend-tests.result == 'success' && needs.frontend-tests.result == 'success'
+    continue-on-error: true
     
     steps:
     - uses: actions/checkout@v4
