@@ -1,220 +1,149 @@
-# 🚨 Emergency Production Fix - SSH Commands
+# 🚨 Production Fix SSH Commands
 
 **Server**: 83.228.205.20  
 **User**: ubuntu  
-**App Directory**: /opt/awareness
+**Last Updated**: 2025-07-09
 
-## 🔥 Quick Fix Commands (Copy & Paste)
+## 🔧 Quick Fix Commands
 
 ### 1. Connect to Server
 ```bash
 ssh ubuntu@83.228.205.20
 ```
 
-### 2. Navigate to App Directory
+### 2. Navigate to Application Directory
 ```bash
 cd /opt/awareness
 ```
 
-### 3. Check Current Status
+### 3. Fix Backend Path Issue (CRITICAL)
+
+The backend code is in `backend/backend/` but Docker expects it in `backend/`. Fix:
+
 ```bash
-# See what's running
-docker-compose ps
+# Option A: Create symbolic link (Quick fix)
+sudo ln -sf backend/backend/* backend/
 
-# Check frontend content
-docker exec -it awareness_frontend_1 cat /usr/share/nginx/html/index.html | head -20
-
-# Check backend structure
-docker exec -it awareness_backend_1 ls -la /app/
+# Option B: Update Docker Compose (Proper fix)
+sudo nano docker-compose.prod.yml
+# Change backend volumes from:
+#   - ./backend:/app
+# To:
+#   - ./backend/backend:/app
 ```
 
-### 4. Emergency Fix - Rebuild Containers with Correct Paths
-
+### 4. Restart Services
 ```bash
-# Create temporary build directory
-mkdir -p /tmp/awareness-fix
-cd /tmp/awareness-fix
+sudo docker-compose -f docker-compose.prod.yml down
+sudo docker-compose -f docker-compose.prod.yml up -d
+```
 
-# Create fixed backend Dockerfile
-cat > Dockerfile.backend << 'DOCKERFILE'
+### 5. Initialize Database
+```bash
+# Run migrations
+sudo docker exec backend-container alembic upgrade head
+
+# If migrations fail due to enum issues:
+sudo docker exec backend-container python scripts/fix_enum_conflicts.py
+sudo docker exec backend-container alembic upgrade head
+
+# Initialize tables
+sudo docker exec backend-container python scripts/init_db_tables.py
+
+# Create admin user
+sudo docker exec backend-container python scripts/create_admin_user.py
+```
+
+### 6. Verify Services
+```bash
+# Check all containers are running
+sudo docker ps
+
+# Check backend health
+curl http://localhost:8000/api/health
+
+# Check frontend
+curl http://localhost
+
+# Check logs if needed
+sudo docker logs backend-container
+sudo docker logs frontend-container
+sudo docker logs nginx-container
+```
+
+## 🔴 If Automated Fix Fails
+
+### Manual Backend Fix
+```bash
+# Create corrected backend Dockerfile
+cat > /opt/awareness/backend/Dockerfile.prod.fixed << 'EOF'
 FROM python:3.11-slim
 WORKDIR /app
-RUN apt-get update && apt-get install -y libpq-dev gcc curl && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements first
-COPY backend/requirements.txt /app/requirements.txt
+COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy all backend files
-COPY backend/ /app/
-
-# Fix the nested structure if it exists
-RUN if [ -d "/app/backend" ]; then \
-    cp -r /app/backend/* /app/ && \
-    rm -rf /app/backend; \
-fi
-
-ENV PYTHONPATH=/app
+COPY backend/ .
 EXPOSE 8000
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-DOCKERFILE
+EOF
 
-# Create fixed frontend Dockerfile  
-cat > Dockerfile.frontend << 'DOCKERFILE'
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY frontend/package*.json ./
-RUN npm ci
-COPY frontend/ .
-ENV VITE_API_URL=https://bootstrap-awareness.de/api
-ENV VITE_APP_NAME="Bootstrap Awareness Platform"
-RUN npm run build
-
-FROM nginx:alpine
-COPY --from=builder /app/dist /usr/share/nginx/html
-COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
-DOCKERFILE
-
-# Clone the repository to get latest code
-git clone https://github.com/TheMorpheus407/awareness-platform.git
-cd awareness-platform
-
-# Build fixed images
-docker build -f /tmp/awareness-fix/Dockerfile.backend -t awareness-backend:fixed .
-docker build -f /tmp/awareness-fix/Dockerfile.frontend -t awareness-frontend:fixed .
-
-# Go back to app directory
+# Rebuild backend locally
 cd /opt/awareness
-
-# Update docker-compose to use local images
-cp docker-compose.yml docker-compose.yml.backup
-sed -i 's|ghcr.io/.*/backend:.*|awareness-backend:fixed|g' docker-compose.yml
-sed -i 's|ghcr.io/.*/frontend:.*|awareness-frontend:fixed|g' docker-compose.yml
-
-# Restart with new images
-docker-compose down
-docker-compose up -d
-
-# Wait for services
-sleep 30
-
-# Initialize database
-docker-compose exec -T backend alembic upgrade head
+sudo docker build -f backend/Dockerfile.prod.fixed -t backend-fixed .
+sudo docker tag backend-fixed ghcr.io/themorpheus407/awareness-platform/backend:latest
 ```
 
-### 5. Alternative: Manual Container Fixes
+### Manual Frontend Fix
+```bash
+# Verify frontend build
+sudo docker exec frontend-container ls -la /usr/share/nginx/html/
 
-If rebuilding doesn't work, try these manual fixes:
+# If showing Vite template, rebuild:
+cd /opt/awareness/frontend
+sudo docker build -t frontend-fixed .
+sudo docker tag frontend-fixed ghcr.io/themorpheus407/awareness-platform/frontend:latest
+```
+
+## 🚀 Emergency Rollback
+
+If everything fails:
 
 ```bash
-# Fix Frontend (replace Vite template with a temporary page)
-docker exec -it awareness_frontend_1 sh -c 'cat > /usr/share/nginx/html/index.html << "HTML"
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bootstrap Awareness Platform</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-        h1 { color: #2563eb; }
-        .status { background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px auto; max-width: 600px; }
-    </style>
-</head>
-<body>
-    <h1>Bootstrap Awareness Platform</h1>
-    <div class="status">
-        <h2>🚧 Wartungsarbeiten</h2>
-        <p>Die Plattform wird gerade aktualisiert. Bitte versuchen Sie es in wenigen Minuten erneut.</p>
-        <p>Bei Fragen kontaktieren Sie uns unter: hallo@bootstrap-awareness.de</p>
-    </div>
-</body>
-</html>
-HTML'
+# Stop all containers
+sudo docker-compose -f docker-compose.prod.yml down
 
-# Fix Backend paths
-docker exec -it awareness_backend_1 sh -c '
-if [ -d "/app/backend" ]; then
-    echo "Fixing backend paths..."
-    cp -r /app/backend/* /app/
-    export PYTHONPATH=/app
-fi
-'
+# Restore from backup
+sudo cp -r /opt/awareness/backup-*/* /opt/awareness/
 
-# Restart backend with correct path
-docker-compose restart backend
+# Use working images (if available)
+sudo docker-compose -f docker-compose.prod.yml up -d
 ```
 
-### 6. Verify Fixes
+## 📋 Verification Checklist
+
+- [ ] All containers running: `sudo docker ps`
+- [ ] Backend responds: `curl http://localhost:8000/api/health`
+- [ ] Frontend loads: `curl http://localhost | grep -v "Vite"`
+- [ ] Database connected: `sudo docker exec backend-container python -c "from db.session import get_db; print('DB OK')"`
+- [ ] SSL working: `curl https://bootstrap-awareness.de`
+
+## 🔍 Debug Commands
 
 ```bash
-# Check if frontend is fixed
-curl -s https://bootstrap-awareness.de/ | grep -o "<title>.*</title>"
+# Check backend structure
+sudo docker exec backend-container ls -la /app/
 
-# Check API health
-curl -s https://bootstrap-awareness.de/api/health
+# Check frontend files
+sudo docker exec frontend-container ls -la /usr/share/nginx/html/
 
-# Check logs
-docker-compose logs --tail=50 backend
-docker-compose logs --tail=50 frontend
+# Database connection test
+sudo docker exec postgres-container psql -U postgres -c "\l"
+
+# Check nginx config
+sudo docker exec nginx-container nginx -t
 ```
 
-### 7. If All Else Fails - Rollback
+## ⚡ One-Line Fix Attempt
 
 ```bash
-# Restore original docker-compose
-cp docker-compose.yml.backup docker-compose.yml
-
-# Pull original images
-docker-compose pull
-
-# Restart
-docker-compose down
-docker-compose up -d
+cd /opt/awareness && sudo docker-compose -f docker-compose.prod.yml down && sudo ln -sf backend/backend/* backend/ && sudo docker-compose -f docker-compose.prod.yml up -d && sleep 20 && sudo docker exec backend-container alembic upgrade head && echo "✅ Fix complete!"
 ```
-
-## 📞 Debug Information Commands
-
-```bash
-# Full diagnosis
-docker ps -a
-docker-compose logs --tail=100
-df -h
-free -m
-```
-
-## 🔧 Common Issues & Solutions
-
-### Issue: "No such file or directory"
-```bash
-# Backend can't find main.py
-docker exec -it awareness_backend_1 find /app -name "main.py" -type f
-```
-
-### Issue: "Permission denied"
-```bash
-# Fix permissions
-sudo chown -R ubuntu:ubuntu /opt/awareness
-sudo chmod -R 755 /opt/awareness
-```
-
-### Issue: "Address already in use"
-```bash
-# Find and kill processes using ports
-sudo lsof -i :80
-sudo lsof -i :443
-# Kill with: sudo kill -9 <PID>
-```
-
-## 🎯 Expected Result
-
-After running these fixes, you should see:
-- ✅ https://bootstrap-awareness.de shows the actual platform (not Vite template)
-- ✅ https://bootstrap-awareness.de/api/health returns `{"status":"healthy"}`
-- ✅ https://bootstrap-awareness.de/api/docs shows the API documentation
-- ✅ All containers are running and healthy
-
-## 📧 If you need help
-Contact: support@bootstrap-awareness.de
