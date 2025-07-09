@@ -230,7 +230,7 @@ export const EmailCampaignEditor: React.FC = () => {
       <div className="flex items-center space-x-4">
         <Button
           variant="ghost"
-          size="icon"
+          size="sm"
           onClick={() => navigate('/admin/email-campaigns')}
         >
           <ChevronLeft className="h-4 w-4" />

@@ -14,7 +14,8 @@ import {
 import { Skeleton } from '../ui/skeleton';
 import { toast } from 'react-hot-toast';
 import { emailCampaignService } from '../../services/emailCampaignService';
-import type { EmailPreferences, EmailFrequency } from '../../types/emailCampaign';
+import { EmailFrequency } from '../../types/emailCampaign';
+import type { EmailPreferences } from '../../types/emailCampaign';
 
 const emailCategories = [
   {
