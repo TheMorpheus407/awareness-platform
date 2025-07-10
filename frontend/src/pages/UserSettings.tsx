@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { User, Shield, Bell, Globe, Palette } from 'lucide-react';
-import { MainLayout } from '../components/Layout';
 import { TwoFactorSetup } from '../components/Auth/TwoFactorSetup';
 import { TwoFactorManagement } from '../components/Auth/TwoFactorManagement';
 import { useAuth } from '../hooks/useAuth';
@@ -27,8 +26,7 @@ export const UserSettings: React.FC = () => {
   };
 
   return (
-    <MainLayout>
-      <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">{t('userSettings.title')}</h1>
         
         <div className="flex flex-col lg:flex-row gap-8">
@@ -395,6 +393,5 @@ export const UserSettings: React.FC = () => {
           </div>
         </div>
       </div>
-    </MainLayout>
   );
 };
