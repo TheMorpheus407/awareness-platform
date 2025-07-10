@@ -92,9 +92,8 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
           <Button
             onClick={onRetry}
             variant="primary"
-            icon={<RefreshCw className="w-4 h-4" />}
-            animated
           >
+            <RefreshCw className="w-4 h-4 mr-2" />
             {t('errors.errorState.tryAgain')}
           </Button>
         )}
@@ -103,8 +102,8 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
           <Button
             onClick={onHome}
             variant="secondary"
-            icon={<Home className="w-4 h-4" />}
           >
+            <Home className="w-4 h-4 mr-2" />
             {t('errors.errorState.goHome')}
           </Button>
         )}

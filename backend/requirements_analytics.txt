@@ -1,0 +1,26 @@
+# Analytics Feature Dependencies
+# Add these to your main requirements.txt
+
+# Data Analysis
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Excel Export
+xlsxwriter>=3.1.0
+openpyxl>=3.1.0
+
+# PDF Generation
+reportlab>=4.0.0
+
+# Machine Learning
+scikit-learn>=1.3.0
+joblib>=1.3.0
+
+# Real-time Features
+aioredis>=2.0.0
+
+# Note: These dependencies are required for the new analytics features:
+# - Real-time analytics with WebSocket support
+# - Advanced export formats (PDF, Excel, CSV)
+# - Predictive analytics models
+# - Data aggregation pipelines

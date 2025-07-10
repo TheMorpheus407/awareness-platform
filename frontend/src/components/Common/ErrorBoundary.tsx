@@ -1,10 +1,9 @@
 import React, { Component, type ErrorInfo, type ReactNode } from 'react';
 import { AlertCircle, RefreshCw, Home } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { withTranslation } from 'react-i18next';
-import type { WithTranslationProps } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 
-interface Props extends WithTranslationProps {
+interface Props extends WithTranslation {
   children: ReactNode;
 }
 

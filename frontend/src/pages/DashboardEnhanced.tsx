@@ -175,7 +175,6 @@ export const DashboardEnhanced: React.FC = () => {
           change={5}
           changeType="increase"
           color="success"
-          subtitle="Above industry average"
         />
         <StatsCard
           title="Active Threats"
@@ -184,7 +183,6 @@ export const DashboardEnhanced: React.FC = () => {
           change={25}
           changeType="decrease"
           color="danger"
-          subtitle="Down from last week"
         />
         <StatsCard
           title="Training Completion"
@@ -193,7 +191,6 @@ export const DashboardEnhanced: React.FC = () => {
           change={12}
           changeType="increase"
           color="primary"
-          subtitle="352 of 450 users"
         />
         <StatsCard
           title="Phishing Success"
@@ -202,7 +199,6 @@ export const DashboardEnhanced: React.FC = () => {
           change={8}
           changeType="increase"
           color="success"
-          subtitle="Detection rate"
         />
       </motion.div>
 

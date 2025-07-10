@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { motion, AnimatePresence, Variants } from 'framer-motion';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import { clsx } from 'clsx';
 import { Button } from '../Button/Button';

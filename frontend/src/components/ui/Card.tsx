@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import type { HTMLAttributes } from 'react';
+import type { HTMLAttributes, FC } from 'react';
 import clsx from 'clsx';
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
@@ -10,7 +10,14 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   animated?: boolean;
 }
 
-export const Card = forwardRef<HTMLDivElement, CardProps>(
+interface CardComponent extends React.ForwardRefExoticComponent<CardProps & React.RefAttributes<HTMLDivElement>> {
+  Header: FC<{ className?: string; children: React.ReactNode }>;
+  Title: FC<{ className?: string; children: React.ReactNode }>;
+  Content: FC<{ className?: string; children: React.ReactNode }>;
+  Footer: FC<{ className?: string; children: React.ReactNode }>;
+}
+
+const CardBase = forwardRef<HTMLDivElement, CardProps>(
   (
     {
       children,
@@ -124,7 +131,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
   }
 );
 
-Card.displayName = 'Card';
+CardBase.displayName = 'Card';
 
 // Card sub-components
 export const CardHeader: React.FC<{ className?: string; children: React.ReactNode }> = ({
@@ -159,8 +166,10 @@ export const CardFooter: React.FC<{ className?: string; children: React.ReactNod
   </div>
 );
 
-// Add sub-components to Card for dot notation access
-(Card as any).Header = CardHeader;
-(Card as any).Title = CardTitle;
-(Card as any).Content = CardContent;
-(Card as any).Footer = CardFooter;
+// Export Card with proper typing
+export const Card = Object.assign(CardBase, {
+  Header: CardHeader,
+  Title: CardTitle,
+  Content: CardContent,
+  Footer: CardFooter,
+}) as CardComponent;

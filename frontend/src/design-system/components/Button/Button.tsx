@@ -1,5 +1,5 @@
 import React, { forwardRef, useRef, useState } from 'react';
-import { motion, HTMLMotionProps } from 'framer-motion';
+import { motion, type HTMLMotionProps } from 'framer-motion';
 import { clsx } from 'clsx';
 import { Ripple } from '../Ripple/Ripple';
 import './Button.css';
@@ -83,7 +83,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         transition: {
           duration: 1,
           repeat: Infinity,
-          ease: "linear"
+          ease: "linear" as const
         }
       }
     };

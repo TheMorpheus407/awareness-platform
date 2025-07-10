@@ -267,9 +267,8 @@ export const EmailPreferencesComponent: React.FC = () => {
               onValueChange={(value) =>
                 updatePreference('email_frequency', value)
               }
-              disabled={saving || !preferences.is_subscribed}
             >
-              <SelectTrigger id="frequency">
+              <SelectTrigger className={saving || !preferences.is_subscribed ? 'opacity-50 cursor-not-allowed' : ''}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -290,9 +289,8 @@ export const EmailPreferencesComponent: React.FC = () => {
                 onValueChange={(value) =>
                   updatePreference('digest_day', parseInt(value))
                 }
-                disabled={saving || !preferences.is_subscribed}
               >
-                <SelectTrigger id="digest-day">
+                <SelectTrigger className={saving || !preferences.is_subscribed ? 'opacity-50 cursor-not-allowed' : ''}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -315,9 +313,8 @@ export const EmailPreferencesComponent: React.FC = () => {
                 onValueChange={(value) =>
                   updatePreference('digest_hour', parseInt(value))
                 }
-                disabled={saving || !preferences.is_subscribed}
               >
-                <SelectTrigger id="digest-hour">
+                <SelectTrigger className={saving || !preferences.is_subscribed ? 'opacity-50 cursor-not-allowed' : ''}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

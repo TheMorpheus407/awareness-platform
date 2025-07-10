@@ -1,9 +1,9 @@
 import React, { forwardRef, useState, useRef, useEffect } from 'react';
-import { motion, HTMLMotionProps, AnimatePresence } from 'framer-motion';
+import { motion, type HTMLMotionProps, AnimatePresence } from 'framer-motion';
 import { clsx } from 'clsx';
 import './Input.css';
 
-export interface InputProps extends Omit<HTMLMotionProps<"input">, 'size'> {
+export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   label?: string;
   error?: string;
   success?: string;
@@ -102,7 +102,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       initial: { opacity: 0, y: 10 },
       animate: { opacity: 1, y: 0 },
       exit: { opacity: 0, y: -10 },
-    } : {};
+    } : undefined;
 
     const labelVariants = {
       rest: {

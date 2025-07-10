@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import { motion, HTMLMotionProps, Variants } from 'framer-motion';
+import { motion, type HTMLMotionProps, type Variants } from 'framer-motion';
 import { clsx } from 'clsx';
 import './Card.css';
 

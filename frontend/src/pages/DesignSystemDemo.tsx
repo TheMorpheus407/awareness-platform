@@ -97,7 +97,7 @@ export const DesignSystemDemo: React.FC = () => {
       y: 0,
       opacity: 1,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 100,
       },
     },
@@ -289,12 +289,13 @@ export const DesignSystemDemo: React.FC = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  icon={<FiEdit />}
                   onClick={(e) => {
                     e.stopPropagation();
                     toast.info('Edit clicked!');
                   }}
-                />
+                >
+                  <FiEdit />
+                </Button>
               }
             />
             <CardBody>
