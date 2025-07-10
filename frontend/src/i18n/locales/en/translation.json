@@ -587,6 +587,7 @@
       "login": "Login",
       "integrations": "Integrations",
       "apiDocs": "API Docs",
+      "demo": "Demo",
       "resources": "Resources",
       "blog": "Blog",
       "caseStudies": "Case Studies",
@@ -1051,6 +1052,485 @@
     "placeholders": {
       "name": "Enter campaign name",
       "description": "Describe your campaign"
+    }
+  },
+  "demo": {
+    "title": "Interactive Product Demo",
+    "subtitle": "Experience the power of our cybersecurity awareness platform firsthand",
+    "watchVideo": "Watch Video Demo",
+    "startTrial": "Start Free Trial",
+    "interactive": {
+      "title": "Interactive Platform Tour",
+      "point1": "Easy-to-use interface designed for all skill levels",
+      "point2": "Real-time tracking and reporting capabilities",
+      "point3": "Customizable to your organization's needs"
+    },
+    "steps": {
+      "dashboard": {
+        "title": "Dashboard",
+        "description": "Get a comprehensive overview of your security posture with real-time metrics, alerts, and actionable insights."
+      },
+      "phishing": {
+        "title": "Phishing Simulations",
+        "description": "Launch realistic phishing campaigns to test and train your employees with our extensive template library."
+      },
+      "training": {
+        "title": "Training Modules",
+        "description": "Access engaging, interactive training content tailored to different roles and security awareness levels."
+      },
+      "analytics": {
+        "title": "Analytics & Reports",
+        "description": "Track progress with detailed analytics, compliance reports, and risk assessments."
+      },
+      "management": {
+        "title": "User Management",
+        "description": "Easily manage users, groups, and permissions with our intuitive administration interface."
+      }
+    },
+    "features": {
+      "title": "Key Features",
+      "realtime": "Real-time Monitoring",
+      "realtimeDesc": "Track security events as they happen",
+      "customizable": "Fully Customizable",
+      "customizableDesc": "Adapt to your organization's needs",
+      "multilingual": "Multi-language Support",
+      "multilingualDesc": "Available in multiple languages",
+      "compliance": "Compliance Ready",
+      "complianceDesc": "Meet regulatory requirements",
+      "reporting": "Advanced Reporting",
+      "reportingDesc": "Detailed insights and analytics",
+      "integration": "Easy Integration",
+      "integrationDesc": "Works with your existing tools"
+    },
+    "video": {
+      "title": "Product Demo Video"
+    },
+    "previous": "Previous",
+    "next": "Next",
+    "cta": {
+      "title": "Ready to Get Started?",
+      "subtitle": "Join thousands of organizations protecting their data with our platform",
+      "trial": "Start Free Trial",
+      "contact": "Contact Sales"
+    }
+  },
+  "about": {
+    "title": "About Bootstrap Academy",
+    "subtitle": "We're on a mission to make cybersecurity accessible to every organization, regardless of size or technical expertise.",
+    "mission": {
+      "title": "Our Mission",
+      "description": "To empower organizations worldwide with the knowledge and tools they need to defend against cyber threats. We believe that human-centered security awareness is the foundation of any robust cybersecurity strategy."
+    },
+    "stats": {
+      "usersProtected": "Users Protected",
+      "companiesServed": "Companies Served",
+      "satisfaction": "Customer Satisfaction"
+    },
+    "values": {
+      "title": "Our Core Values",
+      "security": "Security First",
+      "securityDesc": "We prioritize security in everything we do, from our platform design to our company culture.",
+      "people": "People-Centered",
+      "peopleDesc": "We believe that people are the key to security, not just technology.",
+      "innovation": "Continuous Innovation",
+      "innovationDesc": "We constantly evolve our platform to stay ahead of emerging threats.",
+      "trust": "Trust & Transparency",
+      "trustDesc": "We build lasting relationships through honesty and open communication."
+    },
+    "team": {
+      "title": "Leadership Team",
+      "ceo": "Chief Executive Officer",
+      "cto": "Chief Technology Officer",
+      "cso": "Chief Security Officer",
+      "cmo": "Chief Marketing Officer"
+    },
+    "awards": {
+      "title": "Recognition & Awards",
+      "security": "Best Security Training Platform",
+      "innovation": "Innovation Award",
+      "compliance": "Certified Compliant"
+    }
+  },
+  "contact": {
+    "form": {
+      "title": "Get in Touch",
+      "name": "Name",
+      "email": "Email",
+      "company": "Company",
+      "subject": "Subject",
+      "selectSubject": "Select a subject",
+      "subjects": {
+        "sales": "Sales Inquiry",
+        "support": "Technical Support",
+        "partnership": "Partnership Opportunity",
+        "other": "Other"
+      },
+      "message": "Message",
+      "required": "Required fields",
+      "send": "Send Message",
+      "success": "Thank you! We'll get back to you soon.",
+      "thankYou": "Thank You!",
+      "response": "We've received your message and will respond within 24 hours."
+    },
+    "info": {
+      "title": "Contact Information",
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Address",
+      "hours": "Business Hours",
+      "weekdays": "Monday - Friday",
+      "weekend": "Weekend",
+      "closed": "Closed"
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "q1": "How quickly can we get started?",
+      "a1": "Most organizations are up and running within 24 hours.",
+      "q2": "Do you offer custom training content?",
+      "a2": "Yes, we can create custom content tailored to your needs.",
+      "q3": "What kind of support do you provide?",
+      "a3": "We offer email, phone, and chat support for all plans."
+    }
+  },
+  "blog": {
+    "title": "Security Insights Blog",
+    "subtitle": "Stay informed about the latest cybersecurity trends, best practices, and platform updates",
+    "search": "Search articles...",
+    "categories": {
+      "all": "All Posts",
+      "security": "Security",
+      "compliance": "Compliance",
+      "training": "Training"
+    },
+    "readMore": "Read More",
+    "posts": {
+      "post1": {
+        "title": "The Rising Threat of AI-Powered Phishing Attacks in 2024",
+        "excerpt": "Learn how cybercriminals are leveraging AI to create more sophisticated phishing campaigns and how to protect your organization."
+      },
+      "post2": {
+        "title": "GDPR Compliance: A Complete Guide for Security Teams",
+        "excerpt": "Everything you need to know about maintaining GDPR compliance while implementing security awareness training."
+      },
+      "post3": {
+        "title": "Building a Security-First Culture in Remote Teams",
+        "excerpt": "Best practices for fostering security awareness in distributed work environments."
+      }
+    },
+    "newsletter": {
+      "title": "Stay Updated",
+      "subtitle": "Get the latest security insights delivered to your inbox",
+      "placeholder": "Enter your email",
+      "subscribe": "Subscribe"
+    }
+  },
+  "careers": {
+    "title": "Join Our Team",
+    "subtitle": "Help us build the future of cybersecurity awareness",
+    "whyJoin": {
+      "title": "Why Join Bootstrap Academy?",
+      "mission": "Meaningful Mission",
+      "missionText": "Make a real impact by helping organizations protect themselves from cyber threats.",
+      "culture": "Innovative Culture",
+      "cultureText": "Work with cutting-edge technology in a collaborative, growth-oriented environment."
+    },
+    "benefits": {
+      "title": "Benefits & Perks",
+      "health": "Health & Wellness",
+      "healthDesc": "Comprehensive health coverage",
+      "growth": "Professional Growth",
+      "growthDesc": "Learning & development budget",
+      "team": "Great Team",
+      "teamDesc": "Work with talented professionals",
+      "balance": "Work-Life Balance",
+      "balanceDesc": "Flexible working arrangements"
+    },
+    "openPositions": "Open Positions",
+    "apply": "Apply Now",
+    "jobs": {
+      "backend": {
+        "title": "Senior Backend Developer",
+        "department": "Engineering",
+        "description": "Build scalable backend systems for our security platform"
+      },
+      "security": {
+        "title": "Security Content Specialist",
+        "department": "Content",
+        "description": "Create engaging security awareness training content"
+      },
+      "sales": {
+        "title": "Enterprise Sales Manager",
+        "department": "Sales",
+        "description": "Drive growth in the enterprise segment"
+      },
+      "content": {
+        "title": "Technical Content Writer",
+        "department": "Marketing",
+        "description": "Create technical content and documentation"
+      },
+      "fullTime": "Full-time",
+      "partTime": "Part-time"
+    },
+    "process": {
+      "title": "Our Hiring Process",
+      "step1": "Application",
+      "step1Desc": "Submit your application online",
+      "step2": "Phone Screen",
+      "step2Desc": "Initial conversation with HR",
+      "step3": "Technical Interview",
+      "step3Desc": "Meet with the team",
+      "step4": "Offer",
+      "step4Desc": "Receive your offer"
+    },
+    "cta": {
+      "title": "Don't See Your Role?",
+      "subtitle": "We're always looking for talented people. Send us your resume!",
+      "email": "Email Us"
+    }
+  },
+  "partners": {
+    "title": "Partner Program",
+    "subtitle": "Join our ecosystem of security partners and grow your business while helping organizations stay secure",
+    "current": "Our Partners",
+    "list": {
+      "techsecure": "Leading provider of endpoint security solutions",
+      "cloudguard": "Cloud security and compliance platform",
+      "compliance": "Compliance consulting and audit services",
+      "securenet": "Value-added reseller and integration partner"
+    },
+    "types": {
+      "title": "Partnership Types",
+      "technology": {
+        "title": "Technology Partners",
+        "description": "Integrate your solutions with our platform for enhanced security capabilities",
+        "benefit1": "API access and technical support",
+        "benefit2": "Co-marketing opportunities",
+        "benefit3": "Joint solution development"
+      },
+      "reseller": {
+        "title": "Reseller Partners",
+        "description": "Expand your portfolio with our security awareness solutions",
+        "benefit1": "Competitive margins and incentives",
+        "benefit2": "Sales and technical training",
+        "benefit3": "Lead sharing program"
+      },
+      "consulting": {
+        "title": "Consulting Partners",
+        "description": "Enhance your security consulting services with our platform",
+        "benefit1": "White-label options",
+        "benefit2": "Implementation support",
+        "benefit3": "Certification programs"
+      }
+    },
+    "benefits": {
+      "title": "Partner Benefits",
+      "growth": "Business Growth",
+      "growthDesc": "Access new revenue streams",
+      "support": "Partner Support",
+      "supportDesc": "Dedicated partner success team",
+      "certification": "Certification",
+      "certificationDesc": "Become a certified partner",
+      "network": "Global Network",
+      "networkDesc": "Join our partner ecosystem"
+    },
+    "requirements": {
+      "title": "Partnership Requirements",
+      "general": "General Requirements",
+      "req1": "Established business with security focus",
+      "req2": "Commitment to customer success",
+      "req3": "Aligned values and vision",
+      "technical": "Technical Requirements",
+      "tech1": "Technical expertise in security",
+      "tech2": "Customer support capabilities",
+      "tech3": "Marketing and sales resources"
+    },
+    "cta": {
+      "title": "Become a Partner",
+      "subtitle": "Ready to join our partner program? Let's discuss how we can work together.",
+      "apply": "Apply Now",
+      "contact": "Contact Partner Team"
+    }
+  },
+  "caseStudies": {
+    "title": "Customer Success Stories",
+    "subtitle": "See how organizations like yours are transforming their security culture",
+    "filter": "Filter by Industry",
+    "industries": {
+      "all": "All Industries",
+      "finance": "Finance",
+      "healthcare": "Healthcare",
+      "technology": "Technology",
+      "retail": "Retail"
+    },
+    "employees": "employees",
+    "challenge": "Challenge",
+    "solution": "Solution",
+    "results": "Results",
+    "readMore": "Read Full Story",
+    "download": "Download PDF",
+    "stats": {
+      "reduction": "Phishing Click Rate Reduction",
+      "companies": "Happy Customers",
+      "users": "Users Trained",
+      "satisfaction": "Customer Satisfaction"
+    },
+    "studies": {
+      "finance": {
+        "title": "How Global Finance Corp Reduced Phishing Incidents by 92%",
+        "challenge": "High phishing click rates and compliance requirements",
+        "solution": "Implemented monthly phishing simulations and role-based training",
+        "result1": "92% reduction in phishing click rates",
+        "result2": "100% compliance with BAFIN requirements",
+        "result3": "€2.5M saved in potential breach costs"
+      },
+      "healthcare": {
+        "title": "MediCare Plus: Securing Patient Data Through Awareness",
+        "challenge": "GDPR compliance and protecting sensitive patient data",
+        "solution": "Custom healthcare-focused training modules and simulations",
+        "result1": "85% improvement in security awareness scores",
+        "result2": "Zero data breaches in 24 months",
+        "result3": "Full GDPR compliance achieved"
+      },
+      "tech": {
+        "title": "TechInnovate's Journey to Security Excellence",
+        "challenge": "Rapid growth leading to security gaps",
+        "solution": "Automated security training for all new hires",
+        "result1": "95% employee training completion rate",
+        "result2": "70% faster security incident response",
+        "result3": "ISO 27001 certification achieved"
+      },
+      "retail": {
+        "title": "RetailChain: Protecting Customer Data at Scale",
+        "challenge": "Training 10,000+ employees across multiple locations",
+        "solution": "Multi-language training platform with mobile support",
+        "result1": "88% reduction in security incidents",
+        "result2": "99% employee engagement rate",
+        "result3": "PCI-DSS compliance maintained"
+      }
+    },
+    "successFactors": {
+      "title": "Keys to Success",
+      "factor1": "Executive Support",
+      "factor1Desc": "Leadership commitment drives success",
+      "factor2": "Regular Training",
+      "factor2Desc": "Consistent reinforcement improves retention",
+      "factor3": "Measurable Goals",
+      "factor3Desc": "Clear metrics ensure continuous improvement"
+    },
+    "cta": {
+      "title": "Start Your Success Story",
+      "subtitle": "Join these organizations in building a stronger security culture",
+      "demo": "Request Demo",
+      "contact": "Talk to Sales"
+    }
+  },
+  "legal": {
+    "impressum": {
+      "title": "Impressum",
+      "companyInfo": "Company Information",
+      "legalForm": "Legal Form",
+      "gmbh": "Limited Liability Company (GmbH)",
+      "registrationCourt": "Registration Court",
+      "registrationNumber": "Registration Number",
+      "vatId": "VAT Identification Number",
+      "managingDirectors": "Managing Directors",
+      "contact": "Contact Information",
+      "responsibleContent": "Responsible for Content",
+      "disclaimer": "Disclaimer",
+      "disclaimerText": "Despite careful content control, we assume no liability for the content of external links. The operators of the linked pages are solely responsible for their content.",
+      "copyright": "Copyright",
+      "copyrightText": "The content and works created by the site operators on these pages are subject to German copyright law. Duplication, processing, distribution, and any kind of exploitation outside the limits of copyright require the written consent of the respective author or creator."
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "lastUpdated": "Last updated",
+      "introduction": "Introduction",
+      "introText": "We take the protection of your personal data very seriously. This privacy policy explains how we collect, use, and protect your information.",
+      "dataController": "Data Controller",
+      "dataControllerText": "The controller responsible for data processing on this website is:",
+      "dataCollection": "Data Collection",
+      "dataCollectionText": "We collect data to provide and improve our services. The types of data we collect include:",
+      "personalData": "Personal Data",
+      "personalDataList": "Name, email address, company information, and usage data",
+      "purposes": "Purposes of Processing",
+      "purposesText": "We process your data for the following purposes:",
+      "purposes": {
+        "service": "Providing our cybersecurity training services",
+        "communication": "Communicating with you about your account",
+        "improvement": "Improving our platform and services",
+        "compliance": "Complying with legal obligations"
+      },
+      "legalBasis": "Legal Basis",
+      "legalBasisText": "We process your data based on the following legal grounds:",
+      "dataRetention": "Data Retention",
+      "dataRetentionText": "We retain your personal data only as long as necessary for the purposes stated in this policy.",
+      "rights": "Your Rights",
+      "rightsText": "Under GDPR, you have the following rights:",
+      "rights": {
+        "access": "Right to access your personal data",
+        "rectification": "Right to rectification of inaccurate data",
+        "erasure": "Right to erasure ('right to be forgotten')",
+        "restriction": "Right to restriction of processing",
+        "portability": "Right to data portability",
+        "objection": "Right to object to processing"
+      },
+      "security": "Data Security",
+      "securityText": "We implement appropriate technical and organizational measures to ensure a level of security appropriate to the risk.",
+      "cookies": "Cookies",
+      "cookiesText": "We use cookies to enhance your experience. You can control cookie settings through your browser.",
+      "contact": "Contact",
+      "contactText": "For questions about this privacy policy or your data, please contact:"
+    },
+    "terms": {
+      "title": "Terms and Conditions",
+      "lastUpdated": "Last updated",
+      "scope": "1. Scope of Application",
+      "scopeText": "These terms and conditions govern the use of our cybersecurity awareness platform and all related services.",
+      "services": "2. Services",
+      "servicesIntro": "Bootstrap Academy provides the following services:",
+      "services": {
+        "training": "Security awareness training modules",
+        "phishing": "Phishing simulation campaigns",
+        "analytics": "Analytics and reporting tools",
+        "certificates": "Completion certificates",
+        "support": "Technical support"
+      },
+      "registration": "3. Registration and Account",
+      "registrationText": "To use our services, you must create an account. You agree to:",
+      "registration": {
+        "accurate": "Provide accurate and complete information",
+        "confidential": "Keep your login credentials confidential",
+        "responsible": "Be responsible for all activities under your account",
+        "notify": "Notify us of any unauthorized use"
+      },
+      "obligations": "4. User Obligations",
+      "obligationsIntro": "When using our services, you agree to:",
+      "obligations": {
+        "lawful": "Use the services only for lawful purposes",
+        "noMisuse": "Not misuse or attempt to hack our systems",
+        "noInterference": "Not interfere with other users' access",
+        "noReverse": "Not reverse engineer our software",
+        "respect": "Respect intellectual property rights"
+      },
+      "payment": "5. Payment Terms",
+      "paymentText": "Payment terms depend on your selected plan:",
+      "payment": {
+        "subscription": "Subscription fees are billed in advance",
+        "automatic": "Payments renew automatically unless cancelled",
+        "failure": "Failed payments may result in service suspension",
+        "refunds": "Refunds are subject to our refund policy"
+      },
+      "intellectual": "6. Intellectual Property",
+      "intellectualText": "All content, features, and functionality are owned by Bootstrap Academy and protected by international copyright, trademark, and other intellectual property laws.",
+      "liability": "7. Limitation of Liability",
+      "liabilityText": "To the maximum extent permitted by law, Bootstrap Academy shall not be liable for any indirect, incidental, special, or consequential damages.",
+      "liabilityExclusion": "IN NO EVENT SHALL OUR TOTAL LIABILITY EXCEED THE AMOUNT PAID BY YOU IN THE TWELVE MONTHS PRIOR TO THE EVENT GIVING RISE TO LIABILITY.",
+      "termination": "8. Termination",
+      "terminationText": "Either party may terminate this agreement at any time. Upon termination, your access to the services will be disabled.",
+      "governing": "9. Governing Law",
+      "governingText": "These terms are governed by the laws of Germany. Any disputes shall be resolved in the courts of Berlin, Germany.",
+      "contact": "10. Contact",
+      "contactText": "If you have questions about these terms, please contact us:"
     }
   }
 }

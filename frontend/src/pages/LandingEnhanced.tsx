@@ -875,10 +875,9 @@ const LandingEnhanced = () => {
             <div>
               <h3 className="font-semibold mb-4">{t('landing.footer.product')}</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#features" className="hover:text-white transition-colors">{t('landing.footer.features')}</a></li>
-                <li><a href="#pricing" className="hover:text-white transition-colors">{t('landing.footer.pricing')}</a></li>
-                <li><Link to="/integrations" className="hover:text-white transition-colors">{t('landing.footer.integrations')}</Link></li>
-                <li><Link to="/api-docs" className="hover:text-white transition-colors">{t('landing.footer.apiDocs')}</Link></li>
+                <li><a href="#features" onClick={(e) => handleSmoothScroll(e, 'features')} className="hover:text-white transition-colors">{t('landing.footer.features')}</a></li>
+                <li><a href="#pricing" onClick={(e) => handleSmoothScroll(e, 'pricing')} className="hover:text-white transition-colors">{t('landing.footer.pricing')}</a></li>
+                <li><Link to="/demo" className="hover:text-white transition-colors">{t('landing.footer.demo')}</Link></li>
               </ul>
             </div>
             <div>
@@ -886,8 +885,6 @@ const LandingEnhanced = () => {
               <ul className="space-y-2 text-gray-400">
                 <li><Link to="/blog" className="hover:text-white transition-colors">{t('landing.footer.blog')}</Link></li>
                 <li><Link to="/case-studies" className="hover:text-white transition-colors">{t('landing.footer.caseStudies')}</Link></li>
-                <li><Link to="/webinars" className="hover:text-white transition-colors">{t('landing.footer.webinars')}</Link></li>
-                <li><Link to="/security-guide" className="hover:text-white transition-colors">{t('landing.footer.securityGuide')}</Link></li>
               </ul>
             </div>
             <div>
@@ -909,7 +906,6 @@ const LandingEnhanced = () => {
                 <Link to="/privacy" className="text-gray-400 hover:text-white transition-colors">{t('landing.footer.privacy')}</Link>
                 <Link to="/terms" className="text-gray-400 hover:text-white transition-colors">{t('landing.footer.terms')}</Link>
                 <Link to="/impressum" className="text-gray-400 hover:text-white transition-colors">{t('landing.footer.impressum')}</Link>
-                <Link to="/cookie-settings" className="text-gray-400 hover:text-white transition-colors">{t('landing.footer.cookieSettings')}</Link>
               </div>
             </div>
           </div>

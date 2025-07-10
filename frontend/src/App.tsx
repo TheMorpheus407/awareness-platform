@@ -6,13 +6,19 @@ import { MainLayout } from './components/Layout';
 import { Login, Register, Dashboard, Users, Companies, Analytics, Phishing } from './pages';
 import LandingEnhanced from './pages/LandingEnhanced';
 import { DashboardEnhanced } from './pages/DashboardEnhanced';
-import Demo from './pages/Demo';
 import { PricingPage, CheckoutForm, BillingDashboard } from './components/Payment';
 import { ErrorBoundary } from './components/Common/ErrorBoundary';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { Impressum, Privacy, Terms, CookieSettings } from './pages/legal';
-import { About, Contact, Careers, Partners } from './pages/company';
-import { Blog, CaseStudies } from './pages/resources';
+import { Impressum } from './pages/legal/Impressum';
+import { Privacy } from './pages/legal/Privacy';
+import { Terms } from './pages/legal/Terms';
+import { About } from './pages/About';
+import { Contact } from './pages/Contact';
+import { Blog } from './pages/Blog';
+import Demo from './pages/Demo';
+import { Careers } from './pages/Careers';
+import { Partners } from './pages/Partners';
+import { CaseStudies } from './pages/CaseStudies';
 
 function App() {
   const { t } = useTranslation();
@@ -54,7 +60,6 @@ function App() {
         <Route path="/impressum" element={<Impressum />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
-        <Route path="/cookie-settings" element={<CookieSettings />} />
         
         {/* Company pages */}
         <Route path="/about" element={<About />} />
