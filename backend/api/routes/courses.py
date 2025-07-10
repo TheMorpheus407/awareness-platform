@@ -22,7 +22,7 @@ from schemas.course import (
 router = APIRouter()
 
 
-@router.get("/", response_model=CourseListResponse)
+@router.get("/", response_model=List[CourseSchema])
 async def list_courses(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -31,7 +31,7 @@ async def list_courses(
     category: Optional[str] = Query(None, description="Filter by category"),
     difficulty: Optional[str] = Query(None, description="Filter by difficulty"),
     is_published: Optional[bool] = Query(True, description="Filter by published status"),
-) -> CourseListResponse:
+) -> List[CourseSchema]:
     """
     List available courses.
     
@@ -88,18 +88,12 @@ async def list_courses(
     result = await db.execute(query)
     courses = result.scalars().all()
     
-    return CourseListResponse(
-        items=courses,
-        total=total,
-        page=(offset // limit) + 1,
-        size=limit,
-        pages=(total + limit - 1) // limit,
-    )
+    return courses
 
 
 @router.post("/", response_model=CourseSchema)
 async def create_course(
-    course_data: CourseCreate,
+    course_data: dict,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_company_admin),
 ) -> Course:
