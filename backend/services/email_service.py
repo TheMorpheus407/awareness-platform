@@ -13,8 +13,8 @@ from sqlalchemy import select, update
 from services.email import EmailService
 from services.email_template import EmailTemplateService
 from models import EmailLog, EmailStatus, EmailEvent, User, EmailBounce
-from core.cache import get_cache
-from core.exceptions import EmailDeliveryError
+from core.cache import cache
+from core.exceptions import EmailError
 
 logger = logging.getLogger(__name__)
 
