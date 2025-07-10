@@ -12,11 +12,12 @@ from api.dependencies.auth import get_current_active_user
 from core.cache import cache
 from core.config import settings
 from core.monitoring import (
-    request_count,
-    request_duration,
-    active_users,
-    database_connections,
-    cache_operations,
+    REQUEST_COUNT,
+    REQUEST_LATENCY,
+    ACTIVE_REQUESTS,
+    DATABASE_CONNECTIONS,
+    CACHE_HITS,
+    CACHE_MISSES,
 )
 from db.session import get_db
 from models.analytics import AnalyticsEvent
