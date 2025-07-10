@@ -21,9 +21,9 @@ from schemas.course import (
 router = APIRouter()
 
 
-@router.post("/", response_model=CourseEnrollmentSchema)
+@router.post("/", response_model=CourseEnrollment)
 async def enroll_in_course(
-    enrollment_data: CourseEnrollmentCreate,
+    enrollment_data: dict,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> CourseEnrollment:
