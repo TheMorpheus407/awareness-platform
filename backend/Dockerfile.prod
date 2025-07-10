@@ -1,57 +1,32 @@
-FROM python:3.11-slim as builder
-
-WORKDIR /app
-
-# Install build dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements
-COPY requirements.txt .
-
-# Install Python dependencies
-RUN pip install --user --no-cache-dir -r requirements.txt
-RUN pip install --user --no-cache-dir gunicorn
-
-# Production stage
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install runtime dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
+    build-essential \
     curl \
     postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
-# Create non-root user first
-RUN useradd -m -u 1000 appuser
+# Copy requirements first for better caching
+COPY requirements.txt ./
 
-# Copy Python dependencies from builder to appuser home
-COPY --from=builder --chown=appuser:appuser /root/.local /home/appuser/.local
-
-# Make sure scripts in .local are usable
-ENV PATH=/home/appuser/.local/bin:$PATH
-ENV PYTHONPATH=/app
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY --chown=appuser:appuser . .
+COPY . .
 
-# Ensure startup script is executable
-RUN chmod +x /app/start.sh
-
-# Create necessary directories
-RUN mkdir -p /app/logs && chown appuser:appuser /app/logs
-
+# Create non-root user
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD curl -f http://localhost:8000/api/health || exit 1
 
 # Expose port
 EXPOSE 8000
 
-# Run with startup script
-CMD ["/bin/bash", "/app/start.sh"]
+# Set Python path
+ENV PYTHONPATH=/app
+
+# Default command
+CMD ["sh", "start.sh"]

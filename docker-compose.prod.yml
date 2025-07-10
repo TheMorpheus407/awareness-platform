@@ -33,7 +33,7 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
     restart: always
     environment:
       - DATABASE_URL=postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@db:5432/${DATABASE_NAME}
@@ -52,34 +52,24 @@ services:
         condition: service_healthy
     command: ["sh", "start.sh"]
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        - VITE_API_URL=${VITE_API_URL}
-    restart: always
-    networks:
-      - frontend-network
-
   nginx:
-    image: nginx:alpine
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+      args:
+        - VITE_API_URL=${VITE_API_URL:-https://bootstrap-awareness.de}
     restart: always
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - ./certbot/conf:/etc/letsencrypt:ro
       - ./certbot/www:/var/www/certbot:ro
-      - frontend_dist:/usr/share/nginx/html:ro
     networks:
       - frontend-network
       - backend-network
     depends_on:
       - backend
-      - frontend
 
   certbot:
     image: certbot/certbot
@@ -97,4 +87,3 @@ networks:
 
 volumes:
   postgres_data:
-  frontend_dist:

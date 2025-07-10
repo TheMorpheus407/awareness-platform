@@ -5,30 +5,27 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
+RUN npm ci
 
-# Install dependencies
-RUN npm install
-
-# Install terser for production builds
-RUN npm install --save-dev terser
-
-# Copy source files
+# Copy application code
 COPY . .
 
-# Build the app (skip TypeScript checking for production)
-RUN npx vite build --mode production
+# Build the application
+ARG VITE_API_URL
+ENV VITE_API_URL=${VITE_API_URL}
+RUN npm run build
 
 # Production stage
 FROM nginx:alpine
 
-# Copy built assets from builder
+# Copy built files
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copy nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy nginx configuration if exists
+# COPY nginx.conf /etc/nginx/nginx.conf
 
 # Expose port
 EXPOSE 80
 
-# Start nginx
+# Default command
 CMD ["nginx", "-g", "daemon off;"]

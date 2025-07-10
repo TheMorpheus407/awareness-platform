@@ -8,7 +8,7 @@ echo "=================================================="
 REMOTE_USER=${REMOTE_USER:-ubuntu}
 REMOTE_HOST=${REMOTE_HOST:-}
 REMOTE_PATH=${REMOTE_PATH:-/opt/awareness-platform}
-SSH_KEY_PATH="../.ssh/bootstrap-awareness private key.txt"
+SSH_KEY_PATH=".ssh/bootstrap-awareness private key.txt"
 
 # Check if remote host is provided
 if [ -z "$REMOTE_HOST" ]; then
