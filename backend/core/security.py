@@ -233,3 +233,16 @@ class SecurityUtils:
 
 # Global security instance
 security = SecurityUtils()
+
+# Compatibility functions for direct imports
+verify_password = SecurityUtils.verify_password
+hash_password = SecurityUtils.hash_password
+get_password_hash = SecurityUtils.hash_password  # Alias for backward compatibility
+create_access_token = SecurityUtils.create_access_token
+create_refresh_token = SecurityUtils.create_refresh_token
+decode_token = SecurityUtils.decode_token
+create_password_reset_token = SecurityUtils.create_password_reset_token
+verify_password_reset_token = SecurityUtils.verify_password_reset_token
+create_email_verification_token = SecurityUtils.create_email_verification_token
+verify_email_verification_token = SecurityUtils.verify_email_verification_token
+validate_password = SecurityUtils.validate_password
