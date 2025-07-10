@@ -34,7 +34,7 @@ async def list_users(
     current_user: User = Depends(get_current_active_user),
     pagination: tuple[int, int] = Depends(get_pagination_params),
     search: Optional[str] = Query(None, description="Search in name or email"),
-    role: Optional[UserRole] = Query(None, description="Filter by role"),
+    role: Optional[str] = Query(None, description="Filter by role"),
     is_active: Optional[bool] = Query(None, description="Filter by active status"),
     company_id: Optional[UUID] = Query(None, description="Filter by company"),
 ) -> UserListResponse:
