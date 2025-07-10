@@ -1,8 +1,9 @@
 import React, { Component, type ErrorInfo, type ReactNode } from 'react';
 import { AlertCircle, RefreshCw, Home } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { withTranslation, WithTranslationProps } from 'react-i18next';
 
-interface Props {
+interface Props extends WithTranslationProps {
   children: ReactNode;
 }
 
@@ -12,7 +13,7 @@ interface State {
   errorInfo: ErrorInfo | null;
 }
 
-export class ErrorBoundary extends Component<Props, State> {
+class ErrorBoundaryComponent extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -67,17 +68,17 @@ export class ErrorBoundary extends Component<Props, State> {
               </motion.div>
               
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                Oops! Something went wrong
+                {this.props.t('errors.boundary.title')}
               </h1>
               
               <p className="text-gray-600 dark:text-gray-400 mb-6">
-                We apologize for the inconvenience. An unexpected error has occurred.
+                {this.props.t('errors.boundary.message')}
               </p>
 
               {import.meta.env.DEV && this.state.error && (
                 <details className="mb-6 text-left">
                   <summary className="cursor-pointer text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
-                    Error details (Development only)
+                    {this.props.t('errors.boundary.details')}
                   </summary>
                   <pre className="mt-2 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg text-xs text-gray-700 dark:text-gray-300 overflow-auto">
                     {this.state.error.toString()}
@@ -94,7 +95,7 @@ export class ErrorBoundary extends Component<Props, State> {
                   className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   <RefreshCw className="w-4 h-4" />
-                  Try Again
+                  {this.props.t('errors.boundary.tryAgain')}
                 </motion.button>
                 
                 <motion.button
@@ -104,7 +105,7 @@ export class ErrorBoundary extends Component<Props, State> {
                   className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
                 >
                   <Home className="w-4 h-4" />
-                  Go Home
+                  {this.props.t('errors.boundary.goHome')}
                 </motion.button>
               </div>
             </div>
@@ -116,3 +117,5 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+
+export const ErrorBoundary = withTranslation()(ErrorBoundaryComponent);

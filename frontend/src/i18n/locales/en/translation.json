@@ -14,7 +14,12 @@
     "welcome": "Welcome",
     "yes": "Yes",
     "no": "No",
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "close": "Close",
+    "processing": "Processing...",
+    "continue": "Continue",
+    "profile": "Profile",
+    "settings": "Settings"
   },
   "branding": {
     "appName": "CyberAware",
@@ -31,6 +36,24 @@
     "analytics": "Analytics",
     "reports": "Reports",
     "settings": "Settings"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "viewAll": "View all notifications",
+    "phishingComplete": "Completed phishing simulation",
+    "trainingReminder": "Training reminder: Complete your security module",
+    "monthlyReport": "Monthly security report available",
+    "newUser": "New user joined your organization",
+    "minutesAgo": "{{count}} minutes ago",
+    "minutesAgo_plural": "{{count}} minutes ago",
+    "hoursAgo": "{{count}} hour ago",
+    "hoursAgo_plural": "{{count}} hours ago"
+  },
+  "roles": {
+    "administrator": "Administrator",
+    "systemAdmin": "System Administrator",
+    "employee": "Employee",
+    "manager": "Manager"
   },
   "auth": {
     "login": {
@@ -80,6 +103,73 @@
       "termsAndConditions": "Terms and Conditions",
       "and": "and",
       "privacyPolicy": "Privacy Policy"
+    },
+    "twoFactor": {
+      "setup": {
+        "title": "Enable Two-Factor Authentication",
+        "passwordPrompt": "To enhance your account security, please confirm your password to proceed with 2FA setup.",
+        "confirmPassword": "Confirm Password",
+        "authenticatorTitle": "Set Up Authenticator App",
+        "step1": {
+          "title": "1. Install an Authenticator App",
+          "description": "Download an authenticator app like Google Authenticator, Microsoft Authenticator, or Authy on your mobile device."
+        },
+        "step2": {
+          "title": "2. Scan QR Code",
+          "description": "Scan this QR code with your authenticator app:"
+        },
+        "manualEntry": "Can't scan? Enter this code manually:",
+        "step3": {
+          "title": "3. Save Backup Codes",
+          "description": "Save these backup codes in a secure place. You can use them to access your account if you lose your authenticator device."
+        },
+        "backupCodesLabel": "Backup Codes (Save These!)",
+        "continueToVerification": "Continue to Verification"
+      },
+      "verify": {
+        "title": "Verify Setup",
+        "description": "Enter the 6-digit code from your authenticator app to complete the setup.",
+        "codeLabel": "Verification Code",
+        "verifying": "Verifying...",
+        "complete": "Complete Setup"
+      },
+      "errors": {
+        "setupFailed": "Failed to setup 2FA",
+        "invalidCode": "Invalid verification code",
+        "disableFailed": "Failed to disable 2FA",
+        "regenerateFailed": "Failed to regenerate backup codes"
+      },
+      "title": "Two-Factor Authentication",
+      "status": {
+        "enabled": "Enabled",
+        "disabled": "Disabled"
+      },
+      "disabledMessage": "Add an extra layer of security to your account by enabling two-factor authentication.",
+      "backupCodes": {
+        "title": "Backup Codes",
+        "remaining": "{{remaining}} of {{total}} codes remaining",
+        "lowWarning": "Low on backup codes. Consider regenerating them.",
+        "newCodesTitle": "New Backup Codes - Save These!",
+        "newCodesMessage": "Your old backup codes have been invalidated. Save these new codes in a secure place.",
+        "confirmSaved": "I've saved these codes"
+      },
+      "actions": {
+        "regenerate": "Regenerate Backup Codes",
+        "disable": "Disable Two-Factor Authentication"
+      },
+      "confirmDisable": {
+        "title": "Confirm Disable 2FA",
+        "passwordLabel": "Password",
+        "codeLabel": "Authenticator Code",
+        "disabling": "Disabling...",
+        "confirmButton": "Disable 2FA"
+      },
+      "regenerate": {
+        "title": "Regenerate Backup Codes",
+        "passwordLabel": "Password",
+        "generating": "Generating...",
+        "confirmButton": "Generate New Codes"
+      }
     }
   },
   "dashboard": {
@@ -162,15 +252,63 @@
     "generic": "An error occurred. Please try again.",
     "networkError": "Network error. Please check your connection.",
     "unauthorized": "You are not authorized to perform this action.",
-    "notFound": "The requested resource was not found."
+    "notFound": "The requested resource was not found.",
+    "boundary": {
+      "title": "Oops! Something went wrong",
+      "message": "We apologize for the inconvenience. An unexpected error has occurred.",
+      "details": "Error details (Development only)",
+      "tryAgain": "Try Again",
+      "goHome": "Go Home"
+    },
+    "errorState": {
+      "error": {
+        "title": "Oops! Something went wrong",
+        "message": "We encountered an unexpected error. Please try again or contact support if the problem persists."
+      },
+      "warning": {
+        "title": "Warning",
+        "message": "This action requires your attention. Please review and proceed with caution."
+      },
+      "notFound": {
+        "title": "404 - Page not found",
+        "message": "The page you are looking for doesn't exist or has been moved."
+      },
+      "permission": {
+        "title": "Access denied",
+        "message": "You don't have permission to access this resource. Please contact your administrator."
+      },
+      "tryAgain": "Try again",
+      "goHome": "Go home"
+    },
+    "emptyState": {
+      "title": "No data found",
+      "message": "There's nothing to display here yet."
+    },
+    "networkError": {
+      "title": "Connection lost",
+      "message": "Please check your internet connection and try again."
+    }
   },
   "landing": {
     "nav": {
-      "startFree": "Start Free Trial"
+      "startFree": "Start Free Trial",
+      "features": "Features",
+      "industries": "Industries",
+      "pricing": "Pricing",
+      "resources": "Resources",
+      "getDemo": "Get Demo"
     },
     "hero": {
       "title": "Protect Your Business from Cyber Threats",
       "subtitle": "Comprehensive cybersecurity awareness training that transforms your employees into your strongest defense against cyber attacks.",
+      "nis2Badge": "NIS-2 Directive Compliance Ready",
+      "mainTitle": "Transform Your Employees Into Your Strongest Security Asset",
+      "mainSubtitle": "Enterprise-grade cybersecurity awareness platform trusted by 500+ organizations across Europe. Reduce security incidents by 90% with automated training, phishing simulations, and compliance reporting.",
+      "ctaPrimary": "Start 14-Day Free Trial",
+      "ctaSecondary": "Watch 2-Min Demo",
+      "gdprCompliant": "GDPR compliant",
+      "setupTime": "Setup in 15 minutes",
+      "incidentReduction": "Incident Reduction",
       "cta": {
         "primary": "Start Free Trial",
         "secondary": "Learn More"
@@ -179,25 +317,123 @@
       "badge2": "No credit card required",
       "badge3": "Setup in minutes"
     },
+    "trust": {
+      "title": "Trusted by 500+ security-conscious organizations"
+    },
     "features": {
       "title": "Everything You Need for Cybersecurity Training",
       "subtitle": "Our platform provides comprehensive tools to educate, test, and protect your organization.",
+      "mainTitle": "Enterprise-Ready Security Awareness Platform",
+      "mainSubtitle": "Everything you need to build a culture of security in your organization",
       "phishing": {
         "title": "Phishing Simulations",
-        "description": "Realistic phishing tests to identify vulnerable employees and provide targeted training."
+        "description": "Realistic phishing tests to identify vulnerable employees and provide targeted training.",
+        "stats": "50+ Templates"
       },
       "training": {
         "title": "Interactive Training",
-        "description": "Engaging courses covering all aspects of cybersecurity awareness and best practices."
+        "description": "Engaging courses covering all aspects of cybersecurity awareness and best practices.",
+        "stats": "30+ Modules"
       },
       "analytics": {
         "title": "Detailed Analytics",
-        "description": "Track progress, identify trends, and measure the effectiveness of your security program."
+        "description": "Track progress, identify trends, and measure the effectiveness of your security program.",
+        "stats": "Real-time"
       },
       "compliance": {
         "title": "Compliance Ready",
-        "description": "Meet regulatory requirements with automated reporting and certification tracking."
+        "description": "Meet regulatory requirements with automated reporting and certification tracking.",
+        "stats": "Auto-Reports"
+      },
+      "multiTenant": {
+        "title": "Multi-Tenant Architecture",
+        "description": "Manage multiple companies with isolated data"
+      },
+      "automated": {
+        "title": "Automated Campaigns",
+        "description": "Schedule training and phishing tests automatically"
+      },
+      "roleBased": {
+        "title": "Role-Based Training",
+        "description": "Tailored content for different job functions"
       }
+    },
+    "industries": {
+      "title": "Industry-Specific Solutions",
+      "subtitle": "Tailored cybersecurity training that addresses your industry's unique challenges and compliance requirements",
+      "securityChallenges": "Security Challenges",
+      "keyChallenges": "Key Challenges:",
+      "ourSolutions": "Our Solutions:",
+      "finance": {
+        "title": "Financial Services",
+        "challenge1": "Regulatory compliance (BAFIN, PCI-DSS)",
+        "challenge2": "High-value targets for cybercriminals",
+        "challenge3": "Complex IT infrastructure",
+        "solution1": "BAFIN-compliant training modules",
+        "solution2": "Financial fraud awareness",
+        "solution3": "PCI-DSS certification tracking"
+      },
+      "healthcare": {
+        "title": "Healthcare",
+        "challenge1": "Patient data protection (GDPR)",
+        "challenge2": "Medical device security",
+        "challenge3": "Staff with varying IT skills",
+        "solution1": "HIPAA/GDPR focused training",
+        "solution2": "Medical phishing scenarios",
+        "solution3": "Simplified learning paths"
+      },
+      "manufacturing": {
+        "title": "Manufacturing",
+        "challenge1": "OT/IT convergence risks",
+        "challenge2": "Supply chain attacks",
+        "challenge3": "TISAX compliance",
+        "solution1": "Industrial security training",
+        "solution2": "Supply chain modules",
+        "solution3": "TISAX compliance tracking"
+      },
+      "government": {
+        "title": "Government",
+        "challenge1": "Nation-state threats",
+        "challenge2": "Critical infrastructure",
+        "challenge3": "BSI compliance",
+        "solution1": "Advanced threat training",
+        "solution2": "BSI-aligned content",
+        "solution3": "Classified handling modules"
+      }
+    },
+    "roi": {
+      "title": "Calculate Your Security ROI",
+      "subtitle": "See how much you could save by preventing security breaches",
+      "numberOfEmployees": "Number of Employees",
+      "platformCost": "Platform Cost",
+      "potentialSavings": "Potential Savings",
+      "roiLabel": "ROI"
+    },
+    "compliance": {
+      "title": "Compliance & Certifications",
+      "subtitle": "Meet regulatory requirements with confidence. Our platform is built to help you achieve and maintain compliance.",
+      "nis2": {
+        "title": "NIS-2 Directive Compliance",
+        "subtitle": "Stay ahead of the NIS-2 directive requirements with our comprehensive compliance features:",
+        "feature1": "Automated incident reporting",
+        "feature2": "Supply chain security training",
+        "feature3": "Risk assessment tools",
+        "feature4": "Compliance dashboards"
+      },
+      "dataProtection": {
+        "title": "Data Protection & Privacy",
+        "subtitle": "Your data security is our top priority. We ensure complete GDPR/DSGVO compliance:",
+        "feature1": "Data hosted in German data centers",
+        "feature2": "End-to-end encryption",
+        "feature3": "Regular security audits",
+        "feature4": "Data processing agreements"
+      }
+    },
+    "certifications": {
+      "iso27001": "ISO 27001",
+      "soc2": "SOC 2 Type II",
+      "gdpr": "GDPR/DSGVO",
+      "bsi": "BSI Grundschutz"
     },
     "benefits": {
       "title": "Why Organizations Choose Bootstrap Academy",
@@ -218,11 +454,21 @@
     "pricing": {
       "title": "Simple, Transparent Pricing",
       "subtitle": "Choose the plan that fits your organization's needs.",
+      "mainTitle": "Transparent Pricing for Every Organization",
+      "mainSubtitle": "Start with a 14-day free trial. No credit card required.",
       "popular": "Most Popular",
+      "mostPopular": "Most Popular",
+      "perUserYear": "user/year",
       "starter": {
         "name": "Starter",
         "price": "€49/month",
         "description": "Perfect for small businesses",
+        "tagline": "For small teams getting started",
+        "users": "10-100 users",
+        "phishing": "Basic phishing simulations",
+        "training": "10 training modules",
+        "reports": "Monthly reports",
+        "support": "Email support",
         "feature1": "Up to 50 users",
         "feature2": "Basic phishing simulations",
         "feature3": "5 training courses",
@@ -233,6 +479,13 @@
         "name": "Professional",
         "price": "€149/month",
         "description": "Ideal for growing companies",
+        "tagline": "For growing organizations",
+        "users": "100-1000 users",
+        "phishing": "Advanced phishing campaigns",
+        "training": "30+ training modules",
+        "analytics": "Real-time analytics",
+        "api": "API access",
+        "support": "Priority support",
         "feature1": "Up to 250 users",
         "feature2": "Advanced phishing campaigns",
         "feature3": "15+ training courses",
@@ -244,6 +497,13 @@
         "name": "Enterprise",
         "price": "Custom",
         "description": "For large organizations",
+        "tagline": "For large organizations",
+        "users": "Unlimited users",
+        "phishing": "Custom phishing scenarios",
+        "training": "Custom training content",
+        "sso": "SSO & advanced security",
+        "manager": "Dedicated success manager",
+        "support": "SLA & 24/7 support",
         "feature1": "Unlimited users",
         "feature2": "Custom phishing scenarios",
         "feature3": "All training content",
@@ -255,24 +515,44 @@
     "testimonials": {
       "title": "Trusted by Security-Conscious Organizations",
       "subtitle": "See what our customers have to say about their experience.",
+      "mainTitle": "Success Stories from Our Customers",
+      "mainSubtitle": "See how organizations like yours have transformed their security culture",
+      "readCaseStudies": "Read detailed case studies",
       "testimonial1": {
         "content": "Bootstrap Academy transformed our security culture. Our phishing click rate dropped from 23% to just 4% in six months.",
-        "author": "Sarah Johnson",
+        "quote": "Bootstrap Academy helped us reduce phishing incidents by 94% in just 6 months. The automated training and realistic simulations have transformed our security culture.",
+        "author": "Dr. Sarah Schmidt",
         "role": "CISO",
-        "company": "TechCorp Solutions"
+        "company": "Deutsche Bank",
+        "stat1": "94% ↓ Incidents",
+        "stat2": "15,000 Users"
       },
       "testimonial2": {
         "content": "The training modules are engaging and effective. Our employees actually enjoy the security awareness training now.",
-        "author": "Michael Chen",
+        "quote": "The platform's compliance reporting saved us hundreds of hours preparing for our ISO 27001 audit. It's been a game-changer for our security team.",
+        "author": "Michael Werner",
         "role": "IT Director",
-        "company": "Global Finance Ltd"
+        "company": "Siemens",
+        "stat1": "300h Saved",
+        "stat2": "ISO Certified"
       },
       "testimonial3": {
         "content": "Excellent platform with great reporting features. It's helped us achieve and maintain our compliance certifications.",
-        "author": "Emma Williams",
-        "role": "Compliance Manager",
-        "company": "Healthcare Plus"
+        "quote": "Our employees actually enjoy the security training now. The gamification and real-world scenarios make it engaging and memorable.",
+        "author": "Anna Müller",
+        "role": "HR Director",
+        "company": "Volkswagen",
+        "stat1": "98% Completion",
+        "stat2": "4.8/5 Rating"
       }
+    },
+    "integrations": {
+      "title": "Seamless Integration with Your Tech Stack",
+      "subtitle": "Connect Bootstrap Academy with your existing tools for a unified security ecosystem",
+      "azure": "Azure AD / Office 365",
+      "slack": "Slack",
+      "teams": "Microsoft Teams",
+      "sap": "SAP SuccessFactors"
     },
     "security": {
       "title": "Enterprise-Grade Security",
@@ -281,22 +561,39 @@
     "cta": {
       "title": "Ready to Strengthen Your Security?",
       "subtitle": "Join thousands of organizations protecting their most valuable assets.",
-      "button": "Start Your Free Trial"
+      "button": "Start Your Free Trial",
+      "finalTitle": "Ready to Build a Security-First Culture?",
+      "finalSubtitle": "Join 500+ organizations that have transformed their employees into their strongest defense",
+      "startTrial": "Start 14-Day Free Trial",
+      "scheduleDemo": "Schedule Live Demo",
+      "noCreditCard": "No credit card required",
+      "setupMinutes": "Setup in 15 minutes",
+      "cancelAnytime": "Cancel anytime"
     },
     "footer": {
       "description": "Empowering organizations with cybersecurity awareness.",
+      "companyDescription": "Enterprise cybersecurity awareness training platform. Protecting organizations through education since 2020.",
       "product": "Product",
       "features": "Features",
       "pricing": "Pricing",
       "login": "Login",
+      "integrations": "Integrations",
+      "apiDocs": "API Docs",
+      "resources": "Resources",
+      "blog": "Blog",
+      "caseStudies": "Case Studies",
+      "webinars": "Webinars",
+      "securityGuide": "Security Guide",
       "company": "Company",
       "about": "About Us",
       "contact": "Contact",
       "careers": "Careers",
+      "partners": "Partners",
       "legal": "Legal",
       "privacy": "Privacy Policy",
       "terms": "Terms of Service",
       "impressum": "Impressum",
+      "cookieSettings": "Cookie Settings",
       "rights": "All rights reserved."
     }
   },
@@ -586,6 +883,71 @@
       "medium": "Medium",
       "hard": "Hard"
     },
-    "comingSoon": "Phishing Simulations Coming Soon!"
+    "comingSoon": "Phishing Simulations Coming Soon!",
+    "campaign": {
+      "steps": {
+        "template": "Select Template",
+        "recipients": "Choose Recipients",
+        "schedule": "Schedule Campaign",
+        "settings": "Configure Settings",
+        "review": "Review & Launch"
+      },
+      "create": {
+        "title": "Create Phishing Campaign",
+        "subtitle": "Set up a new phishing simulation to test your organization's security awareness"
+      },
+      "errors": {
+        "selectTemplate": "Please select a template",
+        "selectRecipients": "Please select at least one recipient group",
+        "enterName": "Please enter a campaign name",
+        "createFailed": "Failed to create campaign",
+        "loadFailed": "Failed to load required data"
+      },
+      "success": {
+        "created": "Campaign created successfully!"
+      }
+    }
+  },
+  "emailCampaign": {
+    "roles": {
+      "companyAdmin": "Company Admin"
+    },
+    "errors": {
+      "nameRequired": "Campaign name is required",
+      "templateRequired": "Template is required",
+      "saveFailed": "Failed to save campaign",
+      "testFailed": "Failed to send test email",
+      "sendFailed": "Failed to send campaign"
+    },
+    "success": {
+      "updated": "Campaign updated successfully",
+      "created": "Campaign created successfully",
+      "testSent": "Test email sent successfully",
+      "sent": "Campaign sent successfully"
+    },
+    "edit": {
+      "title": "Edit Campaign"
+    },
+    "create": {
+      "title": "Create Campaign",
+      "subtitle": "Design and configure your email campaign"
+    },
+    "tabs": {
+      "details": "Details",
+      "audience": "Audience",
+      "preview": "Preview",
+      "schedule": "Schedule"
+    },
+    "sections": {
+      "details": "Campaign Details"
+    },
+    "fields": {
+      "name": "Campaign Name",
+      "description": "Description"
+    },
+    "placeholders": {
+      "name": "Enter campaign name",
+      "description": "Describe your campaign"
+    }
   }
 }

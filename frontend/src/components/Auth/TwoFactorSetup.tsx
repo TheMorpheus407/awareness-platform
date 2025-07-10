@@ -31,7 +31,7 @@ export const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({ onComplete, onCa
       setSetupData(response);
       setStep('setup');
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to setup 2FA');
+      setError(err.response?.data?.detail || t('auth.twoFactor.errors.setupFailed'));
     } finally {
       setLoading(false);
     }
@@ -46,7 +46,7 @@ export const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({ onComplete, onCa
       await apiClient.verify2FASetup(verificationCode);
       onComplete();
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Invalid verification code');
+      setError(err.response?.data?.detail || t('auth.twoFactor.errors.invalidCode'));
     } finally {
       setLoading(false);
     }
@@ -68,17 +68,17 @@ export const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({ onComplete, onCa
       <div className="bg-white p-6 rounded-lg shadow">
         <div className="flex items-center mb-4">
           <ShieldCheckIcon className="h-8 w-8 text-indigo-600 mr-3" />
-          <h2 className="text-2xl font-bold text-gray-900">Enable Two-Factor Authentication</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t('auth.twoFactor.setup.title')}</h2>
         </div>
         
         <p className="text-gray-600 mb-6">
-          To enhance your account security, please confirm your password to proceed with 2FA setup.
+          {t('auth.twoFactor.setup.passwordPrompt')}
         </p>
 
         <form onSubmit={handlePasswordSubmit}>
           <div className="mb-4">
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Confirm Password
+              {t('auth.twoFactor.setup.confirmPassword')}
             </label>
             <input
               type="password"
@@ -104,14 +104,14 @@ export const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({ onComplete, onCa
               className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
               disabled={loading}
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
               disabled={loading || !password}
             >
-              {loading ? 'Processing...' : 'Continue'}
+              {loading ? t('common.processing') : t('common.continue')}
             </button>
           </div>
         </form>
@@ -122,22 +122,22 @@ export const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({ onComplete, onCa
   if (step === 'setup' && setupData) {
     return (
       <div className="bg-white p-6 rounded-lg shadow">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Set Up Authenticator App</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('auth.twoFactor.setup.authenticatorTitle')}</h2>
 
         <div className="space-y-6">
           {/* Step 1: Install App */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">1. Install an Authenticator App</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('auth.twoFactor.setup.step1.title')}</h3>
             <p className="text-gray-600">
-              Download an authenticator app like Google Authenticator, Microsoft Authenticator, or Authy on your mobile device.
+              {t('auth.twoFactor.setup.step1.description')}
             </p>
           </div>
 
           {/* Step 2: Scan QR Code */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">2. Scan QR Code</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('auth.twoFactor.setup.step2.title')}</h3>
             <p className="text-gray-600 mb-4">
-              Scan this QR code with your authenticator app:
+              {t('auth.twoFactor.setup.step2.description')}
             </p>
             <div className="flex justify-center mb-4">
               <img 
@@ -149,7 +149,7 @@ export const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({ onComplete, onCa
             
             {/* Manual entry option */}
             <div className="bg-gray-50 p-4 rounded-md">
-              <p className="text-sm text-gray-600 mb-2">Can't scan? Enter this code manually:</p>
+              <p className="text-sm text-gray-600 mb-2">{t('auth.twoFactor.setup.manualEntry')}</p>
               <div className="flex items-center justify-between bg-white p-2 rounded border border-gray-300">
                 <code className="text-sm font-mono">{setupData.manual_entry_key}</code>
                 <button
@@ -169,13 +169,13 @@ export const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({ onComplete, onCa
 
           {/* Step 3: Save Backup Codes */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">3. Save Backup Codes</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('auth.twoFactor.setup.step3.title')}</h3>
             <p className="text-gray-600 mb-4">
-              Save these backup codes in a secure place. You can use them to access your account if you lose your authenticator device.
+              {t('auth.twoFactor.setup.step3.description')}
             </p>
             <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-md">
               <div className="flex justify-between items-start mb-3">
-                <p className="text-sm font-medium text-yellow-800">Backup Codes (Save These!)</p>
+                <p className="text-sm font-medium text-yellow-800">{t('auth.twoFactor.setup.backupCodesLabel')}</p>
                 <button
                   type="button"
                   onClick={() => copyToClipboard(setupData.backup_codes.join('\n'), 'codes')}
@@ -202,7 +202,7 @@ export const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({ onComplete, onCa
             onClick={() => setStep('verify')}
             className="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
           >
-            Continue to Verification
+            {t('auth.twoFactor.setup.continueToVerification')}
           </button>
         </div>
       </div>
@@ -212,16 +212,16 @@ export const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({ onComplete, onCa
   if (step === 'verify') {
     return (
       <div className="bg-white p-6 rounded-lg shadow">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Verify Setup</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('auth.twoFactor.verify.title')}</h2>
         
         <p className="text-gray-600 mb-6">
-          Enter the 6-digit code from your authenticator app to complete the setup.
+          {t('auth.twoFactor.verify.description')}
         </p>
 
         <form onSubmit={handleVerification}>
           <div className="mb-4">
             <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-2">
-              Verification Code
+              {t('auth.twoFactor.verify.codeLabel')}
             </label>
             <input
               type="text"
@@ -250,14 +250,14 @@ export const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({ onComplete, onCa
               className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
               disabled={loading}
             >
-              Back
+              {t('common.back')}
             </button>
             <button
               type="submit"
               className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
               disabled={loading || verificationCode.length !== 6}
             >
-              {loading ? 'Verifying...' : 'Complete Setup'}
+              {loading ? t('auth.twoFactor.verify.verifying') : t('auth.twoFactor.verify.complete')}
             </button>
           </div>
         </form>

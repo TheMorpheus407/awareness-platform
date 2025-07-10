@@ -74,52 +74,52 @@ const LandingEnhanced = () => {
       icon: <Mail className="w-8 h-8 text-blue-600" />,
       title: t('landing.features.phishing.title'),
       description: t('landing.features.phishing.description'),
-      stats: "50+ Templates"
+      stats: t('landing.features.phishing.stats')
     },
     {
       icon: <Globe className="w-8 h-8 text-blue-600" />,
       title: t('landing.features.training.title'),
       description: t('landing.features.training.description'),
-      stats: "30+ Modules"
+      stats: t('landing.features.training.stats')
     },
     {
       icon: <BarChart3 className="w-8 h-8 text-blue-600" />,
       title: t('landing.features.analytics.title'),
       description: t('landing.features.analytics.description'),
-      stats: "Real-time"
+      stats: t('landing.features.analytics.stats')
     },
     {
       icon: <FileCheck className="w-8 h-8 text-blue-600" />,
       title: t('landing.features.compliance.title'),
       description: t('landing.features.compliance.description'),
-      stats: "Auto-Reports"
+      stats: t('landing.features.compliance.stats')
     }
   ];
 
   const industries = {
     finance: {
       icon: <Briefcase className="w-12 h-12" />,
-      title: "Financial Services",
-      challenges: ["Regulatory compliance (BAFIN, PCI-DSS)", "High-value targets for cybercriminals", "Complex IT infrastructure"],
-      solutions: ["BAFIN-compliant training modules", "Financial fraud awareness", "PCI-DSS certification tracking"]
+      title: t('landing.industries.finance.title'),
+      challenges: [t('landing.industries.finance.challenge1'), t('landing.industries.finance.challenge2'), t('landing.industries.finance.challenge3')],
+      solutions: [t('landing.industries.finance.solution1'), t('landing.industries.finance.solution2'), t('landing.industries.finance.solution3')]
     },
     healthcare: {
       icon: <UserCheck className="w-12 h-12" />,
-      title: "Healthcare",
-      challenges: ["Patient data protection (GDPR)", "Medical device security", "Staff with varying IT skills"],
-      solutions: ["HIPAA/GDPR focused training", "Medical phishing scenarios", "Simplified learning paths"]
+      title: t('landing.industries.healthcare.title'),
+      challenges: [t('landing.industries.healthcare.challenge1'), t('landing.industries.healthcare.challenge2'), t('landing.industries.healthcare.challenge3')],
+      solutions: [t('landing.industries.healthcare.solution1'), t('landing.industries.healthcare.solution2'), t('landing.industries.healthcare.solution3')]
     },
     manufacturing: {
       icon: <Building className="w-12 h-12" />,
-      title: "Manufacturing",
-      challenges: ["OT/IT convergence risks", "Supply chain attacks", "TISAX compliance"],
-      solutions: ["Industrial security training", "Supply chain modules", "TISAX compliance tracking"]
+      title: t('landing.industries.manufacturing.title'),
+      challenges: [t('landing.industries.manufacturing.challenge1'), t('landing.industries.manufacturing.challenge2'), t('landing.industries.manufacturing.challenge3')],
+      solutions: [t('landing.industries.manufacturing.solution1'), t('landing.industries.manufacturing.solution2'), t('landing.industries.manufacturing.solution3')]
     },
     government: {
       icon: <ShieldCheck className="w-12 h-12" />,
-      title: "Government",
-      challenges: ["Nation-state threats", "Critical infrastructure", "BSI compliance"],
-      solutions: ["Advanced threat training", "BSI-aligned content", "Classified handling modules"]
+      title: t('landing.industries.government.title'),
+      challenges: [t('landing.industries.government.challenge1'), t('landing.industries.government.challenge2'), t('landing.industries.government.challenge3')],
+      solutions: [t('landing.industries.government.solution1'), t('landing.industries.government.solution2'), t('landing.industries.government.solution3')]
     }
   };
 
@@ -133,10 +133,10 @@ const LandingEnhanced = () => {
   ];
 
   const certifications = [
-    { name: "ISO 27001", icon: <Award className="w-16 h-16 text-blue-600" /> },
-    { name: "SOC 2 Type II", icon: <ShieldCheck className="w-16 h-16 text-blue-600" /> },
-    { name: "GDPR/DSGVO", icon: <FileCheck className="w-16 h-16 text-blue-600" /> },
-    { name: "BSI Grundschutz", icon: <Shield className="w-16 h-16 text-blue-600" /> }
+    { name: t('landing.certifications.iso27001'), icon: <Award className="w-16 h-16 text-blue-600" /> },
+    { name: t('landing.certifications.soc2'), icon: <ShieldCheck className="w-16 h-16 text-blue-600" /> },
+    { name: t('landing.certifications.gdpr'), icon: <FileCheck className="w-16 h-16 text-blue-600" /> },
+    { name: t('landing.certifications.bsi'), icon: <Shield className="w-16 h-16 text-blue-600" /> }
   ];
 
   return (
@@ -150,10 +150,10 @@ const LandingEnhanced = () => {
               <span className="text-xl font-bold text-gray-900">Bootstrap Academy</span>
             </div>
             <div className="hidden md:flex items-center space-x-8">
-              <a href="#features" onClick={(e) => handleSmoothScroll(e, 'features')} className="text-gray-600 hover:text-gray-900">Features</a>
-              <a href="#industries" onClick={(e) => handleSmoothScroll(e, 'industries')} className="text-gray-600 hover:text-gray-900">Industries</a>
-              <a href="#pricing" onClick={(e) => handleSmoothScroll(e, 'pricing')} className="text-gray-600 hover:text-gray-900">Pricing</a>
-              <a href="#resources" className="text-gray-600 hover:text-gray-900">Resources</a>
+              <a href="#features" onClick={(e) => handleSmoothScroll(e, 'features')} className="text-gray-600 hover:text-gray-900">{t('landing.nav.features')}</a>
+              <a href="#industries" onClick={(e) => handleSmoothScroll(e, 'industries')} className="text-gray-600 hover:text-gray-900">{t('landing.nav.industries')}</a>
+              <a href="#pricing" onClick={(e) => handleSmoothScroll(e, 'pricing')} className="text-gray-600 hover:text-gray-900">{t('landing.nav.pricing')}</a>
+              <a href="#resources" className="text-gray-600 hover:text-gray-900">{t('landing.nav.resources')}</a>
             </div>
             <div className="flex items-center space-x-4">
               <LanguageSwitcher />
@@ -164,7 +164,7 @@ const LandingEnhanced = () => {
                 to="/register" 
                 className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Get Demo
+                {t('landing.nav.getDemo')}
               </Link>
             </div>
           </div>
@@ -183,40 +183,39 @@ const LandingEnhanced = () => {
             <div>
               <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-medium mb-4">
                 <AlertTriangle className="w-4 h-4 mr-2" />
-                NIS-2 Directive Compliance Ready
+                {t('landing.hero.nis2Badge')}
               </div>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
                 Transform Your Employees Into Your Strongest <span className="text-blue-600">Security Asset</span>
               </h1>
               <p className="text-xl text-gray-600 mb-8">
-                Enterprise-grade cybersecurity awareness platform trusted by 500+ organizations across Europe. 
-                Reduce security incidents by 90% with automated training, phishing simulations, and compliance reporting.
+                {t('landing.hero.mainSubtitle')}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
                 <Link 
                   to="/register" 
                   className="inline-flex items-center justify-center px-8 py-3 text-lg font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  Start 14-Day Free Trial
+                  {t('landing.hero.ctaPrimary')}
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Link>
                 <button className="inline-flex items-center justify-center px-8 py-3 text-lg font-medium text-blue-600 border-2 border-blue-600 rounded-lg hover:bg-blue-50 transition-colors">
                   <Play className="mr-2 w-5 h-5" />
-                  Watch 2-Min Demo
+                  {t('landing.hero.ctaSecondary')}
                 </button>
               </div>
               <div className="flex items-center space-x-6 text-sm text-gray-600">
                 <div className="flex items-center">
                   <CheckCircle className="w-5 h-5 text-green-500 mr-1" />
-                  No credit card required
+                  {t('landing.hero.badge2')}
                 </div>
                 <div className="flex items-center">
                   <CheckCircle className="w-5 h-5 text-green-500 mr-1" />
-                  GDPR compliant
+                  {t('landing.hero.gdprCompliant')}
                 </div>
                 <div className="flex items-center">
                   <CheckCircle className="w-5 h-5 text-green-500 mr-1" />
-                  Setup in 15 minutes
+                  {t('landing.hero.setupTime')}
                 </div>
               </div>
             </div>
@@ -237,7 +236,7 @@ const LandingEnhanced = () => {
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-gray-900">90%</p>
-                    <p className="text-sm text-gray-600">Incident Reduction</p>
+                    <p className="text-sm text-gray-600">{t('landing.hero.incidentReduction')}</p>
                   </div>
                 </div>
               </div>
@@ -255,7 +254,7 @@ const LandingEnhanced = () => {
       >
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8">
-            <p className="text-gray-600 font-medium">Trusted by 500+ security-conscious organizations</p>
+            <p className="text-gray-600 font-medium">{t('landing.trust.title')}</p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 items-center">
             {companyLogos.map((company, index) => (
@@ -282,10 +281,10 @@ const LandingEnhanced = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Enterprise-Ready Security Awareness Platform
+              {t('landing.features.mainTitle')}
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Everything you need to build a culture of security in your organization
+              {t('landing.features.mainSubtitle')}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -307,22 +306,22 @@ const LandingEnhanced = () => {
             <div className="flex items-start space-x-3">
               <Users className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
               <div>
-                <h4 className="font-semibold text-gray-900">Multi-Tenant Architecture</h4>
-                <p className="text-gray-600 text-sm">Manage multiple companies with isolated data</p>
+                <h4 className="font-semibold text-gray-900">{t('landing.features.multiTenant.title')}</h4>
+                <p className="text-gray-600 text-sm">{t('landing.features.multiTenant.description')}</p>
               </div>
             </div>
             <div className="flex items-start space-x-3">
               <Clock className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
               <div>
-                <h4 className="font-semibold text-gray-900">Automated Campaigns</h4>
-                <p className="text-gray-600 text-sm">Schedule training and phishing tests automatically</p>
+                <h4 className="font-semibold text-gray-900">{t('landing.features.automated.title')}</h4>
+                <p className="text-gray-600 text-sm">{t('landing.features.automated.description')}</p>
               </div>
             </div>
             <div className="flex items-start space-x-3">
               <Target className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
               <div>
-                <h4 className="font-semibold text-gray-900">Role-Based Training</h4>
-                <p className="text-gray-600 text-sm">Tailored content for different job functions</p>
+                <h4 className="font-semibold text-gray-900">{t('landing.features.roleBased.title')}</h4>
+                <p className="text-gray-600 text-sm">{t('landing.features.roleBased.description')}</p>
               </div>
             </div>
           </div>
@@ -340,10 +339,10 @@ const LandingEnhanced = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Industry-Specific Solutions
+              {t('landing.industries.title')}
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Tailored cybersecurity training that addresses your industry's unique challenges and compliance requirements
+              {t('landing.industries.subtitle')}
             </p>
           </div>
           
@@ -371,11 +370,11 @@ const LandingEnhanced = () => {
             
             <div className="bg-white rounded-xl p-6 shadow-lg">
               <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                {industries[activeIndustry as keyof typeof industries].title} Security Challenges
+                {industries[activeIndustry as keyof typeof industries].title} {t('landing.industries.securityChallenges')}
               </h3>
               <div className="space-y-4">
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Key Challenges:</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">{t('landing.industries.keyChallenges')}</h4>
                   <ul className="space-y-2">
                     {industries[activeIndustry as keyof typeof industries].challenges.map((challenge, index) => (
                       <li key={index} className="flex items-start">
@@ -386,7 +385,7 @@ const LandingEnhanced = () => {
                   </ul>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Our Solutions:</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">{t('landing.industries.ourSolutions')}</h4>
                   <ul className="space-y-2">
                     {industries[activeIndustry as keyof typeof industries].solutions.map((solution, index) => (
                       <li key={index} className="flex items-start">
@@ -408,15 +407,15 @@ const LandingEnhanced = () => {
           <div className="bg-blue-600 rounded-2xl p-8 md:p-12 text-white">
             <div className="text-center mb-8">
               <Calculator className="w-16 h-16 mx-auto mb-4" />
-              <h2 className="text-3xl font-bold mb-4">Calculate Your Security ROI</h2>
+              <h2 className="text-3xl font-bold mb-4">{t('landing.roi.title')}</h2>
               <p className="text-lg opacity-90">
-                See how much you could save by preventing security breaches
+                {t('landing.roi.subtitle')}
               </p>
             </div>
             
             <div className="bg-white/10 rounded-lg p-6 backdrop-blur-sm">
               <div className="mb-6">
-                <label className="block text-sm font-medium mb-2">Number of Employees</label>
+                <label className="block text-sm font-medium mb-2">{t('landing.roi.numberOfEmployees')}</label>
                 <input
                   type="range"
                   min="50"
@@ -435,15 +434,15 @@ const LandingEnhanced = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                 <div className="bg-white/10 rounded-lg p-4">
-                  <p className="text-sm opacity-90 mb-1">Platform Cost</p>
+                  <p className="text-sm opacity-90 mb-1">{t('landing.roi.platformCost')}</p>
                   <p className="text-2xl font-bold">€{(roiUsers * 12).toLocaleString()}/mo</p>
                 </div>
                 <div className="bg-white/10 rounded-lg p-4">
-                  <p className="text-sm opacity-90 mb-1">Potential Savings</p>
+                  <p className="text-sm opacity-90 mb-1">{t('landing.roi.potentialSavings')}</p>
                   <p className="text-2xl font-bold">€{calculateROI().savings}</p>
                 </div>
                 <div className="bg-white/10 rounded-lg p-4">
-                  <p className="text-sm opacity-90 mb-1">ROI</p>
+                  <p className="text-sm opacity-90 mb-1">{t('landing.roi.roiLabel')}</p>
                   <p className="text-2xl font-bold">{calculateROI().roi}%</p>
                 </div>
               </div>
@@ -462,10 +461,10 @@ const LandingEnhanced = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Compliance & Certifications
+              {t('landing.compliance.title')}
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Meet regulatory requirements with confidence. Our platform is built to help you achieve and maintain compliance.
+              {t('landing.compliance.subtitle')}
             </p>
           </div>
           
@@ -483,50 +482,50 @@ const LandingEnhanced = () => {
           <div className="mt-12 bg-white rounded-xl shadow-lg p-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">NIS-2 Directive Compliance</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">{t('landing.compliance.nis2.title')}</h3>
                 <p className="text-gray-600 mb-4">
-                  Stay ahead of the NIS-2 directive requirements with our comprehensive compliance features:
+                  {t('landing.compliance.nis2.subtitle')}
                 </p>
                 <ul className="space-y-2">
                   <li className="flex items-start">
                     <CheckCircle className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-700">Automated incident reporting</span>
+                    <span className="text-gray-700">{t('landing.compliance.nis2.feature1')}</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-700">Supply chain security training</span>
+                    <span className="text-gray-700">{t('landing.compliance.nis2.feature2')}</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-700">Risk assessment tools</span>
+                    <span className="text-gray-700">{t('landing.compliance.nis2.feature3')}</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-700">Compliance dashboards</span>
+                    <span className="text-gray-700">{t('landing.compliance.nis2.feature4')}</span>
                   </li>
                 </ul>
               </div>
               <div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Data Protection & Privacy</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">{t('landing.compliance.dataProtection.title')}</h3>
                 <p className="text-gray-600 mb-4">
-                  Your data security is our top priority. We ensure complete GDPR/DSGVO compliance:
+                  {t('landing.compliance.dataProtection.subtitle')}
                 </p>
                 <ul className="space-y-2">
                   <li className="flex items-start">
                     <Lock className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-700">Data hosted in German data centers</span>
+                    <span className="text-gray-700">{t('landing.compliance.dataProtection.feature1')}</span>
                   </li>
                   <li className="flex items-start">
                     <Lock className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-700">End-to-end encryption</span>
+                    <span className="text-gray-700">{t('landing.compliance.dataProtection.feature2')}</span>
                   </li>
                   <li className="flex items-start">
                     <Lock className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-700">Regular security audits</span>
+                    <span className="text-gray-700">{t('landing.compliance.dataProtection.feature3')}</span>
                   </li>
                   <li className="flex items-start">
                     <Lock className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-700">Data processing agreements</span>
+                    <span className="text-gray-700">{t('landing.compliance.dataProtection.feature4')}</span>
                   </li>
                 </ul>
               </div>
@@ -546,10 +545,10 @@ const LandingEnhanced = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Transparent Pricing for Every Organization
+              {t('landing.pricing.mainTitle')}
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Start with a 14-day free trial. No credit card required.
+              {t('landing.pricing.mainSubtitle')}
             </p>
           </div>
           
@@ -557,119 +556,119 @@ const LandingEnhanced = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="pricing-card bg-white rounded-xl shadow-lg p-8">
               <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Starter</h3>
-                <div className="text-4xl font-bold text-gray-900 mb-2">€49<span className="text-lg text-gray-600">/user/year</span></div>
-                <p className="text-gray-600">For small teams getting started</p>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">{t('landing.pricing.starter.name')}</h3>
+                <div className="text-4xl font-bold text-gray-900 mb-2">€49<span className="text-lg text-gray-600">/{t('landing.pricing.perUserYear')}</span></div>
+                <p className="text-gray-600">{t('landing.pricing.starter.tagline')}</p>
               </div>
               <ul className="space-y-4 mb-8">
                 <li className="flex items-start">
                   <CheckCircle className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700">10-100 users</span>
+                  <span className="text-gray-700">{t('landing.pricing.starter.users')}</span>
                 </li>
                 <li className="flex items-start">
                   <CheckCircle className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700">Basic phishing simulations</span>
+                  <span className="text-gray-700">{t('landing.pricing.starter.phishing')}</span>
                 </li>
                 <li className="flex items-start">
                   <CheckCircle className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700">10 training modules</span>
+                  <span className="text-gray-700">{t('landing.pricing.starter.training')}</span>
                 </li>
                 <li className="flex items-start">
                   <CheckCircle className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700">Monthly reports</span>
+                  <span className="text-gray-700">{t('landing.pricing.starter.reports')}</span>
                 </li>
                 <li className="flex items-start">
                   <CheckCircle className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700">Email support</span>
+                  <span className="text-gray-700">{t('landing.pricing.starter.support')}</span>
                 </li>
               </ul>
               <Link 
                 to="/register" 
                 className="block w-full text-center py-3 px-6 rounded-lg font-medium bg-gray-100 text-gray-900 hover:bg-gray-200 transition-colors"
               >
-                Start Free Trial
+                {t('landing.pricing.starter.cta')}
               </Link>
             </div>
             
             <div className="pricing-card relative bg-white rounded-xl shadow-xl p-8 ring-2 ring-blue-600">
               <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
                 <span className="bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-medium">
-                  Most Popular
+                  {t('landing.pricing.mostPopular')}
                 </span>
               </div>
               <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Professional</h3>
-                <div className="text-4xl font-bold text-blue-600 mb-2">€39<span className="text-lg text-gray-600">/user/year</span></div>
-                <p className="text-gray-600">For growing organizations</p>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">{t('landing.pricing.professional.name')}</h3>
+                <div className="text-4xl font-bold text-blue-600 mb-2">€39<span className="text-lg text-gray-600">/{t('landing.pricing.perUserYear')}</span></div>
+                <p className="text-gray-600">{t('landing.pricing.professional.tagline')}</p>
               </div>
               <ul className="space-y-4 mb-8">
                 <li className="flex items-start">
                   <CheckCircle className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700">100-1000 users</span>
+                  <span className="text-gray-700">{t('landing.pricing.professional.users')}</span>
                 </li>
                 <li className="flex items-start">
                   <CheckCircle className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700">Advanced phishing campaigns</span>
+                  <span className="text-gray-700">{t('landing.pricing.professional.phishing')}</span>
                 </li>
                 <li className="flex items-start">
                   <CheckCircle className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700">30+ training modules</span>
+                  <span className="text-gray-700">{t('landing.pricing.professional.training')}</span>
                 </li>
                 <li className="flex items-start">
                   <CheckCircle className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700">Real-time analytics</span>
+                  <span className="text-gray-700">{t('landing.pricing.professional.analytics')}</span>
                 </li>
                 <li className="flex items-start">
                   <CheckCircle className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700">API access</span>
+                  <span className="text-gray-700">{t('landing.pricing.professional.api')}</span>
                 </li>
                 <li className="flex items-start">
                   <CheckCircle className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700">Priority support</span>
+                  <span className="text-gray-700">{t('landing.pricing.professional.support')}</span>
                 </li>
               </ul>
               <Link 
                 to="/register" 
                 className="block w-full text-center py-3 px-6 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
               >
-                Start Free Trial
+                {t('landing.pricing.starter.cta')}
               </Link>
             </div>
             
             <div className="pricing-card bg-white rounded-xl shadow-lg p-8">
               <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Enterprise</h3>
-                <div className="text-4xl font-bold text-gray-900 mb-2">Custom</div>
-                <p className="text-gray-600">For large organizations</p>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">{t('landing.pricing.enterprise.name')}</h3>
+                <div className="text-4xl font-bold text-gray-900 mb-2">{t('landing.pricing.enterprise.price')}</div>
+                <p className="text-gray-600">{t('landing.pricing.enterprise.tagline')}</p>
               </div>
               <ul className="space-y-4 mb-8">
                 <li className="flex items-start">
                   <CheckCircle className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700">Unlimited users</span>
+                  <span className="text-gray-700">{t('landing.pricing.enterprise.users')}</span>
                 </li>
                 <li className="flex items-start">
                   <CheckCircle className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700">Custom phishing scenarios</span>
+                  <span className="text-gray-700">{t('landing.pricing.enterprise.phishing')}</span>
                 </li>
                 <li className="flex items-start">
                   <CheckCircle className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700">Custom training content</span>
+                  <span className="text-gray-700">{t('landing.pricing.enterprise.training')}</span>
                 </li>
                 <li className="flex items-start">
                   <CheckCircle className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700">SSO & advanced security</span>
+                  <span className="text-gray-700">{t('landing.pricing.enterprise.sso')}</span>
                 </li>
                 <li className="flex items-start">
                   <CheckCircle className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700">Dedicated success manager</span>
+                  <span className="text-gray-700">{t('landing.pricing.enterprise.manager')}</span>
                 </li>
                 <li className="flex items-start">
                   <CheckCircle className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700">SLA & 24/7 support</span>
+                  <span className="text-gray-700">{t('landing.pricing.enterprise.support')}</span>
                 </li>
               </ul>
               <button className="block w-full text-center py-3 px-6 rounded-lg font-medium bg-gray-900 text-white hover:bg-gray-800 transition-colors">
-                Contact Sales
+                {t('landing.pricing.enterprise.cta')}
               </button>
             </div>
           </div>
@@ -686,10 +685,10 @@ const LandingEnhanced = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Success Stories from Our Customers
+              {t('landing.testimonials.mainTitle')}
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              See how organizations like yours have transformed their security culture
+              {t('landing.testimonials.mainSubtitle')}
             </p>
           </div>
           
@@ -702,14 +701,14 @@ const LandingEnhanced = () => {
                 ))}
               </div>
               <p className="text-gray-700 mb-4 italic">
-                "Bootstrap Academy helped us reduce phishing incidents by 94% in just 6 months. The automated training and realistic simulations have transformed our security culture."
+                "{t('landing.testimonials.testimonial1.quote')}"
               </p>
               <div className="border-t pt-4">
-                <p className="font-semibold text-gray-900">Dr. Sarah Schmidt</p>
-                <p className="text-sm text-gray-600">CISO, Deutsche Bank</p>
+                <p className="font-semibold text-gray-900">{t('landing.testimonials.testimonial1.author')}</p>
+                <p className="text-sm text-gray-600">{t('landing.testimonials.testimonial1.role')}, {t('landing.testimonials.testimonial1.company')}</p>
                 <div className="mt-3 flex items-center space-x-4 text-sm">
-                  <span className="text-green-600 font-semibold">94% ↓ Incidents</span>
-                  <span className="text-blue-600 font-semibold">15,000 Users</span>
+                  <span className="text-green-600 font-semibold">{t('landing.testimonials.testimonial1.stat1')}</span>
+                  <span className="text-blue-600 font-semibold">{t('landing.testimonials.testimonial1.stat2')}</span>
                 </div>
               </div>
             </div>
@@ -721,14 +720,14 @@ const LandingEnhanced = () => {
                 ))}
               </div>
               <p className="text-gray-700 mb-4 italic">
-                "The platform's compliance reporting saved us hundreds of hours preparing for our ISO 27001 audit. It's been a game-changer for our security team."
+                "{t('landing.testimonials.testimonial2.quote')}"
               </p>
               <div className="border-t pt-4">
-                <p className="font-semibold text-gray-900">Michael Werner</p>
-                <p className="text-sm text-gray-600">IT Director, Siemens</p>
+                <p className="font-semibold text-gray-900">{t('landing.testimonials.testimonial2.author')}</p>
+                <p className="text-sm text-gray-600">{t('landing.testimonials.testimonial2.role')}, {t('landing.testimonials.testimonial2.company')}</p>
                 <div className="mt-3 flex items-center space-x-4 text-sm">
-                  <span className="text-green-600 font-semibold">300h Saved</span>
-                  <span className="text-blue-600 font-semibold">ISO Certified</span>
+                  <span className="text-green-600 font-semibold">{t('landing.testimonials.testimonial2.stat1')}</span>
+                  <span className="text-blue-600 font-semibold">{t('landing.testimonials.testimonial2.stat2')}</span>
                 </div>
               </div>
             </div>
@@ -740,14 +739,14 @@ const LandingEnhanced = () => {
                 ))}
               </div>
               <p className="text-gray-700 mb-4 italic">
-                "Our employees actually enjoy the security training now. The gamification and real-world scenarios make it engaging and memorable."
+                "{t('landing.testimonials.testimonial3.quote')}"
               </p>
               <div className="border-t pt-4">
-                <p className="font-semibold text-gray-900">Anna Müller</p>
-                <p className="text-sm text-gray-600">HR Director, Volkswagen</p>
+                <p className="font-semibold text-gray-900">{t('landing.testimonials.testimonial3.author')}</p>
+                <p className="text-sm text-gray-600">{t('landing.testimonials.testimonial3.role')}, {t('landing.testimonials.testimonial3.company')}</p>
                 <div className="mt-3 flex items-center space-x-4 text-sm">
-                  <span className="text-green-600 font-semibold">98% Completion</span>
-                  <span className="text-blue-600 font-semibold">4.8/5 Rating</span>
+                  <span className="text-green-600 font-semibold">{t('landing.testimonials.testimonial3.stat1')}</span>
+                  <span className="text-blue-600 font-semibold">{t('landing.testimonials.testimonial3.stat2')}</span>
                 </div>
               </div>
             </div>
@@ -756,7 +755,7 @@ const LandingEnhanced = () => {
           {/* Case study CTA */}
           <div className="mt-12 text-center">
             <Link to="/case-studies" className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium">
-              Read detailed case studies
+              {t('landing.testimonials.readCaseStudies')}
               <ChevronRight className="w-5 h-5 ml-1" />
             </Link>
           </div>
@@ -768,10 +767,10 @@ const LandingEnhanced = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Seamless Integration with Your Tech Stack
+              {t('landing.integrations.title')}
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Connect Bootstrap Academy with your existing tools for a unified security ecosystem
+              {t('landing.integrations.subtitle')}
             </p>
           </div>
           
@@ -780,25 +779,25 @@ const LandingEnhanced = () => {
               <div className="bg-gray-100 rounded-lg p-6 mb-2">
                 <img src="/logos/placeholder.svg" alt="Microsoft" className="h-12 mx-auto" />
               </div>
-              <p className="text-sm text-gray-600">Azure AD / Office 365</p>
+              <p className="text-sm text-gray-600">{t('landing.integrations.azure')}</p>
             </div>
             <div className="text-center">
               <div className="bg-gray-100 rounded-lg p-6 mb-2">
                 <img src="/logos/placeholder.svg" alt="Slack" className="h-12 mx-auto" />
               </div>
-              <p className="text-sm text-gray-600">Slack</p>
+              <p className="text-sm text-gray-600">{t('landing.integrations.slack')}</p>
             </div>
             <div className="text-center">
               <div className="bg-gray-100 rounded-lg p-6 mb-2">
                 <img src="/logos/placeholder.svg" alt="Teams" className="h-12 mx-auto" />
               </div>
-              <p className="text-sm text-gray-600">Microsoft Teams</p>
+              <p className="text-sm text-gray-600">{t('landing.integrations.teams')}</p>
             </div>
             <div className="text-center">
               <div className="bg-gray-100 rounded-lg p-6 mb-2">
                 <img src="/logos/placeholder.svg" alt="SAP" className="h-12 mx-auto" />
               </div>
-              <p className="text-sm text-gray-600">SAP SuccessFactors</p>
+              <p className="text-sm text-gray-600">{t('landing.integrations.sap')}</p>
             </div>
           </div>
         </div>
@@ -813,26 +812,26 @@ const LandingEnhanced = () => {
       >
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-            Ready to Build a Security-First Culture?
+            {t('landing.cta.finalTitle')}
           </h2>
           <p className="text-lg text-blue-100 mb-8">
-            Join 500+ organizations that have transformed their employees into their strongest defense
+            {t('landing.cta.finalSubtitle')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link 
               to="/register" 
               className="inline-flex items-center justify-center px-8 py-3 text-lg font-medium text-blue-600 bg-white rounded-lg hover:bg-gray-100 transition-colors"
             >
-              Start 14-Day Free Trial
+              {t('landing.cta.startTrial')}
               <Zap className="ml-2 w-5 h-5" />
             </Link>
             <button className="inline-flex items-center justify-center px-8 py-3 text-lg font-medium text-white border-2 border-white rounded-lg hover:bg-white/10 transition-colors">
-              Schedule Live Demo
+              {t('landing.cta.scheduleDemo')}
               <Play className="ml-2 w-5 h-5" />
             </button>
           </div>
           <p className="mt-6 text-sm text-blue-100">
-            No credit card required • Setup in 15 minutes • Cancel anytime
+            {t('landing.cta.noCreditCard')} • {t('landing.cta.setupMinutes')} • {t('landing.cta.cancelAnytime')}
           </p>
         </div>
       </section>
@@ -847,7 +846,7 @@ const LandingEnhanced = () => {
                 <span className="text-xl font-bold">Bootstrap Academy</span>
               </div>
               <p className="text-gray-400 mb-4">
-                Enterprise cybersecurity awareness training platform. Protecting organizations through education since 2020.
+                {t('landing.footer.companyDescription')}
               </p>
               <div className="flex space-x-4">
                 <a href="#" className="text-gray-400 hover:text-white">
@@ -868,43 +867,43 @@ const LandingEnhanced = () => {
               </div>
             </div>
             <div>
-              <h3 className="font-semibold mb-4">Product</h3>
+              <h3 className="font-semibold mb-4">{t('landing.footer.product')}</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#pricing" className="hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Integrations</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">API Docs</a></li>
+                <li><a href="#features" className="hover:text-white transition-colors">{t('landing.footer.features')}</a></li>
+                <li><a href="#pricing" className="hover:text-white transition-colors">{t('landing.footer.pricing')}</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">{t('landing.footer.integrations')}</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">{t('landing.footer.apiDocs')}</a></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold mb-4">Resources</h3>
+              <h3 className="font-semibold mb-4">{t('landing.footer.resources')}</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Case Studies</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Webinars</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Security Guide</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">{t('landing.footer.blog')}</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">{t('landing.footer.caseStudies')}</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">{t('landing.footer.webinars')}</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">{t('landing.footer.securityGuide')}</a></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold mb-4">Company</h3>
+              <h3 className="font-semibold mb-4">{t('landing.footer.company')}</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Partners</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">{t('landing.footer.about')}</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">{t('landing.footer.contact')}</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">{t('landing.footer.careers')}</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">{t('landing.footer.partners')}</a></li>
               </ul>
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <p className="text-gray-400 text-sm">
-                &copy; 2024 Bootstrap Academy GmbH. All rights reserved.
+                &copy; 2024 Bootstrap Academy GmbH. {t('landing.footer.rights')}
               </p>
               <div className="flex space-x-6 mt-4 md:mt-0 text-sm">
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">Privacy Policy</a>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">Terms of Service</a>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">Impressum</a>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">Cookie Settings</a>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">{t('landing.footer.privacy')}</a>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">{t('landing.footer.terms')}</a>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">{t('landing.footer.impressum')}</a>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">{t('landing.footer.cookieSettings')}</a>
               </div>
             </div>
           </div>

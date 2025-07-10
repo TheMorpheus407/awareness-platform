@@ -34,17 +34,18 @@ interface Step {
   icon: React.ElementType;
 }
 
-const steps: Step[] = [
-  { id: 'template', name: 'Select Template', icon: Mail },
-  { id: 'recipients', name: 'Choose Recipients', icon: Users },
-  { id: 'schedule', name: 'Schedule Campaign', icon: Calendar },
-  { id: 'settings', name: 'Configure Settings', icon: Settings },
-  { id: 'review', name: 'Review & Launch', icon: AlertTriangle }
-];
-
 const CampaignForm: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  
+  const steps: Step[] = [
+    { id: 'template', name: t('phishing.campaign.steps.template'), icon: Mail },
+    { id: 'recipients', name: t('phishing.campaign.steps.recipients'), icon: Users },
+    { id: 'schedule', name: t('phishing.campaign.steps.schedule'), icon: Calendar },
+    { id: 'settings', name: t('phishing.campaign.steps.settings'), icon: Settings },
+    { id: 'review', name: t('phishing.campaign.steps.review'), icon: AlertTriangle }
+  ];
+
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [templates, setTemplates] = useState<PhishingTemplate[]>([]);
@@ -85,7 +86,7 @@ const CampaignForm: React.FC = () => {
       setRoles(['user', 'manager', 'admin']);
     } catch (err) {
       console.error('Failed to load initial data:', err);
-      toast.error('Failed to load required data');
+      toast.error(t('phishing.campaign.errors.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -94,15 +95,15 @@ const CampaignForm: React.FC = () => {
   const handleNext = () => {
     // Validate current step
     if (currentStep === 0 && !formData.template_id) {
-      toast.error('Please select a template');
+      toast.error(t('phishing.campaign.errors.selectTemplate'));
       return;
     }
     if (currentStep === 1 && formData.target_groups.length === 0) {
-      toast.error('Please select at least one recipient group');
+      toast.error(t('phishing.campaign.errors.selectRecipients'));
       return;
     }
     if (currentStep === 2 && !formData.name) {
-      toast.error('Please enter a campaign name');
+      toast.error(t('phishing.campaign.errors.enterName'));
       return;
     }
 
@@ -117,11 +118,11 @@ const CampaignForm: React.FC = () => {
     try {
       setLoading(true);
       const campaign = await phishingApi.createCampaign(formData);
-      toast.success('Campaign created successfully!');
+      toast.success(t('phishing.campaign.success.created'));
       navigate(`/phishing/campaigns/${campaign.id}`);
     } catch (err) {
       console.error('Failed to create campaign:', err);
-      toast.error('Failed to create campaign');
+      toast.error(t('phishing.campaign.errors.createFailed'));
     } finally {
       setLoading(false);
     }
@@ -154,9 +155,9 @@ const CampaignForm: React.FC = () => {
     <div className="max-w-4xl mx-auto py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Create Phishing Campaign</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('phishing.campaign.create.title')}</h1>
         <p className="mt-1 text-sm text-gray-500">
-          Set up a new phishing simulation to test your organization's security awareness
+          {t('phishing.campaign.create.subtitle')}
         </p>
       </div>
 

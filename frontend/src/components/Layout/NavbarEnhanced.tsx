@@ -37,10 +37,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
   };
 
   const notifications = [
-    { id: 1, title: 'New phishing campaign completed', time: '5 minutes ago', read: false },
-    { id: 2, title: 'Security training reminder', time: '1 hour ago', read: false },
-    { id: 3, title: 'Monthly report available', time: '2 hours ago', read: true },
-    { id: 4, title: 'New user registered', time: '3 hours ago', read: true },
+    { id: 1, title: t('notifications.phishingComplete'), time: t('notifications.minutesAgo', { count: 5 }), read: false },
+    { id: 2, title: t('notifications.trainingReminder'), time: t('notifications.hoursAgo', { count: 1 }), read: false },
+    { id: 3, title: t('notifications.monthlyReport'), time: t('notifications.hoursAgo', { count: 2 }), read: true },
+    { id: 4, title: t('notifications.newUser'), time: t('notifications.hoursAgo', { count: 3 }), read: true },
   ];
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -128,7 +128,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
                 className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
               >
                 <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">{t('notifications.title')}</h3>
                 </div>
                 <div className="max-h-96 overflow-y-auto">
                   {notifications.map((notification) => (
@@ -149,7 +149,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
                 </div>
                 <div className="p-3 text-center border-t border-gray-200 dark:border-gray-700">
                   <button className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
-                    View all notifications
+                    {t('notifications.viewAll')}
                   </button>
                 </div>
               </motion.div>
@@ -183,7 +183,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
               <p className="text-sm font-medium text-gray-900 dark:text-white">
                 {user?.email?.split('@')[0] || 'User'}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Administrator</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t('roles.administrator')}</p>
             </div>
             <ChevronDown className="w-4 h-4 text-gray-500 dark:text-gray-400" />
           </motion.button>
@@ -201,7 +201,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
                     {user?.email || 'user@example.com'}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Administrator
+                    {t('roles.administrator')}
                   </p>
                 </div>
                 <div className="py-1">

@@ -39,6 +39,7 @@ import {
 import { Badge } from '../ui/Badge';
 import { Skeleton } from '../ui/skeleton';
 import { toast } from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { emailCampaignService } from '../../services/emailCampaignService';
 import type {
   Campaign,
@@ -48,30 +49,31 @@ import type {
 } from '../../types/emailCampaign';
 import type { User } from '../../types/api';
 
-const userRoles = [
-  { value: 'user', label: 'User' },
-  { value: 'company_admin', label: 'Company Admin' },
-  { value: 'admin', label: 'Admin' },
-];
+export const EmailCampaignEditor: React.FC = () => {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const isEditing = !!id;
 
-const campaignSchema = z.object({
-  name: z.string().min(1, 'Campaign name is required'),
-  description: z.string().optional(),
-  template_id: z.string().min(1, 'Template is required'),
+  const userRoles = [
+    { value: 'user', label: t('users.roles.user') },
+    { value: 'company_admin', label: t('emailCampaign.roles.companyAdmin') },
+    { value: 'admin', label: t('users.roles.admin') },
+  ];
+
+  const campaignSchema = z.object({
+    name: z.string().min(1, t('emailCampaign.errors.nameRequired')),
+    description: z.string().optional(),
+    template_id: z.string().min(1, t('emailCampaign.errors.templateRequired')),
   scheduled_at: z.string().optional(),
   target_all_users: z.boolean(),
   target_user_roles: z.array(z.string()),
   exclude_unsubscribed: z.boolean(),
   custom_subject: z.string().optional(),
   custom_preview_text: z.string().optional(),
-});
+  });
 
-type CampaignFormData = z.infer<typeof campaignSchema>;
-
-export const EmailCampaignEditor: React.FC = () => {
-  const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
-  const isEditing = !!id;
+  type CampaignFormData = z.infer<typeof campaignSchema>;
 
   const [loading, setLoading] = useState(false);
   const [campaign, setCampaign] = useState<Campaign | null>(null);
@@ -155,17 +157,17 @@ export const EmailCampaignEditor: React.FC = () => {
 
       if (isEditing) {
         await emailCampaignService.updateCampaign(id!, data as CampaignUpdate);
-        toast.success('Campaign updated successfully');
+        toast.success(t('emailCampaign.success.updated'));
       } else {
         const created = await emailCampaignService.createCampaign(
           data as CampaignCreate
         );
-        toast.success('Campaign created successfully');
+        toast.success(t('emailCampaign.success.created'));
         navigate(`/admin/email-campaigns/${created.id}`);
       }
     } catch (error) {
       console.error('Failed to save campaign:', error);
-      toast.error('Failed to save campaign');
+      toast.error(t('emailCampaign.errors.saveFailed'));
     } finally {
       setLoading(false);
     }
@@ -181,12 +183,12 @@ export const EmailCampaignEditor: React.FC = () => {
         testEmail,
         {}
       );
-      toast.success('Test email sent successfully');
+      toast.success(t('emailCampaign.success.testSent'));
       setShowTestDialog(false);
       setTestEmail('');
     } catch (error) {
       console.error('Failed to send test email:', error);
-      toast.error('Failed to send test email');
+      toast.error(t('emailCampaign.errors.testFailed'));
     } finally {
       setSendingTest(false);
     }
@@ -200,11 +202,11 @@ export const EmailCampaignEditor: React.FC = () => {
       await emailCampaignService.sendCampaign(campaign.id, {
         send_immediately: true,
       });
-      toast.success('Campaign sent successfully');
+      toast.success(t('emailCampaign.success.sent'));
       navigate('/admin/email-campaigns');
     } catch (error) {
       console.error('Failed to send campaign:', error);
-      toast.error('Failed to send campaign');
+      toast.error(t('emailCampaign.errors.sendFailed'));
     } finally {
       setLoading(false);
     }
@@ -237,10 +239,10 @@ export const EmailCampaignEditor: React.FC = () => {
         </Button>
         <div>
           <h1 className="text-3xl font-bold">
-            {isEditing ? 'Edit Campaign' : 'Create Campaign'}
+            {isEditing ? t('emailCampaign.edit.title') : t('emailCampaign.create.title')}
           </h1>
           <p className="text-muted-foreground">
-            Design and configure your email campaign
+            {t('emailCampaign.create.subtitle')}
           </p>
         </div>
       </div>
@@ -250,34 +252,34 @@ export const EmailCampaignEditor: React.FC = () => {
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="details">
               <FileText className="w-4 h-4 mr-2" />
-              Details
+              {t('emailCampaign.tabs.details')}
             </TabsTrigger>
             <TabsTrigger value="audience">
               <Users className="w-4 h-4 mr-2" />
-              Audience
+              {t('emailCampaign.tabs.audience')}
             </TabsTrigger>
             <TabsTrigger value="preview">
               <Eye className="w-4 h-4 mr-2" />
-              Preview
+              {t('emailCampaign.tabs.preview')}
             </TabsTrigger>
             <TabsTrigger value="schedule">
               <Calendar className="w-4 h-4 mr-2" />
-              Schedule
+              {t('emailCampaign.tabs.schedule')}
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="details" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Campaign Details</CardTitle>
+                <CardTitle>{t('emailCampaign.sections.details')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Campaign Name</Label>
+                  <Label htmlFor="name">{t('emailCampaign.fields.name')}</Label>
                   <Input
                     id="name"
                     {...register('name')}
-                    placeholder="Enter campaign name"
+                    placeholder={t('emailCampaign.placeholders.name')}
                   />
                   {errors.name && (
                     <p className="text-sm text-destructive">
@@ -287,11 +289,11 @@ export const EmailCampaignEditor: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">{t('emailCampaign.fields.description')}</Label>
                   <Textarea
                     id="description"
                     {...register('description')}
-                    placeholder="Describe your campaign"
+                    placeholder={t('emailCampaign.placeholders.description')}
                     rows={3}
                   />
                 </div>

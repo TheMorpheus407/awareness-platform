@@ -50,7 +50,7 @@ export const TwoFactorManagement: React.FC<TwoFactorManagementProps> = ({
       setShowDisableForm(false);
       onStatusChange();
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to disable 2FA');
+      setError(err.response?.data?.detail || t('auth.twoFactor.errors.disableFailed'));
     } finally {
       setLoading(false);
     }
@@ -68,7 +68,7 @@ export const TwoFactorManagement: React.FC<TwoFactorManagementProps> = ({
       setTotpCode('');
       fetchBackupCodesStatus();
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to regenerate backup codes');
+      setError(err.response?.data?.detail || t('auth.twoFactor.errors.regenerateFailed'));
     } finally {
       setLoading(false);
     }
@@ -89,14 +89,14 @@ export const TwoFactorManagement: React.FC<TwoFactorManagementProps> = ({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
             <ShieldCheckIcon className="h-6 w-6 text-gray-400 mr-3" />
-            <h3 className="text-lg font-medium text-gray-900">Two-Factor Authentication</h3>
+            <h3 className="text-lg font-medium text-gray-900">{t('auth.twoFactor.title')}</h3>
           </div>
           <span className="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-full">
-            Disabled
+            {t('auth.twoFactor.status.disabled')}
           </span>
         </div>
         <p className="text-gray-600">
-          Add an extra layer of security to your account by enabling two-factor authentication.
+          {t('auth.twoFactor.disabledMessage')}
         </p>
       </div>
     );
@@ -110,21 +110,21 @@ export const TwoFactorManagement: React.FC<TwoFactorManagementProps> = ({
           <h3 className="text-lg font-medium text-gray-900">Two-Factor Authentication</h3>
         </div>
         <span className="px-3 py-1 text-sm bg-green-100 text-green-800 rounded-full">
-          Enabled
+          {t('auth.twoFactor.status.enabled')}
         </span>
       </div>
 
       {/* Backup Codes Status */}
       {backupCodesStatus && (
         <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-          <h4 className="font-medium text-gray-900 mb-2">Backup Codes</h4>
+          <h4 className="font-medium text-gray-900 mb-2">{t('auth.twoFactor.backupCodes.title')}</h4>
           <p className="text-sm text-gray-600 mb-2">
-            {backupCodesStatus.remaining_codes} of {backupCodesStatus.total_codes} codes remaining
+            {t('auth.twoFactor.backupCodes.remaining', { remaining: backupCodesStatus.remaining_codes, total: backupCodesStatus.total_codes })}
           </p>
           {backupCodesStatus.remaining_codes <= 2 && (
             <div className="flex items-center text-yellow-700 text-sm">
               <ExclamationTriangleIcon className="h-4 w-4 mr-1" />
-              <span>Low on backup codes. Consider regenerating them.</span>
+              <span>{t('auth.twoFactor.backupCodes.lowWarning')}</span>
             </div>
           )}
         </div>
@@ -133,9 +133,9 @@ export const TwoFactorManagement: React.FC<TwoFactorManagementProps> = ({
       {/* New Backup Codes Display */}
       {newBackupCodes.length > 0 && (
         <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <h4 className="font-medium text-yellow-800 mb-2">New Backup Codes - Save These!</h4>
+          <h4 className="font-medium text-yellow-800 mb-2">{t('auth.twoFactor.backupCodes.newCodesTitle')}</h4>
           <p className="text-sm text-yellow-700 mb-3">
-            Your old backup codes have been invalidated. Save these new codes in a secure place.
+            {t('auth.twoFactor.backupCodes.newCodesMessage')}
           </p>
           <div className="grid grid-cols-2 gap-2 mb-3">
             {newBackupCodes.map((code, index) => (
@@ -149,7 +149,7 @@ export const TwoFactorManagement: React.FC<TwoFactorManagementProps> = ({
             onClick={() => setNewBackupCodes([])}
             className="text-sm text-yellow-700 hover:text-yellow-800 underline"
           >
-            I've saved these codes
+            {t('auth.twoFactor.backupCodes.confirmSaved')}
           </button>
         </div>
       )}
@@ -163,14 +163,14 @@ export const TwoFactorManagement: React.FC<TwoFactorManagementProps> = ({
               onClick={() => setShowRegenerateForm(true)}
               className="w-full px-4 py-2 text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100"
             >
-              Regenerate Backup Codes
+              {t('auth.twoFactor.actions.regenerate')}
             </button>
             <button
               type="button"
               onClick={() => setShowDisableForm(true)}
               className="w-full px-4 py-2 text-red-600 bg-red-50 rounded-md hover:bg-red-100"
             >
-              Disable Two-Factor Authentication
+              {t('auth.twoFactor.actions.disable')}
             </button>
           </>
         )}
@@ -178,11 +178,11 @@ export const TwoFactorManagement: React.FC<TwoFactorManagementProps> = ({
         {/* Disable 2FA Form */}
         {showDisableForm && (
           <form onSubmit={handleDisable2FA} className="space-y-4">
-            <h4 className="font-medium text-gray-900">Confirm Disable 2FA</h4>
+            <h4 className="font-medium text-gray-900">{t('auth.twoFactor.confirmDisable.title')}</h4>
             
             <div>
               <label htmlFor="disable-password" className="block text-sm font-medium text-gray-700 mb-1">
-                Password
+                {t('auth.twoFactor.confirmDisable.passwordLabel')}
               </label>
               <input
                 type="password"
@@ -197,7 +197,7 @@ export const TwoFactorManagement: React.FC<TwoFactorManagementProps> = ({
 
             <div>
               <label htmlFor="disable-code" className="block text-sm font-medium text-gray-700 mb-1">
-                Authenticator Code
+                {t('auth.twoFactor.confirmDisable.codeLabel')}
               </label>
               <input
                 type="text"
@@ -226,14 +226,14 @@ export const TwoFactorManagement: React.FC<TwoFactorManagementProps> = ({
                 className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
                 disabled={loading}
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 type="submit"
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
                 disabled={loading || !password || totpCode.length !== 6}
               >
-                {loading ? 'Disabling...' : 'Disable 2FA'}
+                {loading ? t('auth.twoFactor.confirmDisable.disabling') : t('auth.twoFactor.confirmDisable.confirmButton')}
               </button>
             </div>
           </form>
@@ -242,11 +242,11 @@ export const TwoFactorManagement: React.FC<TwoFactorManagementProps> = ({
         {/* Regenerate Backup Codes Form */}
         {showRegenerateForm && (
           <form onSubmit={handleRegenerateBackupCodes} className="space-y-4">
-            <h4 className="font-medium text-gray-900">Regenerate Backup Codes</h4>
+            <h4 className="font-medium text-gray-900">{t('auth.twoFactor.regenerate.title')}</h4>
             
             <div>
               <label htmlFor="regen-password" className="block text-sm font-medium text-gray-700 mb-1">
-                Password
+                {t('auth.twoFactor.regenerate.passwordLabel')}
               </label>
               <input
                 type="password"
@@ -261,7 +261,7 @@ export const TwoFactorManagement: React.FC<TwoFactorManagementProps> = ({
 
             <div>
               <label htmlFor="regen-code" className="block text-sm font-medium text-gray-700 mb-1">
-                Authenticator Code
+                {t('auth.twoFactor.confirmDisable.codeLabel')}
               </label>
               <input
                 type="text"
@@ -290,14 +290,14 @@ export const TwoFactorManagement: React.FC<TwoFactorManagementProps> = ({
                 className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
                 disabled={loading}
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 type="submit"
                 className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
                 disabled={loading || !password || totpCode.length !== 6}
               >
-                {loading ? 'Generating...' : 'Generate New Codes'}
+                {loading ? t('auth.twoFactor.regenerate.generating') : t('auth.twoFactor.regenerate.confirmButton')}
               </button>
             </div>
           </form>

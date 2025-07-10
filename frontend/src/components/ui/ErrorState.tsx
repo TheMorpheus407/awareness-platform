@@ -2,6 +2,7 @@ import React from 'react';
 import clsx from 'clsx';
 import { AlertCircle, RefreshCw, Home, HelpCircle, XCircle } from 'lucide-react';
 import { Button } from './button';
+import { useTranslation } from 'react-i18next';
 
 export interface ErrorStateProps {
   title?: string;
@@ -16,28 +17,28 @@ export interface ErrorStateProps {
   className?: string;
 }
 
-const defaultContent = {
+const getDefaultContent = (t: any) => ({
   error: {
-    title: 'Oops! Something went wrong',
-    message: 'We encountered an unexpected error. Please try again or contact support if the problem persists.',
+    title: t('errors.errorState.error.title'),
+    message: t('errors.errorState.error.message'),
     icon: <XCircle className="w-16 h-16" />,
   },
   warning: {
-    title: 'Warning',
-    message: 'This action requires your attention. Please review and proceed with caution.',
+    title: t('errors.errorState.warning.title'),
+    message: t('errors.errorState.warning.message'),
     icon: <AlertCircle className="w-16 h-16" />,
   },
   'not-found': {
-    title: '404 - Page not found',
-    message: 'The page you are looking for doesn\'t exist or has been moved.',
+    title: t('errors.errorState.notFound.title'),
+    message: t('errors.errorState.notFound.message'),
     icon: <HelpCircle className="w-16 h-16" />,
   },
   permission: {
-    title: 'Access denied',
-    message: 'You don\'t have permission to access this resource. Please contact your administrator.',
+    title: t('errors.errorState.permission.title'),
+    message: t('errors.errorState.permission.message'),
     icon: <AlertCircle className="w-16 h-16" />,
   },
-};
+});
 
 export const ErrorState: React.FC<ErrorStateProps> = ({
   title,
@@ -51,6 +52,8 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
   children,
   className,
 }) => {
+  const { t } = useTranslation();
+  const defaultContent = getDefaultContent(t);
   const content = defaultContent[variant];
   
   const iconColors = {
@@ -92,7 +95,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
             icon={<RefreshCw className="w-4 h-4" />}
             animated
           >
-            Try again
+            {t('errors.errorState.tryAgain')}
           </Button>
         )}
         
@@ -102,7 +105,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
             variant="secondary"
             icon={<Home className="w-4 h-4" />}
           >
-            Go home
+            {t('errors.errorState.goHome')}
           </Button>
         )}
       </div>
@@ -128,12 +131,14 @@ export const EmptyState: React.FC<{
   };
   className?: string;
 }> = ({
-  title = 'No data found',
-  message = 'There\'s nothing to display here yet.',
+  title,
+  message,
   icon,
   action,
   className,
-}) => (
+}) => {
+  const { t } = useTranslation();
+  return (
   <div className={clsx(
     'flex flex-col items-center justify-center min-h-[300px] p-8 text-center',
     className
@@ -145,11 +150,11 @@ export const EmptyState: React.FC<{
     )}
     
     <h3 className="text-lg font-semibold text-gray-900 mb-2">
-      {title}
+      {title || t('errors.emptyState.title')}
     </h3>
     
     <p className="text-gray-600 max-w-sm mb-6">
-      {message}
+      {message || t('errors.emptyState.message')}
     </p>
     
     {action && (
@@ -158,7 +163,8 @@ export const EmptyState: React.FC<{
       </Button>
     )}
   </div>
-);
+  );
+};
 
 // Inline error component
 export const InlineError: React.FC<{
@@ -187,11 +193,13 @@ export const InlineError: React.FC<{
 export const NetworkError: React.FC<{
   onRetry?: () => void;
   className?: string;
-}> = ({ onRetry, className }) => (
+}> = ({ onRetry, className }) => {
+  const { t } = useTranslation();
+  return (
   <ErrorState
     variant="error"
-    title="Connection lost"
-    message="Please check your internet connection and try again."
+    title={t('errors.networkError.title')}
+    message={t('errors.networkError.message')}
     icon={
       <div className="relative">
         <AlertCircle className="w-16 h-16 text-red-500" />
@@ -204,4 +212,5 @@ export const NetworkError: React.FC<{
     onRetry={onRetry}
     className={className}
   />
-);
+  );
+};

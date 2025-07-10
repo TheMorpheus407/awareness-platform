@@ -5,6 +5,7 @@
 import React, { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface ModalProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ interface ModalProps {
 }
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 'md' }) => {
+  const { t } = useTranslation();
   const sizeClasses = {
     sm: 'sm:max-w-md',
     md: 'sm:max-w-lg',
@@ -55,7 +57,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 
                     className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                     onClick={onClose}
                   >
-                    <span className="sr-only">Close</span>
+                    <span className="sr-only">{t('common.close')}</span>
                     <X className="h-6 w-6" aria-hidden="true" />
                   </button>
                 </div>

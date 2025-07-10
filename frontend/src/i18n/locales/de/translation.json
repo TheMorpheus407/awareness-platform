@@ -13,7 +13,13 @@
     "logout": "Abmelden",
     "welcome": "Willkommen",
     "yes": "Ja",
-    "no": "Nein"
+    "no": "Nein",
+    "refresh": "Aktualisieren",
+    "close": "Schließen",
+    "processing": "Verarbeitung...",
+    "continue": "Weiter",
+    "profile": "Profil",
+    "settings": "Einstellungen"
   },
   "branding": {
     "appName": "CyberAware",
@@ -27,8 +33,27 @@
     "companies": "Unternehmen",
     "courses": "Kurse",
     "phishing": "Phishing",
+    "analytics": "Analysen",
     "reports": "Berichte",
     "settings": "Einstellungen"
+  },
+  "notifications": {
+    "title": "Benachrichtigungen",
+    "viewAll": "Alle Benachrichtigungen anzeigen",
+    "phishingComplete": "Phishing-Simulation abgeschlossen",
+    "trainingReminder": "Schulungserinnerung: Sicherheitsmodul abschließen",
+    "monthlyReport": "Monatlicher Sicherheitsbericht verfügbar",
+    "newUser": "Neuer Benutzer ist Ihrer Organisation beigetreten",
+    "minutesAgo": "vor {{count}} Minute",
+    "minutesAgo_plural": "vor {{count}} Minuten",
+    "hoursAgo": "vor {{count}} Stunde",
+    "hoursAgo_plural": "vor {{count}} Stunden"
+  },
+  "roles": {
+    "administrator": "Administrator",
+    "systemAdmin": "Systemadministrator",
+    "employee": "Mitarbeiter",
+    "manager": "Manager"
   },
   "auth": {
     "login": {
@@ -77,7 +102,74 @@
       "agree": "Ich stimme den",
       "termsAndConditions": "Allgemeinen Geschäftsbedingungen",
       "and": "und der",
-      "privacyPolicy": "Datenschutzerklärung"
+      "privacyPolicy": "Datenschutzerklärung zu"
+    },
+    "twoFactor": {
+      "setup": {
+        "title": "Zwei-Faktor-Authentifizierung aktivieren",
+        "passwordPrompt": "Um die Sicherheit Ihres Kontos zu erhöhen, bestätigen Sie bitte Ihr Passwort, um mit der 2FA-Einrichtung fortzufahren.",
+        "confirmPassword": "Passwort bestätigen",
+        "authenticatorTitle": "Authenticator-App einrichten",
+        "step1": {
+          "title": "1. Authenticator-App installieren",
+          "description": "Laden Sie eine Authenticator-App wie Google Authenticator, Microsoft Authenticator oder Authy auf Ihr Mobilgerät herunter."
+        },
+        "step2": {
+          "title": "2. QR-Code scannen",
+          "description": "Scannen Sie diesen QR-Code mit Ihrer Authenticator-App:"
+        },
+        "manualEntry": "Kann nicht scannen? Geben Sie diesen Code manuell ein:",
+        "step3": {
+          "title": "3. Backup-Codes speichern",
+          "description": "Speichern Sie diese Backup-Codes an einem sicheren Ort. Sie können sie verwenden, um auf Ihr Konto zuzugreifen, wenn Sie Ihr Authenticator-Gerät verlieren."
+        },
+        "backupCodesLabel": "Backup-Codes (Speichern Sie diese!)",
+        "continueToVerification": "Weiter zur Verifizierung"
+      },
+      "verify": {
+        "title": "Einrichtung verifizieren",
+        "description": "Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein, um die Einrichtung abzuschließen.",
+        "codeLabel": "Verifizierungscode",
+        "verifying": "Wird verifiziert...",
+        "complete": "Einrichtung abschließen"
+      },
+      "errors": {
+        "setupFailed": "2FA-Einrichtung fehlgeschlagen",
+        "invalidCode": "Ungültiger Verifizierungscode",
+        "disableFailed": "2FA konnte nicht deaktiviert werden",
+        "regenerateFailed": "Backup-Codes konnten nicht neu generiert werden"
+      },
+      "title": "Zwei-Faktor-Authentifizierung",
+      "status": {
+        "enabled": "Aktiviert",
+        "disabled": "Deaktiviert"
+      },
+      "disabledMessage": "Fügen Sie Ihrem Konto eine zusätzliche Sicherheitsebene hinzu, indem Sie die Zwei-Faktor-Authentifizierung aktivieren.",
+      "backupCodes": {
+        "title": "Backup-Codes",
+        "remaining": "{{remaining}} von {{total}} Codes verbleibend",
+        "lowWarning": "Wenige Backup-Codes übrig. Erwägen Sie, neue zu generieren.",
+        "newCodesTitle": "Neue Backup-Codes - Speichern Sie diese!",
+        "newCodesMessage": "Ihre alten Backup-Codes wurden ungültig gemacht. Speichern Sie diese neuen Codes an einem sicheren Ort.",
+        "confirmSaved": "Ich habe diese Codes gespeichert"
+      },
+      "actions": {
+        "regenerate": "Backup-Codes neu generieren",
+        "disable": "Zwei-Faktor-Authentifizierung deaktivieren"
+      },
+      "confirmDisable": {
+        "title": "2FA-Deaktivierung bestätigen",
+        "passwordLabel": "Passwort",
+        "codeLabel": "Authenticator-Code",
+        "disabling": "Wird deaktiviert...",
+        "confirmButton": "2FA deaktivieren"
+      },
+      "regenerate": {
+        "title": "Backup-Codes neu generieren",
+        "passwordLabel": "Passwort",
+        "generating": "Wird generiert...",
+        "confirmButton": "Neue Codes generieren"
+      }
     }
   },
   "dashboard": {
@@ -160,15 +252,63 @@
     "generic": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
     "networkError": "Netzwerkfehler. Bitte überprüfen Sie Ihre Verbindung.",
     "unauthorized": "Sie sind nicht berechtigt, diese Aktion durchzuführen.",
-    "notFound": "Die angeforderte Ressource wurde nicht gefunden."
+    "notFound": "Die angeforderte Ressource wurde nicht gefunden.",
+    "boundary": {
+      "title": "Ups! Etwas ist schiefgegangen",
+      "message": "Wir entschuldigen uns für die Unannehmlichkeiten. Ein unerwarteter Fehler ist aufgetreten.",
+      "details": "Fehlerdetails (Nur Entwicklung)",
+      "tryAgain": "Erneut versuchen",
+      "goHome": "Zur Startseite"
+    },
+    "errorState": {
+      "error": {
+        "title": "Ups! Etwas ist schiefgegangen",
+        "message": "Es ist ein unerwarteter Fehler aufgetreten. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support, wenn das Problem weiterhin besteht."
+      },
+      "warning": {
+        "title": "Warnung",
+        "message": "Diese Aktion erfordert Ihre Aufmerksamkeit. Bitte überprüfen Sie und fahren Sie mit Vorsicht fort."
+      },
+      "notFound": {
+        "title": "404 - Seite nicht gefunden",
+        "message": "Die gesuchte Seite existiert nicht oder wurde verschoben."
+      },
+      "permission": {
+        "title": "Zugriff verweigert",
+        "message": "Sie haben keine Berechtigung auf diese Ressource zuzugreifen. Bitte kontaktieren Sie Ihren Administrator."
+      },
+      "tryAgain": "Erneut versuchen",
+      "goHome": "Zur Startseite"
+    },
+    "emptyState": {
+      "title": "Keine Daten gefunden",
+      "message": "Hier gibt es noch nichts anzuzeigen."
+    },
+    "networkError": {
+      "title": "Verbindung verloren",
+      "message": "Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut."
+    }
   },
   "landing": {
     "nav": {
-      "startFree": "Kostenlos testen"
+      "startFree": "Kostenlos testen",
+      "features": "Funktionen",
+      "industries": "Branchen",
+      "pricing": "Preise",
+      "resources": "Ressourcen",
+      "getDemo": "Demo anfordern"
     },
     "hero": {
       "title": "Schützen Sie Ihr Unternehmen vor Cyber-Bedrohungen",
       "subtitle": "Umfassende Cybersicherheits-Awareness-Schulungen, die Ihre Mitarbeiter zu Ihrer stärksten Verteidigung gegen Cyberangriffe machen.",
+      "nis2Badge": "NIS-2-Richtlinie konform",
+      "mainTitle": "Verwandeln Sie Ihre Mitarbeiter in Ihre stärkste Sicherheitsressource",
+      "mainSubtitle": "Unternehmensgerechte Cybersicherheits-Awareness-Plattform, der über 500 Organisationen in Europa vertrauen. Reduzieren Sie Sicherheitsvorfälle um 90% mit automatisierten Schulungen, Phishing-Simulationen und Compliance-Berichten.",
+      "ctaPrimary": "14-Tage-Testversion starten",
+      "ctaSecondary": "2-Min-Demo ansehen",
+      "gdprCompliant": "DSGVO-konform",
+      "setupTime": "Einrichtung in 15 Minuten",
+      "incidentReduction": "Vorfallsreduzierung",
       "cta": {
         "primary": "Kostenlos testen",
         "secondary": "Mehr erfahren"
@@ -177,25 +317,123 @@
       "badge2": "Keine Kreditkarte erforderlich",
       "badge3": "In Minuten eingerichtet"
     },
+    "trust": {
+      "title": "Vertraut von über 500 sicherheitsbewussten Organisationen"
+    },
     "features": {
       "title": "Alles was Sie für Cybersicherheitsschulungen benötigen",
       "subtitle": "Unsere Plattform bietet umfassende Tools zur Schulung, Prüfung und zum Schutz Ihrer Organisation.",
+      "mainTitle": "Unternehmensfertige Sicherheitsbewusstseins-Plattform",
+      "mainSubtitle": "Alles, was Sie brauchen, um eine Sicherheitskultur in Ihrer Organisation aufzubauen",
       "phishing": {
         "title": "Phishing-Simulationen",
-        "description": "Realistische Phishing-Tests zur Identifizierung gefährdeter Mitarbeiter und gezielten Schulung."
+        "description": "Realistische Phishing-Tests zur Identifizierung gefährdeter Mitarbeiter und gezielten Schulung.",
+        "stats": "50+ Vorlagen"
       },
       "training": {
         "title": "Interaktive Schulungen",
-        "description": "Ansprechende Kurse zu allen Aspekten des Sicherheitsbewusstseins und Best Practices."
+        "description": "Ansprechende Kurse zu allen Aspekten des Sicherheitsbewusstseins und Best Practices.",
+        "stats": "30+ Module"
       },
       "analytics": {
         "title": "Detaillierte Analysen",
-        "description": "Verfolgen Sie Fortschritte, identifizieren Sie Trends und messen Sie die Wirksamkeit Ihres Sicherheitsprogramms."
+        "description": "Verfolgen Sie Fortschritte, identifizieren Sie Trends und messen Sie die Wirksamkeit Ihres Sicherheitsprogramms.",
+        "stats": "Echtzeit"
       },
       "compliance": {
         "title": "Compliance-Ready",
-        "description": "Erfüllen Sie regulatorische Anforderungen mit automatisierten Berichten und Zertifikatsverfolgung."
+        "description": "Erfüllen Sie regulatorische Anforderungen mit automatisierten Berichten und Zertifikatsverfolgung.",
+        "stats": "Auto-Berichte"
+      },
+      "multiTenant": {
+        "title": "Multi-Tenant-Architektur",
+        "description": "Verwalten Sie mehrere Unternehmen mit isolierten Daten"
+      },
+      "automated": {
+        "title": "Automatisierte Kampagnen",
+        "description": "Planen Sie Schulungen und Phishing-Tests automatisch"
+      },
+      "roleBased": {
+        "title": "Rollenbasierte Schulungen",
+        "description": "Maßgeschneiderte Inhalte für verschiedene Jobfunktionen"
       }
+    },
+    "industries": {
+      "title": "Branchenspezifische Lösungen",
+      "subtitle": "Maßgeschneiderte Cybersicherheitsschulungen, die auf die einzigartigen Herausforderungen und Compliance-Anforderungen Ihrer Branche eingehen",
+      "securityChallenges": "Sicherheitsherausforderungen",
+      "keyChallenges": "Hauptherausforderungen:",
+      "ourSolutions": "Unsere Lösungen:",
+      "finance": {
+        "title": "Finanzdienstleistungen",
+        "challenge1": "Regulatorische Compliance (BAFIN, PCI-DSS)",
+        "challenge2": "Hochwertige Ziele für Cyberkriminelle",
+        "challenge3": "Komplexe IT-Infrastruktur",
+        "solution1": "BAFIN-konforme Schulungsmodule",
+        "solution2": "Aufklärung über Finanzbetrug",
+        "solution3": "PCI-DSS-Zertifizierungsverfolgung"
+      },
+      "healthcare": {
+        "title": "Gesundheitswesen",
+        "challenge1": "Patientendatenschutz (DSGVO)",
+        "challenge2": "Sicherheit medizinischer Geräte",
+        "challenge3": "Personal mit unterschiedlichen IT-Kenntnissen",
+        "solution1": "HIPAA/DSGVO-fokussierte Schulungen",
+        "solution2": "Medizinische Phishing-Szenarien",
+        "solution3": "Vereinfachte Lernpfade"
+      },
+      "manufacturing": {
+        "title": "Fertigung",
+        "challenge1": "OT/IT-Konvergenzrisiken",
+        "challenge2": "Angriffe auf die Lieferkette",
+        "challenge3": "TISAX-Compliance",
+        "solution1": "Industrielle Sicherheitsschulungen",
+        "solution2": "Lieferkettenmodule",
+        "solution3": "TISAX-Compliance-Tracking"
+      },
+      "government": {
+        "title": "Behörden",
+        "challenge1": "Bedrohungen durch Nationalstaaten",
+        "challenge2": "Kritische Infrastruktur",
+        "challenge3": "BSI-Compliance",
+        "solution1": "Fortgeschrittene Bedrohungsschulungen",
+        "solution2": "BSI-konforme Inhalte",
+        "solution3": "Module zur Handhabung klassifizierter Informationen"
+      }
+    },
+    "roi": {
+      "title": "Berechnen Sie Ihren Sicherheits-ROI",
+      "subtitle": "Sehen Sie, wie viel Sie durch die Verhinderung von Sicherheitsverletzungen sparen könnten",
+      "numberOfEmployees": "Anzahl der Mitarbeiter",
+      "platformCost": "Plattformkosten",
+      "potentialSavings": "Potenzielle Einsparungen",
+      "roiLabel": "ROI"
+    },
+    "compliance": {
+      "title": "Compliance & Zertifizierungen",
+      "subtitle": "Erfüllen Sie regulatorische Anforderungen mit Zuversicht. Unsere Plattform wurde entwickelt, um Ihnen bei der Erreichung und Aufrechterhaltung der Compliance zu helfen.",
+      "nis2": {
+        "title": "NIS-2-Richtlinie Compliance",
+        "subtitle": "Bleiben Sie den Anforderungen der NIS-2-Richtlinie mit unseren umfassenden Compliance-Funktionen voraus:",
+        "feature1": "Automatisierte Vorfallsberichterstattung",
+        "feature2": "Sicherheitsschulungen für die Lieferkette",
+        "feature3": "Risikobewertungstools",
+        "feature4": "Compliance-Dashboards"
+      },
+      "dataProtection": {
+        "title": "Datenschutz & Privatsphäre",
+        "subtitle": "Ihre Datensicherheit ist unsere oberste Priorität. Wir gewährleisten vollständige DSGVO-Compliance:",
+        "feature1": "Daten in deutschen Rechenzentren gehostet",
+        "feature2": "Ende-zu-Ende-Verschlüsselung",
+        "feature3": "Regelmäßige Sicherheitsaudits",
+        "feature4": "Datenverarbeitungsvereinbarungen"
+      }
+    },
+    "certifications": {
+      "iso27001": "ISO 27001",
+      "soc2": "SOC 2 Type II",
+      "gdpr": "DSGVO",
+      "bsi": "BSI Grundschutz"
     },
     "benefits": {
       "title": "Warum Organisationen Bootstrap Academy wählen",
@@ -216,11 +454,21 @@
     "pricing": {
       "title": "Einfache, transparente Preise",
       "subtitle": "Wählen Sie den Plan, der zu den Bedürfnissen Ihrer Organisation passt.",
+      "mainTitle": "Transparente Preise für jede Organisation",
+      "mainSubtitle": "Beginnen Sie mit einer 14-tägigen kostenlosen Testversion. Keine Kreditkarte erforderlich.",
       "popular": "Beliebteste Wahl",
+      "mostPopular": "Beliebteste Wahl",
+      "perUserYear": "Benutzer/Jahr",
       "starter": {
         "name": "Starter",
         "price": "49€/Monat",
         "description": "Perfekt für kleine Unternehmen",
+        "tagline": "Für kleine Teams zum Einstieg",
+        "users": "10-100 Benutzer",
+        "phishing": "Basis-Phishing-Simulationen",
+        "training": "10 Schulungsmodule",
+        "reports": "Monatliche Berichte",
+        "support": "E-Mail-Support",
         "feature1": "Bis zu 50 Benutzer",
         "feature2": "Basis-Phishing-Simulationen",
         "feature3": "5 Schulungskurse",
@@ -231,6 +479,13 @@
         "name": "Professional",
         "price": "149€/Monat",
         "description": "Ideal für wachsende Unternehmen",
+        "tagline": "Für wachsende Organisationen",
+        "users": "100-1000 Benutzer",
+        "phishing": "Erweiterte Phishing-Kampagnen",
+        "training": "30+ Schulungsmodule",
+        "analytics": "Echtzeit-Analysen",
+        "api": "API-Zugang",
+        "support": "Prioritäts-Support",
         "feature1": "Bis zu 250 Benutzer",
         "feature2": "Erweiterte Phishing-Kampagnen",
         "feature3": "15+ Schulungskurse",
@@ -242,6 +497,13 @@
         "name": "Enterprise",
         "price": "Individuell",
         "description": "Für große Organisationen",
+        "tagline": "Für große Organisationen",
+        "users": "Unbegrenzte Benutzer",
+        "phishing": "Individuelle Phishing-Szenarien",
+        "training": "Individuelle Schulungsinhalte",
+        "sso": "SSO & erweiterte Sicherheit",
+        "manager": "Dedizierter Success Manager",
+        "support": "SLA & 24/7 Support",
         "feature1": "Unbegrenzte Benutzer",
         "feature2": "Individuelle Phishing-Szenarien",
         "feature3": "Alle Schulungsinhalte",
@@ -253,24 +515,44 @@
     "testimonials": {
       "title": "Vertraut von sicherheitsbewussten Organisationen",
       "subtitle": "Erfahren Sie, was unsere Kunden über ihre Erfahrungen zu sagen haben.",
+      "mainTitle": "Erfolgsgeschichten unserer Kunden",
+      "mainSubtitle": "Sehen Sie, wie Organisationen wie Ihre ihre Sicherheitskultur transformiert haben",
+      "readCaseStudies": "Detaillierte Fallstudien lesen",
       "testimonial1": {
         "content": "Bootstrap Academy hat unsere Sicherheitskultur transformiert. Unsere Phishing-Klickrate sank in sechs Monaten von 23% auf nur 4%.",
-        "author": "Sarah Johnson",
+        "quote": "Bootstrap Academy hat uns geholfen, Phishing-Vorfälle in nur 6 Monaten um 94% zu reduzieren. Die automatisierten Schulungen und realistischen Simulationen haben unsere Sicherheitskultur transformiert.",
+        "author": "Dr. Sarah Schmidt",
         "role": "CISO",
-        "company": "TechCorp Solutions"
+        "company": "Deutsche Bank",
+        "stat1": "94% ↓ Vorfälle",
+        "stat2": "15.000 Benutzer"
       },
       "testimonial2": {
         "content": "Die Schulungsmodule sind ansprechend und effektiv. Unsere Mitarbeiter genießen jetzt tatsächlich die Sicherheitsschulungen.",
-        "author": "Michael Chen",
+        "quote": "Die Compliance-Berichterstattung der Plattform hat uns Hunderte von Stunden bei der Vorbereitung auf unser ISO 27001-Audit gespart. Es war ein Game-Changer für unser Sicherheitsteam.",
+        "author": "Michael Werner",
         "role": "IT-Direktor",
-        "company": "Global Finance Ltd"
+        "company": "Siemens",
+        "stat1": "300h gespart",
+        "stat2": "ISO-zertifiziert"
       },
       "testimonial3": {
         "content": "Ausgezeichnete Plattform mit großartigen Berichtsfunktionen. Sie hat uns geholfen, unsere Compliance-Zertifizierungen zu erreichen und aufrechtzuerhalten.",
-        "author": "Emma Williams",
-        "role": "Compliance Manager",
-        "company": "Healthcare Plus"
+        "quote": "Unsere Mitarbeiter genießen die Sicherheitsschulungen tatsächlich. Die Gamifizierung und realistischen Szenarien machen sie ansprechend und einprägsam.",
+        "author": "Anna Müller",
+        "role": "HR-Direktorin",
+        "company": "Volkswagen",
+        "stat1": "98% Abschlussrate",
+        "stat2": "4,8/5 Bewertung"
       }
+    },
+    "integrations": {
+      "title": "Nahtlose Integration in Ihren Tech-Stack",
+      "subtitle": "Verbinden Sie Bootstrap Academy mit Ihren bestehenden Tools für ein einheitliches Sicherheitsökosystem",
+      "azure": "Azure AD / Office 365",
+      "slack": "Slack",
+      "teams": "Microsoft Teams",
+      "sap": "SAP SuccessFactors"
     },
     "security": {
       "title": "Sicherheit auf Unternehmensniveau",
@@ -279,22 +561,39 @@
     "cta": {
       "title": "Bereit, Ihre Sicherheit zu stärken?",
       "subtitle": "Schließen Sie sich Tausenden von Organisationen an, die ihre wertvollsten Ressourcen schützen.",
-      "button": "Kostenlose Testversion starten"
+      "button": "Kostenlose Testversion starten",
+      "finalTitle": "Bereit, eine Security-First-Kultur aufzubauen?",
+      "finalSubtitle": "Schließen Sie sich über 500 Organisationen an, die ihre Mitarbeiter in ihre stärkste Verteidigung verwandelt haben",
+      "startTrial": "14-Tage-Testversion starten",
+      "scheduleDemo": "Live-Demo vereinbaren",
+      "noCreditCard": "Keine Kreditkarte erforderlich",
+      "setupMinutes": "Einrichtung in 15 Minuten",
+      "cancelAnytime": "Jederzeit kündbar"
     },
     "footer": {
       "description": "Wir stärken Organisationen mit Cybersicherheitsbewusstsein.",
+      "companyDescription": "Unternehmensplattform für Cybersicherheits-Awareness-Training. Schutz von Organisationen durch Bildung seit 2020.",
       "product": "Produkt",
       "features": "Funktionen",
       "pricing": "Preise",
       "login": "Anmelden",
+      "integrations": "Integrationen",
+      "apiDocs": "API-Dokumentation",
+      "resources": "Ressourcen",
+      "blog": "Blog",
+      "caseStudies": "Fallstudien",
+      "webinars": "Webinare",
+      "securityGuide": "Sicherheitsleitfaden",
       "company": "Unternehmen",
       "about": "Über uns",
       "contact": "Kontakt",
       "careers": "Karriere",
+      "partners": "Partner",
       "legal": "Rechtliches",
       "privacy": "Datenschutzerklärung",
       "terms": "Nutzungsbedingungen",
       "impressum": "Impressum",
+      "cookieSettings": "Cookie-Einstellungen",
       "rights": "Alle Rechte vorbehalten."
     }
   },
@@ -479,6 +778,176 @@
       "medium": "Mittel",
       "hard": "Schwer"
     },
-    "comingSoon": "Phishing-Simulationen kommen bald!"
+    "comingSoon": "Phishing-Simulationen kommen bald!",
+    "campaign": {
+      "steps": {
+        "template": "Vorlage auswählen",
+        "recipients": "Empfänger auswählen",
+        "schedule": "Kampagne planen",
+        "settings": "Einstellungen konfigurieren",
+        "review": "Überprüfen & Starten"
+      },
+      "create": {
+        "title": "Phishing-Kampagne erstellen",
+        "subtitle": "Richten Sie eine neue Phishing-Simulation ein, um das Sicherheitsbewusstsein Ihrer Organisation zu testen"
+      },
+      "errors": {
+        "selectTemplate": "Bitte wählen Sie eine Vorlage aus",
+        "selectRecipients": "Bitte wählen Sie mindestens eine Empfängergruppe aus",
+        "enterName": "Bitte geben Sie einen Kampagnennamen ein",
+        "createFailed": "Kampagne konnte nicht erstellt werden",
+        "loadFailed": "Erforderliche Daten konnten nicht geladen werden"
+      },
+      "success": {
+        "created": "Kampagne erfolgreich erstellt!"
+      }
+    }
+  },
+  "analytics": {
+    "dashboard": {
+      "title": "Analyse-Dashboard"
+    },
+    "metrics": {
+      "totalUsers": "Gesamtbenutzer",
+      "courseCompletions": "Kursabschlüsse",
+      "avgEngagement": "Durchschn. Engagement",
+      "monthlyRevenue": "Monatlicher Umsatz",
+      "totalEnrollments": "Anmeldungen gesamt",
+      "completions": "Abschlüsse",
+      "avgCompletionRate": "Durchschn. Abschlussrate",
+      "avgScore": "Durchschnittliche Punktzahl",
+      "totalLogins": "Anmeldungen gesamt",
+      "avgTimePerSession": "Durchschn. Zeit/Sitzung",
+      "coursesCompleted": "Abgeschlossene Kurse",
+      "avgQuizScore": "Durchschn. Quiz-Punktzahl",
+      "engagement": "Engagement",
+      "completion": "Abschluss",
+      "score": "Punktzahl",
+      "timeInvestment": "Zeitinvestition",
+      "participation": "Teilnahme"
+    },
+    "charts": {
+      "userTrend": "Benutzeraktivitätstrend",
+      "courseProgress": "Kursfortschrittsübersicht",
+      "engagementOverTime": "Engagement im Zeitverlauf",
+      "revenueGrowth": "Umsatzwachstum",
+      "topCourses": "Top-Kurse",
+      "progressOverTime": "Fortschritt im Zeitverlauf",
+      "courseComparison": "Kursvergleich",
+      "coursePerformance": "Kursleistungsmetriken",
+      "engagementTrend": "Engagement-Trend",
+      "learningProgress": "Lernfortschritt",
+      "activityDistribution": "Aktivitätsverteilung",
+      "engagementVsPerformance": "Engagement vs. Leistung"
+    },
+    "labels": {
+      "activeUsers": "Aktive Benutzer",
+      "newUsers": "Neue Benutzer",
+      "enrollments": "Anmeldungen",
+      "completions": "Abschlüsse",
+      "timeSpent": "Aufgewendete Zeit",
+      "pageViews": "Seitenaufrufe",
+      "revenue": "Umsatz",
+      "mrr": "MRR",
+      "avgProgress": "Durchschn. Fortschritt",
+      "logins": "Anmeldungen",
+      "hoursSpent": "Aufgewendete Stunden",
+      "coursesStarted": "Begonnene Kurse",
+      "coursesCompleted": "Abgeschlossene Kurse",
+      "quizzesTaken": "Absolvierte Quizze",
+      "users": "Benutzer",
+      "performance": "Leistung",
+      "score": "Punktzahl"
+    },
+    "dateRange": {
+      "today": "Heute",
+      "last7Days": "Letzte 7 Tage",
+      "last30Days": "Letzte 30 Tage",
+      "last90Days": "Letzte 90 Tage",
+      "lastYear": "Letztes Jahr",
+      "custom": "Benutzerdefinierter Zeitraum"
+    },
+    "actions": {
+      "export": "Exportieren",
+      "refresh": "Aktualisieren"
+    },
+    "export": {
+      "csv": "Als CSV exportieren",
+      "excel": "Als Excel exportieren",
+      "pdf": "Als PDF exportieren"
+    },
+    "tables": {
+      "topCourses": "Top-Kurse",
+      "courseDetails": "Kursanalyse-Details",
+      "topPerformers": "Top-Performer"
+    },
+    "columns": {
+      "courseName": "Kursname",
+      "enrollments": "Anmeldungen",
+      "completions": "Abschlüsse",
+      "avgProgress": "Durchschn. Fortschritt",
+      "avgScore": "Durchschn. Punktzahl",
+      "timeSpent": "Aufgewendete Zeit",
+      "date": "Datum",
+      "rank": "Rang",
+      "user": "Benutzer",
+      "coursesCompleted": "Abgeschlossene Kurse"
+    },
+    "activities": {
+      "learning": "Lernen",
+      "assessments": "Bewertungen",
+      "browsing": "Browsen",
+      "other": "Sonstiges"
+    },
+    "courseAnalytics": {
+      "title": "Kursanalysen",
+      "allCourses": "Alle Kurse"
+    },
+    "userEngagement": {
+      "title": "Benutzerengagement-Analysen",
+      "allUsers": "Alle Benutzer"
+    }
+  },
+  "emailCampaign": {
+    "roles": {
+      "companyAdmin": "Unternehmensadministrator"
+    },
+    "errors": {
+      "nameRequired": "Kampagnenname ist erforderlich",
+      "templateRequired": "Vorlage ist erforderlich",
+      "saveFailed": "Kampagne konnte nicht gespeichert werden",
+      "testFailed": "Test-E-Mail konnte nicht gesendet werden",
+      "sendFailed": "Kampagne konnte nicht gesendet werden"
+    },
+    "success": {
+      "updated": "Kampagne erfolgreich aktualisiert",
+      "created": "Kampagne erfolgreich erstellt",
+      "testSent": "Test-E-Mail erfolgreich gesendet",
+      "sent": "Kampagne erfolgreich gesendet"
+    },
+    "edit": {
+      "title": "Kampagne bearbeiten"
+    },
+    "create": {
+      "title": "Kampagne erstellen",
+      "subtitle": "Gestalten und konfigurieren Sie Ihre E-Mail-Kampagne"
+    },
+    "tabs": {
+      "details": "Details",
+      "audience": "Zielgruppe",
+      "preview": "Vorschau",
+      "schedule": "Zeitplan"
+    },
+    "sections": {
+      "details": "Kampagnendetails"
+    },
+    "fields": {
+      "name": "Kampagnenname",
+      "description": "Beschreibung"
+    },
+    "placeholders": {
+      "name": "Kampagnennamen eingeben",
+      "description": "Beschreiben Sie Ihre Kampagne"
+    }
   }
 }
