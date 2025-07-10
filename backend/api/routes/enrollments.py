@@ -17,6 +17,7 @@ from schemas.course import (
     CourseEnrollment,
     CourseProgress,
 )
+from schemas.user import User as UserSchema
 
 router = APIRouter()
 
@@ -135,7 +136,7 @@ async def get_my_enrollments(
     return enrollments
 
 
-@router.get("/course/{course_id}/users", response_model=List[User])
+@router.get("/course/{course_id}/users", response_model=List[UserSchema])
 async def get_course_enrollments(
     course_id: UUID,
     db: AsyncSession = Depends(get_db),
