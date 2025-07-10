@@ -5,7 +5,7 @@ Certificate generator service for creating PDF certificates using ReportLab.
 import io
 import os
 from datetime import datetime
-from typing import Optional, Dict, Any, Tuple
+from typing import Optional, Dict, Any, Tuple, List
 import logging
 from pathlib import Path
 import qrcode
