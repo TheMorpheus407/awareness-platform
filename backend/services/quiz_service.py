@@ -12,7 +12,7 @@ from models.course import (
 )
 from models.user import User
 from core.logging import logger
-from core.exceptions import ValidationError, NotFoundError, PermissionError
+from core.exceptions import ValidationError, NotFoundError, AuthorizationError
 from core.security import SecurityUtils
 import secrets
 import string
@@ -126,7 +126,7 @@ class QuizService:
         # Check if user has attempts remaining
         progress = await self._get_user_progress(user_id, quiz.course_id)
         if not progress:
-            raise PermissionError("User not enrolled in this course")
+            raise AuthorizationError("User not enrolled in this course")
             
         # Calculate score
         score, total_points = quiz.calculate_score(answers)

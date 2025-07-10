@@ -17,6 +17,10 @@ from .content_delivery import ContentDeliveryService
 from .stripe_service import StripeService
 from .analytics_collector import AnalyticsCollector
 from .campaign_scheduler import CampaignScheduler
+from .course_service import CourseService
+from .quiz_service import QuizService
+from .progress_service import ProgressService
+from .gamification_service import GamificationService
 
 __all__ = [
     "EmailService",
@@ -30,4 +34,8 @@ __all__ = [
     "StripeService",
     "AnalyticsCollector",
     "CampaignScheduler",
+    "CourseService",
+    "QuizService",
+    "ProgressService",
+    "GamificationService",
 ]

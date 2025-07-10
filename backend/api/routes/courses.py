@@ -17,7 +17,7 @@ from services.course_service import CourseService
 from services.quiz_service import QuizService
 from services.progress_service import ProgressService
 from services.gamification_service import GamificationService
-from core.exceptions import NotFoundError, ValidationError, PermissionError
+from core.exceptions import NotFoundError, ValidationError, AuthorizationError
 from core.logging import logger
 
 router = APIRouter()
@@ -689,7 +689,7 @@ async def submit_quiz(
             
         return result
         
-    except PermissionError as e:
+    except AuthorizationError as e:
         raise HTTPException(status_code=403, detail=str(e))
     except Exception as e:
         logger.error(f"Quiz submission error: {str(e)}")
