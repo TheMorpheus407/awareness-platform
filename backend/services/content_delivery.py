@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import aiofiles
 
 from core.config import settings
-from core.exceptions import ContentNotFoundError, StorageError, PermissionDenied
+from core.exceptions import NotFoundError, ContentDeliveryError, AuthorizationError
 from models import Course, User
 
 logger = logging.getLogger(__name__)
@@ -158,10 +158,10 @@ class ContentDeliveryService:
             
         except ClientError as e:
             logger.error(f"S3 upload error: {str(e)}")
-            raise StorageError(f"Failed to upload to S3: {str(e)}")
+            raise ContentDeliveryError(f"Failed to upload to S3: {str(e)}")
         except Exception as e:
             logger.error(f"Unexpected upload error: {str(e)}")
-            raise StorageError(f"Upload failed: {str(e)}")
+            raise ContentDeliveryError(f"Upload failed: {str(e)}")
 
     async def _upload_to_local(
         self,
@@ -207,7 +207,7 @@ class ContentDeliveryService:
             
         except Exception as e:
             logger.error(f"Local storage error: {str(e)}")
-            raise StorageError(f"Failed to save to local storage: {str(e)}")
+            raise ContentDeliveryError(f"Failed to save to local storage: {str(e)}")
 
     def _generate_file_key(self, file_name: str, folder: str) -> str:
         """Generate unique file key."""
@@ -259,10 +259,10 @@ class ContentDeliveryService:
             return content, content_type, metadata
             
         except self.s3_client.exceptions.NoSuchKey:
-            raise ContentNotFoundError(f"Content not found: {file_key}")
+            raise NotFoundError("Content", f"Content not found: {file_key}")
         except Exception as e:
             logger.error(f"S3 download error: {str(e)}")
-            raise StorageError(f"Failed to download from S3: {str(e)}")
+            raise ContentDeliveryError(f"Failed to download from S3: {str(e)}")
 
     async def _download_from_local(self, file_key: str) -> Tuple[bytes, str, Dict[str, str]]:
         """Download content from local storage."""
@@ -270,7 +270,7 @@ class ContentDeliveryService:
             file_path = self.local_storage_path / file_key
             
             if not file_path.exists():
-                raise ContentNotFoundError(f"Content not found: {file_key}")
+                raise NotFoundError("Content", f"Content not found: {file_key}")
             
             # Read file
             async with aiofiles.open(file_path, 'rb') as f:
@@ -290,10 +290,10 @@ class ContentDeliveryService:
             return content, content_type, metadata
             
         except FileNotFoundError:
-            raise ContentNotFoundError(f"Content not found: {file_key}")
+            raise NotFoundError("Content", f"Content not found: {file_key}")
         except Exception as e:
             logger.error(f"Local storage read error: {str(e)}")
-            raise StorageError(f"Failed to read from local storage: {str(e)}")
+            raise ContentDeliveryError(f"Failed to read from local storage: {str(e)}")
 
     async def delete_content(self, file_key: str) -> bool:
         """Delete content from storage."""
@@ -362,7 +362,7 @@ class ContentDeliveryService:
             
         except Exception as e:
             logger.error(f"Failed to generate presigned URL: {str(e)}")
-            raise StorageError(f"Failed to generate URL: {str(e)}")
+            raise ContentDeliveryError(f"Failed to generate URL: {str(e)}")
 
     async def upload_course_content(
         self,
@@ -423,7 +423,7 @@ class ContentDeliveryService:
         # For now, simplified check
         user = await self.db.get(User, user_id)
         if not user or not user.is_active:
-            raise PermissionDenied("Access denied")
+            raise AuthorizationError("Access denied")
         
         # Generate secure URL
         if self.s3_client and self.s3_bucket:
@@ -518,7 +518,7 @@ class ContentDeliveryService:
                 dest_path = self.local_storage_path / destination_key
                 
                 if not source_path.exists():
-                    raise ContentNotFoundError(f"Source not found: {source_key}")
+                    raise NotFoundError("Content", f"Source not found: {source_key}")
                 
                 dest_path.parent.mkdir(parents=True, exist_ok=True)
                 
