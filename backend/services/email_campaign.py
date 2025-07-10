@@ -17,7 +17,7 @@ from models import (
 from services.email_service import ExtendedEmailService
 from services.email_scheduler import EmailSchedulerService
 from core.exceptions import ValidationError
-from core.cache import get_cache
+from core.cache import cache
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ class EmailCampaignService:
     def __init__(self, db: AsyncSession, cache=None):
         """Initialize campaign service."""
         self.db = db
-        self.cache = cache or get_cache()
+        self.cache = cache
         self.email_service = ExtendedEmailService(db, cache)
         self.scheduler_service = EmailSchedulerService(db)
 

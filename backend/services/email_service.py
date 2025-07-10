@@ -26,7 +26,7 @@ class ExtendedEmailService(EmailService):
         """Initialize extended email service."""
         super().__init__()
         self.db = db
-        self.cache = cache or get_cache()
+        self.cache = cache
         self.template_service = EmailTemplateService(db)
 
     async def send_tracked_email(

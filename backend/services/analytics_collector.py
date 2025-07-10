@@ -15,7 +15,7 @@ from models import (
     AnalyticsEvent, User, Company, Course, UserCourseProgress,
     PhishingCampaign, PhishingResult, EmailLog, EmailStatus
 )
-from core.cache import get_cache
+from core.cache import cache
 from core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ class AnalyticsCollector:
     def __init__(self, db: AsyncSession, cache=None):
         """Initialize analytics collector."""
         self.db = db
-        self.cache = cache or get_cache()
+        self.cache = cache
         self.batch_size = 100
         self.flush_interval = 60  # seconds
 

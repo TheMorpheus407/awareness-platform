@@ -22,7 +22,7 @@ from models import (
 )
 from services.email_campaign import EmailCampaignService
 from services.phishing_service import PhishingService
-from core.cache import get_cache
+from core.cache import cache
 from core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ class CampaignScheduler:
     def __init__(self, db: AsyncSession, cache=None):
         """Initialize campaign scheduler."""
         self.db = db
-        self.cache = cache or get_cache()
+        self.cache = cache
         self.scheduler = AsyncIOScheduler()
         self.email_service = EmailCampaignService(db, cache)
         self.phishing_service = PhishingService(db, cache)
