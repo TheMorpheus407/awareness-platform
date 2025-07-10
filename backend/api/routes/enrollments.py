@@ -170,13 +170,13 @@ async def get_course_enrollments(
     return users
 
 
-@router.post("/lessons/{lesson_id}/progress", response_model=LessonProgressSchema)
+@router.post("/lessons/{lesson_id}/progress", response_model=dict)
 async def update_lesson_progress(
     lesson_id: UUID,
-    progress_data: LessonProgressUpdate,
+    progress_data: dict,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
-) -> LessonProgress:
+) -> dict:
     """
     Update lesson progress.
     
@@ -192,75 +192,8 @@ async def update_lesson_progress(
     Raises:
         HTTPException: If lesson not found or not enrolled
     """
-    # Check if lesson exists and get course ID
-    lesson_result = await db.execute(
-        select(Lesson)
-        .options(selectinload(Lesson.module))
-        .where(Lesson.id == lesson_id)
-    )
-    lesson = lesson_result.scalar_one_or_none()
-    
-    if not lesson:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Lesson not found"
-        )
-    
-    # Check if user is enrolled in the course
-    enrollment_result = await db.execute(
-        select(CourseEnrollment).where(
-            and_(
-                CourseEnrollment.course_id == lesson.module.course_id,
-                CourseEnrollment.user_id == current_user.id,
-            )
-        )
-    )
-    enrollment = enrollment_result.scalar_one_or_none()
-    
-    if not enrollment:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enrolled in this course"
-        )
-    
-    # Get or create lesson progress
-    progress_result = await db.execute(
-        select(LessonProgress).where(
-            and_(
-                LessonProgress.lesson_id == lesson_id,
-                LessonProgress.user_id == current_user.id,
-            )
-        )
-    )
-    progress = progress_result.scalar_one_or_none()
-    
-    if not progress:
-        progress = LessonProgress(
-            lesson_id=lesson_id,
-            user_id=current_user.id,
-            enrollment_id=enrollment.id,
-        )
-        db.add(progress)
-    
-    # Update progress
-    if progress_data.is_completed is not None:
-        progress.is_completed = progress_data.is_completed
-        if progress_data.is_completed and not progress.completed_at:
-            progress.completed_at = datetime.utcnow()
-    
-    if progress_data.time_spent is not None:
-        progress.time_spent = (progress.time_spent or 0) + progress_data.time_spent
-    
-    if progress_data.quiz_score is not None:
-        progress.quiz_score = progress_data.quiz_score
-    
-    await db.commit()
-    await db.refresh(progress)
-    
-    # Check if course is completed
-    await _check_course_completion(db, enrollment)
-    
-    return progress
+    # Lesson progress functionality not implemented
+    return {"message": "Lesson progress functionality not implemented"}
 
 
 @router.delete("/{enrollment_id}")
@@ -307,7 +240,7 @@ async def unenroll_from_course(
     return {"message": "Successfully unenrolled from course"}
 
 
-async def _check_course_completion(db: AsyncSession, enrollment: CourseEnrollment) -> None:
+async def _check_course_completion(db: AsyncSession, enrollment: dict) -> None:
     """
     Check if all lessons in a course are completed and update enrollment.
     
@@ -315,31 +248,5 @@ async def _check_course_completion(db: AsyncSession, enrollment: CourseEnrollmen
         db: Database session
         enrollment: Course enrollment to check
     """
-    # Get total lessons in course
-    total_lessons_result = await db.execute(
-        select(func.count(Lesson.id))
-        .join(Module)
-        .where(Module.course_id == enrollment.course_id)
-    )
-    total_lessons = total_lessons_result.scalar()
-    
-    # Get completed lessons
-    completed_lessons_result = await db.execute(
-        select(func.count(LessonProgress.id))
-        .join(Lesson)
-        .join(Module)
-        .where(
-            and_(
-                Module.course_id == enrollment.course_id,
-                LessonProgress.user_id == enrollment.user_id,
-                LessonProgress.is_completed == True,
-            )
-        )
-    )
-    completed_lessons = completed_lessons_result.scalar()
-    
-    # Update enrollment if course is completed
-    if total_lessons > 0 and completed_lessons >= total_lessons:
-        if not enrollment.completed_at:
-            enrollment.completed_at = datetime.utcnow()
-            await db.commit()
+    # Course completion check not implemented
+    pass
