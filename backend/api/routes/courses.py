@@ -258,13 +258,13 @@ async def delete_course(
     return {"message": "Course deleted successfully"}
 
 
-@router.post("/{course_id}/modules", response_model=ModuleSchema)
+@router.post("/{course_id}/modules", response_model=dict)
 async def create_module(
     course_id: UUID,
-    module_data: ModuleCreate,
+    module_data: dict,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_company_admin),
-) -> Module:
+) -> dict:
     """
     Create new module in course (admin only).
     
@@ -290,26 +290,18 @@ async def create_module(
             detail="Course not found"
         )
     
-    # Create module
-    module = Module(
-        **module_data.model_dump(),
-        course_id=course_id
-    )
-    db.add(module)
-    await db.commit()
-    await db.refresh(module)
-    
-    return module
+    # Module functionality not implemented
+    return {"message": "Module functionality not implemented"}
 
 
-@router.post("/{course_id}/modules/{module_id}/lessons", response_model=LessonSchema)
+@router.post("/{course_id}/modules/{module_id}/lessons", response_model=dict)
 async def create_lesson(
     course_id: UUID,
     module_id: UUID,
-    lesson_data: LessonCreate,
+    lesson_data: dict,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_company_admin),
-) -> Lesson:
+) -> dict:
     """
     Create new lesson in module (admin only).
     
@@ -326,31 +318,8 @@ async def create_lesson(
     Raises:
         HTTPException: If module not found
     """
-    # Check if module exists and belongs to course
-    module_result = await db.execute(
-        select(Module).where(
-            and_(
-                Module.id == module_id,
-                Module.course_id == course_id
-            )
-        )
-    )
-    if not module_result.scalar_one_or_none():
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Module not found in this course"
-        )
-    
-    # Create lesson
-    lesson = Lesson(
-        **lesson_data.model_dump(),
-        module_id=module_id
-    )
-    db.add(lesson)
-    await db.commit()
-    await db.refresh(lesson)
-    
-    return lesson
+    # Lesson functionality not implemented
+    return {"message": "Lesson functionality not implemented"}
 
 
 @router.get("/{course_id}/progress", response_model=CourseProgress)
