@@ -1,49 +1,23 @@
-"""Main API router module."""
-
+"""Simplified API module."""
 from fastapi import APIRouter
 
-from .routes import (
-    analytics,
-    auth,
-    certificates,
-    companies,
-    content,
-    courses,
-    email_campaigns,
-    email_verification,
-    enrollments,
-    health,
-    health_extended,
-    monitoring,
-    password_reset,
-    payments,
-    phishing,
-    quizzes,
-    two_factor,
-    users,
-)
-
-# Create main API router with v1 prefix
+# Create main API router
 api_router = APIRouter(prefix="/v1")
 
-# Include all route modules
+# Import only the routes we need
+from .routes import auth, health
+
+# Include simplified routes
 api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
-api_router.include_router(users.router, prefix="/users", tags=["Users"])
-api_router.include_router(companies.router, prefix="/admin/companies", tags=["Companies"])
-api_router.include_router(courses.router, prefix="/courses", tags=["Courses"])
-api_router.include_router(enrollments.router, prefix="/enrollments", tags=["Enrollments"])
-api_router.include_router(quizzes.router, prefix="/quizzes", tags=["Quizzes"])
-api_router.include_router(certificates.router, prefix="/certificates", tags=["Certificates"])
-api_router.include_router(phishing.router, prefix="/phishing", tags=["Phishing"])
-api_router.include_router(analytics.router, prefix="/reports", tags=["Analytics"])
-api_router.include_router(payments.router, prefix="/payments", tags=["Payments"])
-api_router.include_router(email_campaigns.router, prefix="/campaigns", tags=["Email Campaigns"])
-api_router.include_router(content.router, prefix="/content", tags=["Content"])
-api_router.include_router(two_factor.router, prefix="/auth/2fa", tags=["Two-Factor Auth"])
-api_router.include_router(password_reset.router, prefix="/auth/password-reset", tags=["Password Reset"])
-api_router.include_router(email_verification.router, prefix="/auth/verify-email", tags=["Email Verification"])
 api_router.include_router(health.router, prefix="/health", tags=["Health"])
-api_router.include_router(health_extended.router, prefix="/health", tags=["Health"])
-api_router.include_router(monitoring.router, prefix="/monitoring", tags=["Monitoring"])
+
+# Import simplified course, phishing, and analytics if they exist
+try:
+    from backend.simple_api.routes import courses, phishing, analytics
+    api_router.include_router(courses.router, tags=["Courses"])
+    api_router.include_router(phishing.router, tags=["Phishing"])
+    api_router.include_router(analytics.router, tags=["Analytics"])
+except ImportError:
+    pass
 
 __all__ = ["api_router"]

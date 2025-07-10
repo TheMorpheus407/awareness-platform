@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Install dependencies for better caching
 COPY package*.json ./
-RUN npm install
+RUN npm ci --only=production
 
 # Copy application code
 COPY . .
@@ -20,4 +20,4 @@ USER nodejs
 EXPOSE 5173
 
 # Default command
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

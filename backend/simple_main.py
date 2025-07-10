@@ -2,30 +2,20 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from contextlib import asynccontextmanager
 
-from backend.api import api_router
-from backend.core.config import settings
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Application lifespan handler."""
-    print(f"Starting {settings.APP_NAME}")
-    yield
-    print("Shutting down application")
+from backend.simple_api import api_router
 
 # Create FastAPI app
 app = FastAPI(
-    title=settings.APP_NAME,
+    title="Awareness Platform MVP",
     version="1.0.0",
-    description="Cybersecurity Awareness Platform",
-    lifespan=lifespan
+    description="Simplified cybersecurity awareness platform"
 )
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173", "https://bootstrap-awareness.de"],
+    allow_origins=["http://localhost:3000", "http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -38,14 +28,14 @@ async def root():
     return {
         "message": "Awareness Platform API",
         "version": "1.0.0",
-        "status": "healthy"
+        "docs": "/docs"
     }
 
 # Health check
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
-    return {"status": "healthy", "service": "api"}
+    return {"status": "healthy"}
 
 # Include API router
 app.include_router(api_router, prefix="/api")

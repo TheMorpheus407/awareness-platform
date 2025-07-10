@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Form, Response, R
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
+from pydantic import BaseModel
 
 from api.dependencies.auth import get_current_active_user
 from api.dependencies.common import get_db
@@ -123,11 +124,16 @@ async def login(
     db.add(attempt)
     await db.commit()
     
+    # Create UserSchema from the User model
+    from schemas.user import User as UserSchema
+    user_schema = UserSchema.model_validate(user)
+    
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,
         token_type="bearer",
         expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        user=user_schema,
     )
 
 
@@ -156,29 +162,35 @@ async def refresh_token(
     )
 
 
-@router.post("/register", response_model=RegistrationResponse)
+class SimpleRegistrationRequest(BaseModel):
+    """Simple registration request matching frontend expectations."""
+    email: str
+    password: str
+    full_name: str
+    company_name: Optional[str] = None
+
+
+@router.post("/register", response_model=TokenResponse)
 async def register(
-    company_data: CompanyRegistration,
-    user_data: UserCreate,
+    data: SimpleRegistrationRequest,
     db: AsyncSession = Depends(get_db)
-) -> RegistrationResponse:
+) -> TokenResponse:
     """
-    Register new company and admin user.
+    Register new user with optional company.
     
     Args:
-        company_data: Company registration data
-        user_data: User registration data
+        data: Registration data
         db: Database session
         
     Returns:
-        Registration response with company and user details
+        Token response with user details
         
     Raises:
         HTTPException: If email already exists
     """
     # Check if email already exists
     result = await db.execute(
-        select(User).where(User.email == user_data.email.lower())
+        select(User).where(User.email == data.email.lower())
     )
     if result.scalar_one_or_none():
         raise HTTPException(
@@ -186,30 +198,53 @@ async def register(
             detail="Email already registered"
         )
     
-    # Create company
-    company = Company(**company_data.model_dump())
-    db.add(company)
-    await db.flush()  # Get company ID
+    # Create company if name provided
+    company = None
+    if data.company_name:
+        company = Company(name=data.company_name)
+        db.add(company)
+        await db.flush()  # Get company ID
     
-    # Create admin user for the company
+    # Split full name into first and last name
+    name_parts = data.full_name.strip().split(' ', 1)
+    first_name = name_parts[0]
+    last_name = name_parts[1] if len(name_parts) > 1 else ''
+    
+    # Create user
     user = User(
-        **user_data.model_dump(exclude={"password"}),
-        password_hash=SecurityUtils.get_password_hash(user_data.password),
-        company_id=company.id,
-        role="company_admin",
+        email=data.email.lower(),
+        first_name=first_name,
+        last_name=last_name,
+        password_hash=SecurityUtils.get_password_hash(data.password),
+        company_id=company.id if company else None,
+        role="company_admin" if company else "employee",
         is_verified=False,
+        is_active=True,
     )
     db.add(user)
     await db.commit()
     
-    # Send verification email
-    email_service = EmailService()
-    verification_sent = await email_service.send_verification_email(user)
+    # Send verification email (optional, don't block registration)
+    try:
+        email_service = EmailService()
+        await email_service.send_verification_email(user)
+    except Exception:
+        pass  # Don't fail registration if email fails
     
-    return RegistrationResponse(
-        company=company,
-        user=user,
-        verification_email_sent=verification_sent
+    # Create tokens for automatic login after registration
+    access_token = SecurityUtils.create_access_token(subject=str(user.id))
+    refresh_token = SecurityUtils.create_refresh_token(subject=str(user.id))
+    
+    # Create UserSchema from the User model
+    from schemas.user import User as UserSchema
+    user_schema = UserSchema.model_validate(user)
+    
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="bearer",
+        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        user=user_schema,
     )
 
 

@@ -20,6 +20,7 @@ class TokenResponse(BaseSchema):
     token_type: str = Field("bearer", description="Token type")
     expires_in: int = Field(1800, description="Token validity in seconds")
     scope: Optional[str] = Field(None, description="Token scope")
+    user: Optional[User] = Field(None, description="Authenticated user details")
 
 
 class LoginRequest(BaseSchema):
@@ -90,6 +91,9 @@ class RegistrationResponse(BaseSchema):
     user: User
     message: str = Field("Registration successful. Please check your email to verify your account.")
     verification_email_sent: bool = Field(True)
+    access_token: Optional[str] = Field(None, description="JWT access token")
+    refresh_token: Optional[str] = Field(None, description="JWT refresh token")
+    token_type: str = Field("bearer", description="Token type")
 
 
 class TwoFactorSetupRequest(BaseSchema):
