@@ -19,31 +19,35 @@ depends_on = None
 def upgrade() -> None:
     # Create enum types
     op.execute("""
-        DO $$ BEGIN
-            CREATE TYPE contenttype AS ENUM ('video', 'document', 'presentation', 'interactive', 'scorm', 'external_link', 'text', 'quiz');
-        EXCEPTION
-            WHEN duplicate_object THEN null;
+        DO $$ 
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'contenttype') THEN
+                CREATE TYPE contenttype AS ENUM ('video', 'document', 'presentation', 'interactive', 'scorm', 'external_link', 'text', 'quiz');
+            END IF;
         END $$;
     """)
     op.execute("""
-        DO $$ BEGIN
-            CREATE TYPE difficultylevel AS ENUM ('beginner', 'intermediate', 'advanced', 'expert');
-        EXCEPTION
-            WHEN duplicate_object THEN null;
+        DO $$ 
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'difficultylevel') THEN
+                CREATE TYPE difficultylevel AS ENUM ('beginner', 'intermediate', 'advanced', 'expert');
+            END IF;
         END $$;
     """)
     op.execute("""
-        DO $$ BEGIN
-            CREATE TYPE coursestatus AS ENUM ('draft', 'published', 'archived');
-        EXCEPTION
-            WHEN duplicate_object THEN null;
+        DO $$ 
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'coursestatus') THEN
+                CREATE TYPE coursestatus AS ENUM ('draft', 'published', 'archived');
+            END IF;
         END $$;
     """)
     op.execute("""
-        DO $$ BEGIN
-            CREATE TYPE progressstatus AS ENUM ('not_started', 'in_progress', 'completed', 'failed');
-        EXCEPTION
-            WHEN duplicate_object THEN null;
+        DO $$ 
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'progressstatus') THEN
+                CREATE TYPE progressstatus AS ENUM ('not_started', 'in_progress', 'completed', 'failed');
+            END IF;
         END $$;
     """)
     

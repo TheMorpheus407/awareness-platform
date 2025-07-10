@@ -21,52 +21,57 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     # Create subscription status enum
     op.execute("""
-        DO $$ BEGIN
-            CREATE TYPE subscriptionstatus AS ENUM (
-                'trialing', 'active', 'incomplete', 'incomplete_expired',
-                'past_due', 'canceled', 'unpaid'
-            );
-        EXCEPTION
-            WHEN duplicate_object THEN null;
+        DO $$ 
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'subscriptionstatus') THEN
+                CREATE TYPE subscriptionstatus AS ENUM (
+                    'trialing', 'active', 'incomplete', 'incomplete_expired',
+                    'past_due', 'canceled', 'unpaid'
+                );
+            END IF;
         END $$;
     """)
     
     # Create billing interval enum
     op.execute("""
-        DO $$ BEGIN
-            CREATE TYPE billinginterval AS ENUM ('monthly', 'yearly');
-        EXCEPTION
-            WHEN duplicate_object THEN null;
+        DO $$ 
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'billinginterval') THEN
+                CREATE TYPE billinginterval AS ENUM ('monthly', 'yearly');
+            END IF;
         END $$;
     """)
     
     # Create payment method type enum
     op.execute("""
-        DO $$ BEGIN
-            CREATE TYPE paymentmethodtype AS ENUM ('card', 'sepa_debit', 'bank_transfer', 'invoice');
-        EXCEPTION
-            WHEN duplicate_object THEN null;
+        DO $$ 
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'paymentmethodtype') THEN
+                CREATE TYPE paymentmethodtype AS ENUM ('card', 'sepa_debit', 'bank_transfer', 'invoice');
+            END IF;
         END $$;
     """)
     
     # Create invoice status enum
     op.execute("""
-        DO $$ BEGIN
-            CREATE TYPE invoicestatus AS ENUM ('draft', 'open', 'paid', 'uncollectible', 'void');
-        EXCEPTION
-            WHEN duplicate_object THEN null;
+        DO $$ 
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'invoicestatus') THEN
+                CREATE TYPE invoicestatus AS ENUM ('draft', 'open', 'paid', 'uncollectible', 'void');
+            END IF;
         END $$;
     """)
     
     # Create payment status enum
     op.execute("""
-        DO $$ BEGIN
-            CREATE TYPE paymentstatus AS ENUM (
-                'pending', 'processing', 'succeeded', 'failed',
-                'canceled', 'refunded', 'requires_action'
-            );
-        EXCEPTION
-            WHEN duplicate_object THEN null;
+        DO $$ 
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'paymentstatus') THEN
+                CREATE TYPE paymentstatus AS ENUM (
+                    'pending', 'processing', 'succeeded', 'failed',
+                    'canceled', 'refunded', 'requires_action'
+                );
+            END IF;
         END $$;
     """)
     
