@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.dependencies.auth import get_current_active_user
 from core.cache import cache
 from core.config import settings
+from core.logging import logger
 from core.monitoring import (
     REQUEST_COUNT,
     REQUEST_LATENCY,
@@ -130,8 +131,8 @@ async def get_system_status(
     # Application metrics
     app_metrics = ApplicationMetrics(
         uptime_seconds=int((datetime.utcnow() - settings.STARTUP_TIME).total_seconds()),
-        total_requests=request_count._value.get(),
-        active_users=active_users._value.get(),
+        total_requests=REQUEST_COUNT._value.get(),
+        active_users=0,  # TODO: Track active users
         error_rate=0,  # TODO: Calculate from metrics
         average_response_time_ms=0,  # TODO: Calculate from metrics
         memory_usage_mb=0,  # TODO: Get process memory
