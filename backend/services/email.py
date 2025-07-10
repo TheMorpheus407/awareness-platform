@@ -13,7 +13,7 @@ import logging
 from pathlib import Path
 
 from core.config import settings
-from core.exceptions import EmailDeliveryError
+from core.exceptions import EmailError
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +63,7 @@ class EmailService:
             bool: True if email was sent successfully
 
         Raises:
-            EmailDeliveryError: If email sending fails
+            EmailError: If email sending fails
         """
         # Run in thread pool to avoid blocking
         loop = asyncio.get_event_loop()
@@ -151,7 +151,7 @@ class EmailService:
 
         except Exception as e:
             logger.error(f"Failed to send email to {to_email}: {str(e)}")
-            raise EmailDeliveryError(f"Failed to send email: {str(e)}")
+            raise EmailError(f"Failed to send email: {str(e)}")
 
     def _attach_file(self, msg: MIMEMultipart, attachment: Dict[str, Any]) -> None:
         """Attach a file to the email message."""
