@@ -14,6 +14,7 @@ from api import api_router
 from core.config import settings
 from core.middleware import SecurityHeadersMiddleware, RequestIdMiddleware, limiter
 from core.monitoring import init_sentry, MonitoringMiddleware
+from core.csrf import CSRFProtection, CSRFMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
@@ -51,9 +52,27 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Initialize CSRF protection
+csrf_protection = CSRFProtection(
+    secret_key=settings.SECRET_KEY,
+    exclude_paths={
+        "/",
+        "/api/health",
+        "/api/docs",
+        "/api/openapi.json",
+        "/api/v1/auth/login",  # Login needs special handling
+        "/api/v1/auth/register",
+        "/api/v1/auth/refresh",
+    }
+)
+
+# Store in app state for access in routes
+app.state.csrf_protection = csrf_protection
+
 # Add security middleware
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RequestIdMiddleware)
+app.add_middleware(CSRFMiddleware, csrf_protection=csrf_protection)
 
 # Add monitoring middleware
 app.add_middleware(MonitoringMiddleware)

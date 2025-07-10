@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { User, AuthResponse } from '../types';
 import apiClient from '../services/api';
 import toast from 'react-hot-toast';
+import { secureStorage } from '../utils/secureStorage';
 
 interface AuthState {
   user: User | null;
@@ -26,7 +27,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const response: AuthResponse = await apiClient.login(email, password);
       const { access_token, user } = response;
       
-      localStorage.setItem('access_token', access_token);
+      secureStorage.setAccessToken(access_token);
       set({
         user,
         token: access_token,
@@ -48,7 +49,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const response: AuthResponse = await apiClient.register(data);
       const { access_token, user } = response;
       
-      localStorage.setItem('access_token', access_token);
+      secureStorage.setAccessToken(access_token);
       set({
         user,
         token: access_token,
@@ -65,7 +66,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: () => {
-    localStorage.removeItem('access_token');
+    secureStorage.clearTokens();
     set({
       user: null,
       token: null,
@@ -75,7 +76,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   checkAuth: async () => {
-    const token = localStorage.getItem('access_token');
+    const token = secureStorage.getAccessToken();
     if (!token) {
       set({ isAuthenticated: false, user: null, token: null });
       return;
@@ -89,7 +90,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         isAuthenticated: true,
       });
     } catch (error) {
-      localStorage.removeItem('access_token');
+      secureStorage.clearTokens();
       set({
         user: null,
         token: null,

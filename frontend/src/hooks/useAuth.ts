@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
+import { secureStorage } from '../utils/secureStorage';
 
 export const useAuth = () => {
   const {
@@ -14,7 +15,7 @@ export const useAuth = () => {
 
   useEffect(() => {
     // Only check auth if there's a token, preventing unnecessary 401s on public pages
-    const token = localStorage.getItem('access_token');
+    const token = secureStorage.getAccessToken();
     if (token) {
       checkAuth();
     }

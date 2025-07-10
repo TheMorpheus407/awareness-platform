@@ -1,6 +1,7 @@
 import axios from 'axios';
 import type { AxiosInstance, AxiosError } from 'axios';
 import type { ApiError } from '../types';
+import { secureStorage } from '../utils/secureStorage';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
@@ -8,17 +9,21 @@ class ApiClient {
   private client: AxiosInstance;
 
   constructor() {
+    // Migrate any existing tokens from localStorage
+    secureStorage.migrateFromLocalStorage();
+
     this.client = axios.create({
       baseURL: API_BASE_URL,
       headers: {
         'Content-Type': 'application/json',
       },
+      withCredentials: true, // Enable sending cookies
     });
 
     // Request interceptor to add token
     this.client.interceptors.request.use(
       (config) => {
-        const token = localStorage.getItem('access_token');
+        const token = secureStorage.getAccessToken();
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -35,7 +40,7 @@ class ApiClient {
       (error: AxiosError<ApiError>) => {
         if (error.response?.status === 401) {
           // Token expired or invalid
-          localStorage.removeItem('access_token');
+          secureStorage.clearTokens();
           
           // Only redirect to login if we're not already on a public page
           const publicPaths = ['/', '/login', '/register', '/pricing'];

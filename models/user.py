@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, List
 import enum
 
 from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String, Text
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 import json
@@ -31,7 +30,8 @@ class User(Base):
     __tablename__ = "users"
     
     # Company relationship (NOT NULL in database)
-    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False)
+    # TODO: Convert to UUID after database migration
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
     company = relationship("Company", back_populates="users")
     
     # Authentication fields

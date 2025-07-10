@@ -11,6 +11,7 @@ from sqlalchemy import select
 
 from core.config import settings
 from core.security import get_password_hash, verify_password
+import hashlib
 from db.session import get_db
 from models.user import User
 from schemas.base import MessageResponse
@@ -61,7 +62,9 @@ async def request_password_reset(
     
     # Generate reset token and expiry
     reset_token = secrets.token_urlsafe(32)
-    user.password_reset_token = reset_token
+    # Hash the token before storing in database
+    token_hash = hashlib.sha256(reset_token.encode()).hexdigest()
+    user.password_reset_token = token_hash
     user.password_reset_expires = datetime.utcnow() + timedelta(hours=1)
     
     await db.commit()
@@ -96,9 +99,12 @@ async def reset_password(
     Raises:
         HTTPException: If token is invalid or expired
     """
-    # Find user by reset token
+    # Hash the incoming token to compare with stored hash
+    token_hash = hashlib.sha256(data.token.encode()).hexdigest()
+    
+    # Find user by reset token hash
     result = await db.execute(
-        select(User).where(User.password_reset_token == data.token)
+        select(User).where(User.password_reset_token == token_hash)
     )
     user = result.scalar_one_or_none()
     
@@ -115,11 +121,23 @@ async def reset_password(
             detail="Reset token has expired",
         )
     
-    # Validate password strength
-    if len(data.new_password) < 8:
+    # Validate password strength (enhanced requirements)
+    if len(data.new_password) < 12:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Password must be at least 8 characters long",
+            detail="Password must be at least 12 characters long",
+        )
+    
+    # Check for password complexity
+    has_upper = any(c.isupper() for c in data.new_password)
+    has_lower = any(c.islower() for c in data.new_password)
+    has_digit = any(c.isdigit() for c in data.new_password)
+    has_special = any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in data.new_password)
+    
+    if not (has_upper and has_lower and has_digit and has_special):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must contain uppercase, lowercase, number, and special character",
         )
     
     # Update password
