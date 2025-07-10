@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.dependencies.auth import get_optional_current_user
+from api.dependencies.auth import get_optional_current_user, get_current_active_user
 from core.cache import cache
 from core.config import settings
 from core.logging import logger
