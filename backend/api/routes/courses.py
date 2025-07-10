@@ -61,9 +61,9 @@ async def list_courses(
             "title": course.title,
             "description": course.description,
             "category": course.category,
-            "difficulty": course.difficulty,
-            "duration_hours": course.duration_hours,
-            "is_published": course.is_published,
+            "difficulty": course.difficulty_level,
+            "duration_hours": course.duration_minutes // 60,
+            "is_published": course.is_active,
             "created_at": course.created_at.isoformat(),
             "tags": course.tags,
         }
