@@ -1,61 +1,156 @@
-# Cybersecurity Awareness Platform
+# Cybersecurity Awareness Training Platform
 
 [![License](https://img.shields.io/badge/license-proprietary-red.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![React](https://img.shields.io/badge/react-18.2-61dafb.svg)](https://reactjs.org/)
-[![FastAPI](https://img.shields.io/badge/fastapi-0.104-009688.svg)](https://fastapi.tiangolo.com/)
+[![FastAPI](https://img.shields.io/badge/fastapi-0.109-009688.svg)](https://fastapi.tiangolo.com/)
 
-A comprehensive enterprise platform for cybersecurity awareness training, phishing simulations, and compliance management.
+A comprehensive platform for cybersecurity awareness training with phishing simulations, course management, and analytics.
 
-## 🚀 Overview
+## 🚀 Features
 
-The Cybersecurity Awareness Platform helps organizations build a strong security culture through:
+- **Multi-tenant Architecture**: Company-based isolation with Row-Level Security
+- **Authentication & Security**: JWT auth with 2FA support  
+- **Course Management**: Video courses, quizzes, and certificates
+- **Phishing Simulations**: Email campaigns and tracking
+- **Analytics Dashboard**: Real-time insights and reporting
+- **Payment Processing**: Stripe integration for subscriptions
+- **Email Campaigns**: Automated training reminders
 
-- **Interactive Training**: Video-based courses with quizzes and certificates
-- **Phishing Simulations**: Realistic campaigns to test and educate employees
-- **Compliance Management**: NIS-2, GDPR, ISO 27001, and TISAX reporting
-- **Analytics Dashboard**: Real-time insights and predictive analytics
-- **Multi-tenant Architecture**: Secure data isolation for enterprise use
+## 🛠️ Tech Stack
 
-## 📋 Documentation
+- **Backend**: FastAPI, PostgreSQL, Redis, SQLAlchemy
+- **Frontend**: React, TypeScript, Vite, TailwindCSS
+- **Infrastructure**: Docker, Nginx, Prometheus, Grafana
 
-For complete project information, see:
-- [`SOURCE_OF_TRUTH.md`](SOURCE_OF_TRUTH.md) - Single source of project truth
-- [`ROADMAP.md`](ROADMAP.md) - Development roadmap and milestones
-- [`docs/`](docs/) - All technical and user documentation
-- [`docs/QUALITY_GATES.md`](docs/QUALITY_GATES.md) - Quality assurance and CI/CD setup
-
-## 🛠️ Quick Start
+## 📋 Quick Start
 
 ### Prerequisites
-- Docker & Docker Compose
-- Python 3.11+ (for local development)
-- Node.js 20+ (for frontend development)
-- PostgreSQL 15+ (for database)
+- Python 3.11+
+- Node.js 18+
+- PostgreSQL 15+
+- Redis 7+
+- Docker & Docker Compose (optional)
 
-### Using Docker (Recommended)
+### Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/TheMorpheus407/awareness-platform.git
+git clone https://github.com/yourusername/awareness-platform.git
 cd awareness-platform
 
-# Copy environment template
-cp .env.example .env
-# Edit .env with your configuration
+# Setup environment
+make setup
 
-# Start all services
-docker-compose up -d
+# Edit .env file with your configuration
 
-# Run database migrations
-docker-compose exec backend alembic upgrade head
-
-# Access the application
-# Frontend: http://localhost:5173
-# Backend API: http://localhost:8000/docs
+# Install dependencies
+make install
 ```
 
-### Local Development
+### Development
+
+With Docker:
+```bash
+make docker-up
+```
+
+Or run locally:
+```bash
+# Terminal 1: Backend
+make dev
+
+# Terminal 2: Frontend  
+cd frontend && npm run dev
+```
+
+Access:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- API Docs: http://localhost:8000/api/docs
+
+### Database Setup
+
+```bash
+# Run migrations
+make migrate
+
+# Create admin user
+cd backend && ./venv/bin/python create_admin_user.py
+```
+
+## 📁 Project Structure
+
+```
+├── backend/              # FastAPI backend
+│   ├── api/             # API routes and dependencies
+│   ├── core/            # Core utilities and config
+│   ├── models/          # SQLAlchemy models
+│   ├── schemas/         # Pydantic schemas
+│   ├── services/        # Business logic
+│   ├── tests/           # Test files
+│   ├── alembic/         # Database migrations
+│   └── main.py          # Application entry point
+├── frontend/            # React frontend
+│   ├── src/
+│   │   ├── components/  # React components
+│   │   ├── pages/       # Page components
+│   │   ├── services/    # API services
+│   │   ├── store/       # State management
+│   │   └── utils/       # Utilities
+│   └── package.json
+├── docker-compose.yml   # Docker services
+├── Makefile            # Common commands
+└── README.md
+```
+
+## 🧪 Testing
+
+```bash
+# Backend tests
+make test
+
+# Frontend tests
+cd frontend && npm test
+```
+
+## 🚀 Deployment
+
+### Production Configuration
+
+1. Update `.env` for production:
+   - Set strong SECRET_KEY
+   - Configure database credentials
+   - Set SMTP settings
+   - Add Stripe keys
+   - Configure domain names
+
+2. Build and deploy:
+```bash
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+### Environment Variables
+
+See `.env.example` for all available configuration options.
+
+## 📚 API Documentation
+
+When running in development mode:
+- Swagger UI: http://localhost:8000/api/docs
+- ReDoc: http://localhost:8000/api/redoc
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under a proprietary license - see the LICENSE file for details.
 
 #### Backend Setup
 ```bash
