@@ -19,7 +19,10 @@
     "processing": "Processing...",
     "continue": "Continue",
     "profile": "Profile",
-    "settings": "Settings"
+    "settings": "Settings",
+    "saveChanges": "Save Changes",
+    "active": "Active",
+    "showing": "Showing {{from}} to {{to}} of {{total}} {{entity}}"
   },
   "branding": {
     "appName": "CyberAware",
@@ -219,7 +222,11 @@
     "roles": {
       "admin": "Admin",
       "user": "User",
-      "manager": "Manager"
+      "manager": "Manager",
+      "company_admin": "Company Admin"
+    },
+    "roleDisplay": {
+      "company_admin": "company admin"
     }
   },
   "companies": {
@@ -234,7 +241,8 @@
       "status": "Status",
       "created": "Created",
       "actions": "Actions"
-    }
+    },
+    "maxUsers": "{{count}} max users"
   },
   "courses": {
     "comingSoon": "Courses (Coming Soon)"
@@ -611,7 +619,8 @@
     },
     "enterprise": {
       "need": "Need a custom solution?",
-      "contact": "Contact Sales"
+      "contact": "Contact Sales",
+      "contactEmail": "sales@example.com"
     },
     "comparison": {
       "title": "Compare Plans",
@@ -692,6 +701,11 @@
   "analytics": {
     "dashboard": {
       "title": "Analytics Dashboard"
+    },
+    "errors": {
+      "loadFailed": "Failed to load analytics",
+      "exportFailed": "Export failed",
+      "exportInitiated": "Export initiated"
     },
     "metrics": {
       "totalUsers": "Total Users",
@@ -907,6 +921,95 @@
         "created": "Campaign created successfully!"
       }
     }
+  },
+  "userSettings": {
+    "title": "User Settings",
+    "tabs": {
+      "profile": "Profile",
+      "security": "Security",
+      "notifications": "Notifications",
+      "language": "Language",
+      "appearance": "Appearance"
+    },
+    "profile": {
+      "title": "Profile Information",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email Address",
+      "phone": "Phone Number"
+    },
+    "security": {
+      "changePassword": "Change Password",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmNewPassword": "Confirm New Password",
+      "updatePassword": "Update Password",
+      "enableTwoFactor": "Enable Two-Factor Authentication",
+      "activeSessions": "Active Sessions",
+      "activeSessionsDescription": "These devices are currently logged into your account. If you see any unfamiliar devices, you should change your password immediately.",
+      "currentDevice": "Current Device",
+      "deviceInfo": "{{browser}} on {{os}} • {{location}}",
+      "activeNow": "Active now"
+    },
+    "notifications": {
+      "title": "Notification Preferences",
+      "emailNotifications": "Email Notifications",
+      "emailNotificationsDescription": "Receive email updates about your account",
+      "securityAlerts": "Security Alerts",
+      "securityAlertsDescription": "Get notified about important security updates",
+      "courseReminders": "Course Reminders",
+      "courseRemindersDescription": "Receive reminders about upcoming courses",
+      "savePreferences": "Save Preferences"
+    },
+    "languageRegion": {
+      "title": "Language & Region",
+      "preferredLanguage": "Preferred Language",
+      "timezone": "Time Zone",
+      "dateFormat": "Date Format"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "theme": "Theme",
+      "light": "Light",
+      "dark": "Dark",
+      "auto": "Auto",
+      "compactMode": "Compact Mode",
+      "compactModeDescription": "Reduce spacing and padding in the interface"
+    }
+  },
+  "monitoring": {
+    "title": "System Monitoring",
+    "subtitle": "Real-time system health and performance metrics",
+    "refresh": {
+      "10s": "10 seconds",
+      "30s": "30 seconds",
+      "1m": "1 minute",
+      "5m": "5 minutes"
+    },
+    "alerts": {
+      "active": "Active Alerts"
+    },
+    "database": "Database",
+    "disk": "Disk",
+    "memory": "Memory",
+    "cpu": "CPU",
+    "responseTime": "Response Time",
+    "connections": "Connections",
+    "free": "free",
+    "available": "available",
+    "used": "used",
+    "cores": "cores",
+    "usage": "usage",
+    "activeUsers": "Active Users",
+    "last30Minutes": "Last 30 minutes",
+    "courseCompletions": "Course Completions",
+    "last24Hours": "Last 24 hours",
+    "successfulPayments": "Successful Payments",
+    "requestStats": "Request Statistics",
+    "totalRequests": "Total Requests",
+    "errorRate": "Error Rate",
+    "uptime": "Uptime",
+    "uptimeValue": "99.9%"
   },
   "emailCampaign": {
     "roles": {

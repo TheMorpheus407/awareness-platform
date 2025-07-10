@@ -270,6 +270,8 @@ async def launch_campaign(
     Raises:
         HTTPException: If campaign not found or not in draft status
     """
+    from services.phishing_service import PhishingService
+    
     # Get campaign
     result = await db.execute(
         select(PhishingCampaign).where(
@@ -298,7 +300,12 @@ async def launch_campaign(
     campaign.scheduled_at = datetime.utcnow()
     await db.commit()
     
-    # TODO: Add background task to send phishing emails
+    # Add background task to send phishing emails
+    phishing_service = PhishingService(db)
+    background_tasks.add_task(
+        phishing_service.send_phishing_campaign,
+        campaign_id
+    )
     
     return {
         "message": "Campaign launched successfully",

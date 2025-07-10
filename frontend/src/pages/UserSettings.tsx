@@ -14,11 +14,11 @@ export const UserSettings: React.FC = () => {
   const [user2FAEnabled, setUser2FAEnabled] = useState(user?.has_2fa_enabled || false);
 
   const tabs = [
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'security', label: 'Security', icon: Shield },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'language', label: 'Language', icon: Globe },
-    { id: 'appearance', label: 'Appearance', icon: Palette },
+    { id: 'profile', label: t('userSettings.tabs.profile'), icon: User },
+    { id: 'security', label: t('userSettings.tabs.security'), icon: Shield },
+    { id: 'notifications', label: t('userSettings.tabs.notifications'), icon: Bell },
+    { id: 'language', label: t('userSettings.tabs.language'), icon: Globe },
+    { id: 'appearance', label: t('userSettings.tabs.appearance'), icon: Palette },
   ];
 
   const handle2FAStatusChange = () => {
@@ -29,7 +29,7 @@ export const UserSettings: React.FC = () => {
   return (
     <MainLayout>
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">User Settings</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">{t('userSettings.title')}</h1>
         
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar Navigation */}
@@ -59,13 +59,13 @@ export const UserSettings: React.FC = () => {
           <div className="flex-1">
             {activeTab === 'profile' && (
               <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">Profile Information</h2>
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">{t('userSettings.profile.title')}</h2>
                 
                 <form className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
-                        First Name
+                        {t('userSettings.profile.firstName')}
                       </label>
                       <input
                         type="text"
@@ -77,7 +77,7 @@ export const UserSettings: React.FC = () => {
                     
                     <div>
                       <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
-                        Last Name
+                        {t('userSettings.profile.lastName')}
                       </label>
                       <input
                         type="text"
@@ -90,7 +90,7 @@ export const UserSettings: React.FC = () => {
 
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                      Email Address
+                      {t('userSettings.profile.email')}
                     </label>
                     <input
                       type="email"
@@ -102,7 +102,7 @@ export const UserSettings: React.FC = () => {
 
                   <div>
                     <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                      Phone Number
+                      {t('userSettings.profile.phone')}
                     </label>
                     <input
                       type="tel"
@@ -117,7 +117,7 @@ export const UserSettings: React.FC = () => {
                       type="submit"
                       className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
                     >
-                      Save Changes
+                      {t('common.saveChanges')}
                     </button>
                   </div>
                 </form>
@@ -128,12 +128,12 @@ export const UserSettings: React.FC = () => {
               <div className="space-y-6">
                 {/* Password Change */}
                 <div className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-6">Change Password</h2>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-6">{t('userSettings.security.changePassword')}</h2>
                   
                   <form className="space-y-4">
                     <div>
                       <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                        Current Password
+                        {t('userSettings.security.currentPassword')}
                       </label>
                       <input
                         type="password"
@@ -144,7 +144,7 @@ export const UserSettings: React.FC = () => {
 
                     <div>
                       <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                        New Password
+                        {t('userSettings.security.newPassword')}
                       </label>
                       <input
                         type="password"
@@ -155,7 +155,7 @@ export const UserSettings: React.FC = () => {
 
                     <div>
                       <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                        Confirm New Password
+                        {t('userSettings.security.confirmNewPassword')}
                       </label>
                       <input
                         type="password"
@@ -169,7 +169,7 @@ export const UserSettings: React.FC = () => {
                         type="submit"
                         className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
                       >
-                        Update Password
+                        {t('userSettings.security.updatePassword')}
                       </button>
                     </div>
                   </form>
@@ -193,7 +193,7 @@ export const UserSettings: React.FC = () => {
                           onClick={() => setShow2FASetup(true)}
                           className="mt-4 w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
                         >
-                          Enable Two-Factor Authentication
+                          {t('userSettings.security.enableTwoFactor')}
                         </button>
                       </div>
                     )}
@@ -207,19 +207,19 @@ export const UserSettings: React.FC = () => {
 
                 {/* Active Sessions */}
                 <div className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">Active Sessions</h2>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('userSettings.security.activeSessions')}</h2>
                   <p className="text-gray-600 mb-4">
-                    These devices are currently logged into your account. If you see any unfamiliar devices, you should change your password immediately.
+                    {t('userSettings.security.activeSessionsDescription')}
                   </p>
                   
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 border border-gray-200 rounded-md">
                       <div>
-                        <p className="font-medium text-gray-900">Current Device</p>
-                        <p className="text-sm text-gray-600">Chrome on Windows • Germany</p>
-                        <p className="text-xs text-gray-500">Active now</p>
+                        <p className="font-medium text-gray-900">{t('userSettings.security.currentDevice')}</p>
+                        <p className="text-sm text-gray-600">{t('userSettings.security.deviceInfo', { browser: 'Chrome', os: 'Windows', location: 'Germany' })}</p>
+                        <p className="text-xs text-gray-500">{t('userSettings.security.activeNow')}</p>
                       </div>
-                      <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">Active</span>
+                      <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">{t('common.active')}</span>
                     </div>
                   </div>
                 </div>

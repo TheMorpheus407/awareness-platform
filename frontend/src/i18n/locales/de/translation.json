@@ -19,7 +19,10 @@
     "processing": "Verarbeitung...",
     "continue": "Weiter",
     "profile": "Profil",
-    "settings": "Einstellungen"
+    "settings": "Einstellungen",
+    "saveChanges": "Änderungen speichern",
+    "active": "Aktiv",
+    "showing": "Zeige {{from}} bis {{to}} von {{total}} {{entity}}"
   },
   "branding": {
     "appName": "CyberAware",
@@ -219,7 +222,11 @@
     "roles": {
       "admin": "Administrator",
       "user": "Benutzer",
-      "manager": "Manager"
+      "manager": "Manager",
+      "company_admin": "Unternehmensadministrator"
+    },
+    "roleDisplay": {
+      "company_admin": "Unternehmensadministrator"
     }
   },
   "companies": {
@@ -234,7 +241,8 @@
       "status": "Status",
       "created": "Erstellt",
       "actions": "Aktionen"
-    }
+    },
+    "maxUsers": "{{count}} max. Benutzer"
   },
   "courses": {
     "comingSoon": "Kurse (Demnächst verfügbar)"
@@ -611,7 +619,8 @@
     },
     "enterprise": {
       "need": "Benötigen Sie eine individuelle Lösung?",
-      "contact": "Vertrieb kontaktieren"
+      "contact": "Vertrieb kontaktieren",
+      "contactEmail": "vertrieb@beispiel.de"
     },
     "comparison": {
       "title": "Pläne vergleichen",
@@ -807,6 +816,11 @@
     "dashboard": {
       "title": "Analyse-Dashboard"
     },
+    "errors": {
+      "loadFailed": "Analysen konnten nicht geladen werden",
+      "exportFailed": "Export fehlgeschlagen",
+      "exportInitiated": "Export wurde gestartet"
+    },
     "metrics": {
       "totalUsers": "Gesamtbenutzer",
       "courseCompletions": "Kursabschlüsse",
@@ -907,6 +921,95 @@
       "title": "Benutzerengagement-Analysen",
       "allUsers": "Alle Benutzer"
     }
+  },
+  "userSettings": {
+    "title": "Benutzereinstellungen",
+    "tabs": {
+      "profile": "Profil",
+      "security": "Sicherheit",
+      "notifications": "Benachrichtigungen",
+      "language": "Sprache",
+      "appearance": "Erscheinungsbild"
+    },
+    "profile": {
+      "title": "Profilinformationen",
+      "firstName": "Vorname",
+      "lastName": "Nachname",
+      "email": "E-Mail-Adresse",
+      "phone": "Telefonnummer"
+    },
+    "security": {
+      "changePassword": "Passwort ändern",
+      "currentPassword": "Aktuelles Passwort",
+      "newPassword": "Neues Passwort",
+      "confirmNewPassword": "Neues Passwort bestätigen",
+      "updatePassword": "Passwort aktualisieren",
+      "enableTwoFactor": "Zwei-Faktor-Authentifizierung aktivieren",
+      "activeSessions": "Aktive Sitzungen",
+      "activeSessionsDescription": "Diese Geräte sind derzeit in Ihrem Konto angemeldet. Wenn Sie unbekannte Geräte sehen, sollten Sie Ihr Passwort sofort ändern.",
+      "currentDevice": "Aktuelles Gerät",
+      "deviceInfo": "{{browser}} auf {{os}} • {{location}}",
+      "activeNow": "Gerade aktiv"
+    },
+    "notifications": {
+      "title": "Benachrichtigungseinstellungen",
+      "emailNotifications": "E-Mail-Benachrichtigungen",
+      "emailNotificationsDescription": "E-Mail-Updates über Ihr Konto erhalten",
+      "securityAlerts": "Sicherheitswarnungen",
+      "securityAlertsDescription": "Über wichtige Sicherheitsupdates benachrichtigt werden",
+      "courseReminders": "Kurserinnerungen",
+      "courseRemindersDescription": "Erinnerungen über bevorstehende Kurse erhalten",
+      "savePreferences": "Einstellungen speichern"
+    },
+    "languageRegion": {
+      "title": "Sprache & Region",
+      "preferredLanguage": "Bevorzugte Sprache",
+      "timezone": "Zeitzone",
+      "dateFormat": "Datumsformat"
+    },
+    "appearance": {
+      "title": "Erscheinungsbild",
+      "theme": "Design",
+      "light": "Hell",
+      "dark": "Dunkel",
+      "auto": "Automatisch",
+      "compactMode": "Kompaktmodus",
+      "compactModeDescription": "Abstände und Polsterung in der Benutzeroberfläche reduzieren"
+    }
+  },
+  "monitoring": {
+    "title": "Systemüberwachung",
+    "subtitle": "Echtzeit-Systemzustand und Leistungsmetriken",
+    "refresh": {
+      "10s": "10 Sekunden",
+      "30s": "30 Sekunden",
+      "1m": "1 Minute",
+      "5m": "5 Minuten"
+    },
+    "alerts": {
+      "active": "Aktive Warnungen"
+    },
+    "database": "Datenbank",
+    "disk": "Festplatte",
+    "memory": "Arbeitsspeicher",
+    "cpu": "CPU",
+    "responseTime": "Antwortzeit",
+    "connections": "Verbindungen",
+    "free": "frei",
+    "available": "verfügbar",
+    "used": "verwendet",
+    "cores": "Kerne",
+    "usage": "Auslastung",
+    "activeUsers": "Aktive Benutzer",
+    "last30Minutes": "Letzte 30 Minuten",
+    "courseCompletions": "Kursabschlüsse",
+    "last24Hours": "Letzte 24 Stunden",
+    "successfulPayments": "Erfolgreiche Zahlungen",
+    "requestStats": "Anforderungsstatistiken",
+    "totalRequests": "Gesamtanforderungen",
+    "errorRate": "Fehlerrate",
+    "uptime": "Verfügbarkeit",
+    "uptimeValue": "99,9%"
   },
   "emailCampaign": {
     "roles": {

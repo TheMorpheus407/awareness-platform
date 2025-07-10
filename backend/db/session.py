@@ -38,6 +38,9 @@ AsyncSessionLocal = async_sessionmaker(
 # Create declarative base
 Base = declarative_base()
 
+# Alias for backward compatibility
+async_session_maker = AsyncSessionLocal
+
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """

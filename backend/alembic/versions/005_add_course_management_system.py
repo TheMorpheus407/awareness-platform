@@ -18,10 +18,34 @@ depends_on = None
 
 def upgrade() -> None:
     # Create enum types
-    op.execute("CREATE TYPE contenttype AS ENUM ('video', 'document', 'presentation', 'interactive', 'scorm', 'external_link', 'text', 'quiz')")
-    op.execute("CREATE TYPE difficultylevel AS ENUM ('beginner', 'intermediate', 'advanced', 'expert')")
-    op.execute("CREATE TYPE coursestatus AS ENUM ('draft', 'published', 'archived')")
-    op.execute("CREATE TYPE progressstatus AS ENUM ('not_started', 'in_progress', 'completed', 'failed')")
+    op.execute("""
+        DO $$ BEGIN
+            CREATE TYPE contenttype AS ENUM ('video', 'document', 'presentation', 'interactive', 'scorm', 'external_link', 'text', 'quiz');
+        EXCEPTION
+            WHEN duplicate_object THEN null;
+        END $$;
+    """)
+    op.execute("""
+        DO $$ BEGIN
+            CREATE TYPE difficultylevel AS ENUM ('beginner', 'intermediate', 'advanced', 'expert');
+        EXCEPTION
+            WHEN duplicate_object THEN null;
+        END $$;
+    """)
+    op.execute("""
+        DO $$ BEGIN
+            CREATE TYPE coursestatus AS ENUM ('draft', 'published', 'archived');
+        EXCEPTION
+            WHEN duplicate_object THEN null;
+        END $$;
+    """)
+    op.execute("""
+        DO $$ BEGIN
+            CREATE TYPE progressstatus AS ENUM ('not_started', 'in_progress', 'completed', 'failed');
+        EXCEPTION
+            WHEN duplicate_object THEN null;
+        END $$;
+    """)
     
     # Drop old tables if they exist (from previous simple models)
     op.execute("DROP TABLE IF EXISTS user_course_progress CASCADE")
