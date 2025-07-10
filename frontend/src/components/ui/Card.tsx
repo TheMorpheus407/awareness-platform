@@ -157,3 +157,9 @@ export const CardFooter: React.FC<{ className?: string; children: React.ReactNod
     {children}
   </div>
 );
+
+// Add sub-components to Card for dot notation access
+(Card as any).Header = CardHeader;
+(Card as any).Title = CardTitle;
+(Card as any).Content = CardContent;
+(Card as any).Footer = CardFooter;

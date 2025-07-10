@@ -88,7 +88,7 @@ export const Users: React.FC = () => {
                         ? 'bg-blue-100 text-blue-800'
                         : 'bg-gray-100 text-gray-800'
                     }`}>
-                      {user.role.replace('_', ' ')}
+                      {t(`users.roles.${user.role}`)}
                     </span>
                   </td>
                   <td className="py-3 px-4">
@@ -125,7 +125,12 @@ export const Users: React.FC = () => {
         {data && data.pages > 1 && (
           <div className="flex items-center justify-between mt-6">
             <p className="text-sm text-secondary-600">
-              Showing {(page - 1) * 20 + 1} to {Math.min(page * 20, data.total)} of {data.total} users
+              {t('common.showing', { 
+                from: (page - 1) * 20 + 1, 
+                to: Math.min(page * 20, data.total), 
+                total: data.total, 
+                entity: t('users.title').toLowerCase() 
+              })}
             </p>
             <div className="flex space-x-2">
               <button

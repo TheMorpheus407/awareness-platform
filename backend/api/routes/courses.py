@@ -1,9 +1,9 @@
 """Course management routes - simplified implementation."""
 
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, or_, and_
 
@@ -11,6 +11,7 @@ from api.dependencies.auth import get_current_active_user, require_company_admin
 from api.dependencies.common import get_db, get_pagination_params
 from models.user import User, UserRole
 from schemas.base import PaginatedResponse
+from services.course_service import CourseService
 
 router = APIRouter()
 
@@ -41,10 +42,33 @@ async def list_courses(
         Paginated list of courses
     """
     offset, limit = pagination
+    course_service = CourseService(db)
     
-    # TODO: Implement course listing
-    # For now, return empty list
-    return []
+    # Get courses
+    courses = await course_service.search_courses(
+        search_term=search,
+        category=category,
+        difficulty=difficulty,
+        is_published=is_published,
+        limit=limit,
+        offset=offset
+    )
+    
+    # Format response
+    return [
+        {
+            "id": course.id,
+            "title": course.title,
+            "description": course.description,
+            "category": course.category,
+            "difficulty": course.difficulty,
+            "duration_hours": course.duration_hours,
+            "is_published": course.is_published,
+            "created_at": course.created_at.isoformat(),
+            "tags": course.tags,
+        }
+        for course in courses
+    ]
 
 
 @router.post("/", response_model=dict)

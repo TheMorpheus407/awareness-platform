@@ -80,7 +80,7 @@ export const Companies: React.FC = () => {
                 </div>
                 <div className="flex items-center">
                   <Users className="w-4 h-4 mr-2" />
-                  {company.max_users} max users
+                  {t('companies.maxUsers', { count: company.max_users })}
                 </div>
               </div>
               
@@ -104,7 +104,12 @@ export const Companies: React.FC = () => {
         {data && data.pages > 1 && (
           <div className="flex items-center justify-between mt-6">
             <p className="text-sm text-secondary-600">
-              Showing {(page - 1) * 20 + 1} to {Math.min(page * 20, data.total)} of {data.total} companies
+              {t('common.showing', { 
+                from: (page - 1) * 20 + 1, 
+                to: Math.min(page * 20, data.total), 
+                total: data.total, 
+                entity: t('companies.title').toLowerCase() 
+              })}
             </p>
             <div className="flex space-x-2">
               <button

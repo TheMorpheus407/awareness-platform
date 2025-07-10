@@ -82,7 +82,7 @@ const AnalyticsDashboard: React.FC = () => {
       ]);
 
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to load analytics');
+      setError(err.response?.data?.detail || t('analytics.errors.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -161,7 +161,7 @@ const AnalyticsDashboard: React.FC = () => {
         dateRange,
       });
       // Handle file download
-      console.log('Export initiated:', response.data);
+      console.log(t('analytics.errors.exportInitiated'), response.data);
     } catch (err) {
       console.error('Export failed:', err);
     }

@@ -81,10 +81,10 @@ export const Dashboard: React.FC = () => {
           <h2 className="text-lg font-semibold text-secondary-900 mb-4">{t('dashboard.recentActivity.title')}</h2>
           <div className="space-y-4">
             {[
-              { user: 'John Doe', action: 'Completed course', time: '2 hours ago' },
-              { user: 'Jane Smith', action: 'Failed phishing test', time: '3 hours ago' },
-              { user: 'Mike Johnson', action: 'Joined the platform', time: '5 hours ago' },
-              { user: 'Sarah Williams', action: 'Completed quiz', time: '6 hours ago' },
+              { user: 'John Doe', action: t('dashboard.recentActivity.completedCourse'), time: t('dashboard.recentActivity.hoursAgo', { hours: 2 }) },
+              { user: 'Jane Smith', action: t('dashboard.recentActivity.failedPhishing'), time: t('dashboard.recentActivity.hoursAgo', { hours: 3 }) },
+              { user: 'Mike Johnson', action: t('dashboard.recentActivity.joinedPlatform'), time: t('dashboard.recentActivity.hoursAgo', { hours: 5 }) },
+              { user: 'Sarah Williams', action: t('dashboard.recentActivity.completedQuiz'), time: t('dashboard.recentActivity.hoursAgo', { hours: 6 }) },
             ].map((activity, index) => (
               <div key={index} className="flex items-center justify-between py-3 border-b border-secondary-100 last:border-0">
                 <div className="flex items-center">

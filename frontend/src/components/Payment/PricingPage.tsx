@@ -173,7 +173,7 @@ const PricingPage: React.FC = () => {
           <p className="text-lg text-gray-600">
             {t('pricing.enterprise.need')}{' '}
             <a
-              href="mailto:sales@example.com"
+              href={`mailto:${t('pricing.enterprise.contactEmail')}`}
               className="text-blue-600 hover:text-blue-800 font-medium"
             >
               {t('pricing.enterprise.contact')}

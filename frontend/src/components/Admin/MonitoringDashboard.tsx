@@ -474,7 +474,7 @@ export const MonitoringDashboard: React.FC = () => {
                 <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   {t('monitoring.uptime')}
                 </h3>
-                <p className="text-2xl font-bold text-green-600">99.9%</p>
+                <p className="text-2xl font-bold text-green-600">{t('monitoring.uptimeValue')}</p>
               </div>
             </div>
           </Card.Content>

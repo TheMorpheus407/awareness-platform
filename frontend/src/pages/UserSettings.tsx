@@ -228,13 +228,13 @@ export const UserSettings: React.FC = () => {
 
             {activeTab === 'notifications' && (
               <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">Notification Preferences</h2>
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">{t('userSettings.notifications.title')}</h2>
                 
                 <div className="space-y-4">
                   <label className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-gray-900">Email Notifications</p>
-                      <p className="text-sm text-gray-600">Receive email updates about your account</p>
+                      <p className="font-medium text-gray-900">{t('userSettings.notifications.emailNotifications')}</p>
+                      <p className="text-sm text-gray-600">{t('userSettings.notifications.emailNotificationsDescription')}</p>
                     </div>
                     <input
                       type="checkbox"
@@ -245,8 +245,8 @@ export const UserSettings: React.FC = () => {
 
                   <label className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-gray-900">Security Alerts</p>
-                      <p className="text-sm text-gray-600">Get notified about important security updates</p>
+                      <p className="font-medium text-gray-900">{t('userSettings.notifications.securityAlerts')}</p>
+                      <p className="text-sm text-gray-600">{t('userSettings.notifications.securityAlertsDescription')}</p>
                     </div>
                     <input
                       type="checkbox"
@@ -257,8 +257,8 @@ export const UserSettings: React.FC = () => {
 
                   <label className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-gray-900">Course Reminders</p>
-                      <p className="text-sm text-gray-600">Receive reminders about upcoming courses</p>
+                      <p className="font-medium text-gray-900">{t('userSettings.notifications.courseReminders')}</p>
+                      <p className="text-sm text-gray-600">{t('userSettings.notifications.courseRemindersDescription')}</p>
                     </div>
                     <input
                       type="checkbox"
@@ -270,7 +270,7 @@ export const UserSettings: React.FC = () => {
 
                 <div className="mt-6 flex justify-end">
                   <button className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
-                    Save Preferences
+                    {t('userSettings.notifications.savePreferences')}
                   </button>
                 </div>
               </div>
@@ -278,12 +278,12 @@ export const UserSettings: React.FC = () => {
 
             {activeTab === 'language' && (
               <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">Language & Region</h2>
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">{t('userSettings.languageRegion.title')}</h2>
                 
                 <div className="space-y-4">
                   <div>
                     <label htmlFor="language" className="block text-sm font-medium text-gray-700 mb-2">
-                      Preferred Language
+                      {t('userSettings.languageRegion.preferredLanguage')}
                     </label>
                     <select
                       id="language"
@@ -299,7 +299,7 @@ export const UserSettings: React.FC = () => {
 
                   <div>
                     <label htmlFor="timezone" className="block text-sm font-medium text-gray-700 mb-2">
-                      Time Zone
+                      {t('userSettings.languageRegion.timezone')}
                     </label>
                     <select
                       id="timezone"
@@ -315,7 +315,7 @@ export const UserSettings: React.FC = () => {
 
                   <div>
                     <label htmlFor="dateFormat" className="block text-sm font-medium text-gray-700 mb-2">
-                      Date Format
+                      {t('userSettings.languageRegion.dateFormat')}
                     </label>
                     <select
                       id="dateFormat"
@@ -331,7 +331,7 @@ export const UserSettings: React.FC = () => {
 
                 <div className="mt-6 flex justify-end">
                   <button className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
-                    Save Changes
+                    {t('common.saveChanges')}
                   </button>
                 </div>
               </div>
@@ -339,17 +339,17 @@ export const UserSettings: React.FC = () => {
 
             {activeTab === 'appearance' && (
               <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">Appearance</h2>
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">{t('userSettings.appearance.title')}</h2>
                 
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-sm font-medium text-gray-700 mb-3">Theme</h3>
+                    <h3 className="text-sm font-medium text-gray-700 mb-3">{t('userSettings.appearance.theme')}</h3>
                     <div className="grid grid-cols-3 gap-3">
                       <label className="cursor-pointer">
                         <input type="radio" name="theme" value="light" defaultChecked className="sr-only" />
                         <div className="p-4 border-2 border-indigo-500 rounded-lg text-center">
                           <div className="w-12 h-12 bg-white border border-gray-300 rounded mx-auto mb-2"></div>
-                          <p className="text-sm font-medium">Light</p>
+                          <p className="text-sm font-medium">{t('userSettings.appearance.light')}</p>
                         </div>
                       </label>
                       
@@ -357,7 +357,7 @@ export const UserSettings: React.FC = () => {
                         <input type="radio" name="theme" value="dark" className="sr-only" />
                         <div className="p-4 border-2 border-gray-300 rounded-lg text-center hover:border-gray-400">
                           <div className="w-12 h-12 bg-gray-800 rounded mx-auto mb-2"></div>
-                          <p className="text-sm font-medium">Dark</p>
+                          <p className="text-sm font-medium">{t('userSettings.appearance.dark')}</p>
                         </div>
                       </label>
                       
@@ -365,7 +365,7 @@ export const UserSettings: React.FC = () => {
                         <input type="radio" name="theme" value="auto" className="sr-only" />
                         <div className="p-4 border-2 border-gray-300 rounded-lg text-center hover:border-gray-400">
                           <div className="w-12 h-12 bg-gradient-to-r from-white to-gray-800 rounded mx-auto mb-2"></div>
-                          <p className="text-sm font-medium">Auto</p>
+                          <p className="text-sm font-medium">{t('userSettings.appearance.auto')}</p>
                         </div>
                       </label>
                     </div>
@@ -374,8 +374,8 @@ export const UserSettings: React.FC = () => {
                   <div>
                     <label className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-gray-900">Compact Mode</p>
-                        <p className="text-sm text-gray-600">Reduce spacing and padding in the interface</p>
+                        <p className="font-medium text-gray-900">{t('userSettings.appearance.compactMode')}</p>
+                        <p className="text-sm text-gray-600">{t('userSettings.appearance.compactModeDescription')}</p>
                       </div>
                       <input
                         type="checkbox"
@@ -387,7 +387,7 @@ export const UserSettings: React.FC = () => {
 
                 <div className="mt-6 flex justify-end">
                   <button className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
-                    Save Preferences
+                    {t('userSettings.notifications.savePreferences')}
                   </button>
                 </div>
               </div>
