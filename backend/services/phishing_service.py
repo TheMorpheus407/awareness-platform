@@ -19,7 +19,7 @@ from models import (
 )
 from services.email_service import ExtendedEmailService
 from core.config import settings
-from core.exceptions import ValidationError, PermissionDenied
+from core.exceptions import ValidationError, AuthorizationError
 from core.cache import cache
 
 logger = logging.getLogger(__name__)
