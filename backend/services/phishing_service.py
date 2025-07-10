@@ -284,10 +284,11 @@ class PhishingService:
             )
 
         # Otherwise, create simple HTML from text
+        formatted_body = body_text.replace('\n', '<br>')
         html_body = f"""
         <html>
         <body style="font-family: Arial, sans-serif; line-height: 1.6;">
-            {body_text.replace('\n', '<br>')}
+            {formatted_body}
         </body>
         </html>
         """
