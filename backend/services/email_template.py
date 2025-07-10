@@ -14,7 +14,7 @@ from sqlalchemy import select
 
 from models import EmailTemplate, EmailTemplateType, Company, User
 from core.config import settings
-from core.cache import get_cache
+from core.cache import cache
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ class EmailTemplateService:
     def __init__(self, db: AsyncSession, cache=None):
         """Initialize template service."""
         self.db = db
-        self.cache = cache or get_cache()
+        self.cache = cache
         
         # Set up Jinja2 environment
         template_dir = Path(__file__).parent.parent / "templates" / "email"
