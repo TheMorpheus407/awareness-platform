@@ -68,7 +68,7 @@ def setup_logging() -> None:
     logger.remove()
     
     # Skip complex logging setup in test environment
-    if settings.ENVIRONMENT == "test" or settings.TESTING:
+    if settings.ENVIRONMENT == "test" or getattr(settings, "TESTING", False):
         # Simple console output for tests
         logger.add(
             sys.stderr,

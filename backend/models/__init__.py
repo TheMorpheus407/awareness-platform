@@ -15,7 +15,11 @@ from .user import User, UserRole
 from .company import Company, CompanySize, CompanyStatus, SubscriptionTier
 
 # Course models
-from .course import Course, Quiz, QuizQuestion, UserCourseProgress
+from .course import (
+    Course, Quiz, QuizQuestion, UserCourseProgress,
+    Module, Lesson, UserLessonProgress,
+    Badge, UserBadge, UserPoints, Certificate
+)
 
 # Phishing models
 from .phishing import PhishingCampaign, PhishingTemplate, PhishingResult
@@ -80,6 +84,13 @@ __all__ = [
     "Quiz",
     "QuizQuestion",
     "UserCourseProgress",
+    "Module",
+    "Lesson",
+    "UserLessonProgress",
+    "Badge",
+    "UserBadge",
+    "UserPoints",
+    "Certificate",
     
     # Phishing
     "PhishingCampaign",
