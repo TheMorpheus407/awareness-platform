@@ -1,4 +1,4 @@
-"""Phishing simulation routes."""
+"""Phishing simulation routes - simplified implementation."""
 
 from typing import Optional, List
 from uuid import UUID
@@ -14,63 +14,54 @@ from api.dependencies.common import get_db, get_pagination_params
 from models.phishing import (
     PhishingCampaign,
     PhishingTemplate,
-    PhishingEmail,
     PhishingResult,
-    CampaignStatus,
 )
 from models.user import User, UserRole
-from schemas.phishing import (
-    PhishingCampaignCreate,
-    PhishingCampaignUpdate,
-    PhishingCampaign as PhishingCampaignSchema,
-    PhishingCampaignListResponse,
-    PhishingTemplateCreate,
-    PhishingTemplate as PhishingTemplateSchema,
-    PhishingResultCreate,
-    PhishingResult as PhishingResultSchema,
-    CampaignStatistics,
-)
-from services.phishing_service import PhishingService
+from schemas.base import PaginatedResponse
 
 router = APIRouter()
 
 
-@router.get("/campaigns", response_model=PhishingCampaignListResponse)
+@router.get("/campaigns", response_model=PaginatedResponse)
 async def list_campaigns(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_company_admin),
+    current_user: User = Depends(get_current_active_user),
     pagination: tuple[int, int] = Depends(get_pagination_params),
-    status: Optional[CampaignStatus] = Query(None, description="Filter by status"),
+    status: Optional[str] = Query(None, description="Filter by status", regex="^(draft|scheduled|running|completed|cancelled)$"),
     search: Optional[str] = Query(None, description="Search in campaign name"),
-) -> PhishingCampaignListResponse:
+) -> PaginatedResponse:
     """
-    List phishing campaigns for company.
+    List phishing campaigns.
     
     Args:
         db: Database session
-        current_user: Current authenticated user (must be company admin)
+        current_user: Current authenticated user
         pagination: Offset and limit
         status: Filter by campaign status
         search: Search term
         
     Returns:
-        Paginated list of phishing campaigns
+        Paginated list of campaigns
     """
     offset, limit = pagination
     
-    # Base query - filter by company
+    # Base query
     query = select(PhishingCampaign).where(
         PhishingCampaign.company_id == current_user.company_id
     )
     
-    # Apply status filter
+    # Apply filters
     if status:
         query = query.where(PhishingCampaign.status == status)
     
-    # Apply search filter
     if search:
         search_term = f"%{search}%"
-        query = query.where(PhishingCampaign.name.ilike(search_term))
+        query = query.where(
+            or_(
+                PhishingCampaign.name.ilike(search_term),
+                PhishingCampaign.description.ilike(search_term),
+            )
+        )
     
     # Get total count
     count_query = select(func.count()).select_from(query.subquery())
@@ -84,8 +75,15 @@ async def list_campaigns(
     result = await db.execute(query)
     campaigns = result.scalars().all()
     
-    return PhishingCampaignListResponse(
-        items=campaigns,
+    return PaginatedResponse(
+        items=[{
+            "id": str(c.id),
+            "name": c.name,
+            "status": c.status,
+            "created_at": c.created_at.isoformat(),
+            "scheduled_at": c.scheduled_at.isoformat() if c.scheduled_at else None,
+            "statistics": c.get_statistics(),
+        } for c in campaigns],
         total=total,
         page=(offset // limit) + 1,
         size=limit,
@@ -93,87 +91,63 @@ async def list_campaigns(
     )
 
 
-@router.post("/campaigns", response_model=PhishingCampaignSchema)
+@router.post("/campaigns", response_model=dict)
 async def create_campaign(
-    campaign_data: PhishingCampaignCreate,
-    background_tasks: BackgroundTasks,
+    campaign_data: dict,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_company_admin),
-) -> PhishingCampaign:
+) -> dict:
     """
     Create new phishing campaign.
     
     Args:
         campaign_data: Campaign creation data
-        background_tasks: Background task queue
         db: Database session
-        current_user: Current authenticated user (must be company admin)
+        current_user: Current authenticated user (must be admin)
         
     Returns:
-        Created phishing campaign
+        Created campaign
     """
-    # Verify template exists
-    template_result = await db.execute(
-        select(PhishingTemplate).where(
-            PhishingTemplate.id == campaign_data.template_id
-        )
-    )
-    template = template_result.scalar_one_or_none()
-    
-    if not template:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Template not found"
-        )
-    
     # Create campaign
     campaign = PhishingCampaign(
-        **campaign_data.model_dump(exclude={"target_users"}),
         company_id=current_user.company_id,
-        created_by=current_user.id,
-        status=CampaignStatus.DRAFT,
+        created_by_id=current_user.id,
+        name=campaign_data.get("name", "New Campaign"),
+        description=campaign_data.get("description"),
+        status="draft",
+        template_id=campaign_data.get("template_id"),
+        target_groups=campaign_data.get("target_groups", []),
+        target_user_ids=campaign_data.get("target_user_ids", []),
+        settings=campaign_data.get("settings", {}),
     )
     db.add(campaign)
-    await db.flush()  # Get campaign ID
-    
-    # Create phishing emails for target users
-    phishing_service = PhishingService(db)
-    await phishing_service.create_campaign_emails(
-        campaign_id=campaign.id,
-        template_id=campaign_data.template_id,
-        target_user_ids=campaign_data.target_users,
-    )
-    
     await db.commit()
     await db.refresh(campaign)
     
-    # Schedule campaign if needed
-    if campaign_data.scheduled_at:
-        background_tasks.add_task(
-            phishing_service.schedule_campaign,
-            campaign_id=campaign.id,
-            scheduled_at=campaign_data.scheduled_at,
-        )
-    
-    return campaign
+    return {
+        "id": str(campaign.id),
+        "name": campaign.name,
+        "status": campaign.status,
+        "created_at": campaign.created_at.isoformat(),
+    }
 
 
-@router.get("/campaigns/{campaign_id}", response_model=PhishingCampaignSchema)
+@router.get("/campaigns/{campaign_id}", response_model=dict)
 async def get_campaign(
     campaign_id: UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_company_admin),
-) -> PhishingCampaign:
+    current_user: User = Depends(get_current_active_user),
+) -> dict:
     """
-    Get phishing campaign by ID.
+    Get campaign details.
     
     Args:
         campaign_id: Campaign ID
         db: Database session
-        current_user: Current authenticated user (must be company admin)
+        current_user: Current authenticated user
         
     Returns:
-        Phishing campaign details
+        Campaign details
         
     Raises:
         HTTPException: If campaign not found or no access
@@ -181,7 +155,7 @@ async def get_campaign(
     # Get campaign
     result = await db.execute(
         select(PhishingCampaign)
-        .options(selectinload(PhishingCampaign.template))
+        .options(selectinload(PhishingCampaign.results))
         .where(
             and_(
                 PhishingCampaign.id == campaign_id,
@@ -197,30 +171,43 @@ async def get_campaign(
             detail="Campaign not found"
         )
     
-    return campaign
+    return {
+        "id": str(campaign.id),
+        "name": campaign.name,
+        "description": campaign.description,
+        "status": campaign.status,
+        "created_at": campaign.created_at.isoformat(),
+        "scheduled_at": campaign.scheduled_at.isoformat() if campaign.scheduled_at else None,
+        "started_at": campaign.started_at.isoformat() if campaign.started_at else None,
+        "completed_at": campaign.completed_at.isoformat() if campaign.completed_at else None,
+        "statistics": campaign.get_statistics(),
+        "template_id": str(campaign.template_id) if campaign.template_id else None,
+        "target_groups": campaign.target_groups,
+        "target_user_ids": campaign.target_user_ids,
+    }
 
 
-@router.post("/campaigns/{campaign_id}/launch")
-async def launch_campaign(
+@router.patch("/campaigns/{campaign_id}", response_model=dict)
+async def update_campaign(
     campaign_id: UUID,
-    background_tasks: BackgroundTasks,
+    campaign_update: dict,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_company_admin),
 ) -> dict:
     """
-    Launch phishing campaign.
+    Update phishing campaign.
     
     Args:
         campaign_id: Campaign ID
-        background_tasks: Background task queue
+        campaign_update: Campaign update data
         db: Database session
-        current_user: Current authenticated user (must be company admin)
+        current_user: Current authenticated user (must be admin)
         
     Returns:
-        Success message
+        Updated campaign
         
     Raises:
-        HTTPException: If campaign not found or cannot be launched
+        HTTPException: If campaign not found or not in draft status
     """
     # Get campaign
     result = await db.execute(
@@ -239,49 +226,52 @@ async def launch_campaign(
             detail="Campaign not found"
         )
     
-    if campaign.status != CampaignStatus.DRAFT:
+    if campaign.status != "draft":
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Campaign can only be launched from draft status"
+            detail="Can only update campaigns in draft status"
         )
     
-    # Update campaign status
-    campaign.status = CampaignStatus.SCHEDULED
-    campaign.scheduled_at = datetime.utcnow()
+    # Update fields
+    for field, value in campaign_update.items():
+        if hasattr(campaign, field):
+            setattr(campaign, field, value)
+    
     await db.commit()
+    await db.refresh(campaign)
     
-    # Launch campaign in background
-    phishing_service = PhishingService(db)
-    background_tasks.add_task(
-        phishing_service.launch_campaign,
-        campaign_id=campaign.id,
-    )
-    
-    return {"message": "Campaign launched successfully"}
+    return {
+        "id": str(campaign.id),
+        "name": campaign.name,
+        "status": campaign.status,
+        "updated_at": campaign.updated_at.isoformat(),
+    }
 
 
-@router.get("/campaigns/{campaign_id}/statistics", response_model=CampaignStatistics)
-async def get_campaign_statistics(
+@router.post("/campaigns/{campaign_id}/launch", response_model=dict)
+async def launch_campaign(
     campaign_id: UUID,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_company_admin),
-) -> CampaignStatistics:
+) -> dict:
     """
-    Get campaign statistics.
+    Launch phishing campaign.
     
     Args:
         campaign_id: Campaign ID
+        background_tasks: Background task manager
         db: Database session
-        current_user: Current authenticated user (must be company admin)
+        current_user: Current authenticated user (must be admin)
         
     Returns:
-        Campaign statistics
+        Launch confirmation
         
     Raises:
-        HTTPException: If campaign not found or no access
+        HTTPException: If campaign not found or not in draft status
     """
-    # Verify campaign exists and user has access
-    campaign_result = await db.execute(
+    # Get campaign
+    result = await db.execute(
         select(PhishingCampaign).where(
             and_(
                 PhishingCampaign.id == campaign_id,
@@ -289,7 +279,7 @@ async def get_campaign_statistics(
             )
         )
     )
-    campaign = campaign_result.scalar_one_or_none()
+    campaign = result.scalar_one_or_none()
     
     if not campaign:
         raise HTTPException(
@@ -297,150 +287,151 @@ async def get_campaign_statistics(
             detail="Campaign not found"
         )
     
-    # Get statistics
-    phishing_service = PhishingService(db)
-    stats = await phishing_service.get_campaign_statistics(campaign_id)
+    if campaign.status != "draft":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Campaign has already been launched"
+        )
     
-    return stats
+    # Update campaign status
+    campaign.status = "scheduled"
+    campaign.scheduled_at = datetime.utcnow()
+    await db.commit()
+    
+    # TODO: Add background task to send phishing emails
+    
+    return {
+        "message": "Campaign launched successfully",
+        "campaign_id": str(campaign_id),
+        "status": campaign.status,
+        "scheduled_at": campaign.scheduled_at.isoformat(),
+    }
 
 
-@router.get("/templates", response_model=List[PhishingTemplateSchema])
+@router.get("/templates", response_model=List[dict])
 async def list_templates(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_company_admin),
-    is_custom: Optional[bool] = Query(None, description="Filter by custom templates"),
-) -> List[PhishingTemplate]:
+    current_user: User = Depends(get_current_active_user),
+    category: Optional[str] = Query(None, description="Filter by category"),
+    difficulty: Optional[str] = Query(None, description="Filter by difficulty"),
+) -> List[dict]:
     """
-    List available phishing templates.
+    List phishing templates.
     
     Args:
         db: Database session
-        current_user: Current authenticated user (must be company admin)
-        is_custom: Filter by custom templates
+        current_user: Current authenticated user
+        category: Filter by category
+        difficulty: Filter by difficulty (easy, medium, hard)
         
     Returns:
-        List of phishing templates
+        List of templates
     """
-    # Base query - show system templates and company's custom templates
+    # Base query - show system templates and company templates
     query = select(PhishingTemplate).where(
         or_(
-            PhishingTemplate.is_system == True,
-            PhishingTemplate.company_id == current_user.company_id,
+            PhishingTemplate.company_id.is_(None),  # System templates
+            PhishingTemplate.company_id == current_user.company_id,  # Company templates
         )
     )
     
-    # Apply custom filter
-    if is_custom is not None:
-        if is_custom:
-            query = query.where(PhishingTemplate.company_id == current_user.company_id)
-        else:
-            query = query.where(PhishingTemplate.is_system == True)
+    # Apply filters
+    if category:
+        query = query.where(PhishingTemplate.category == category)
     
-    # Order by name
-    query = query.order_by(PhishingTemplate.name)
+    if difficulty:
+        query = query.where(PhishingTemplate.difficulty == difficulty)
     
     # Execute query
-    result = await db.execute(query)
+    result = await db.execute(query.order_by(PhishingTemplate.name))
     templates = result.scalars().all()
     
-    return templates
+    return [{
+        "id": str(t.id),
+        "name": t.name,
+        "category": t.category,
+        "difficulty": t.difficulty,
+        "is_system": t.company_id is None,
+    } for t in templates]
 
 
-@router.post("/results/{tracking_id}/click")
+@router.get("/track/{tracking_id}/click")
 async def track_click(
     tracking_id: str,
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """
-    Track phishing email click (public endpoint).
+    Track link click in phishing email.
     
     Args:
-        tracking_id: Unique tracking ID from email
+        tracking_id: Tracking ID
         db: Database session
         
     Returns:
         Redirect URL or success message
     """
-    # Find phishing email by tracking ID
-    result = await db.execute(
-        select(PhishingEmail).where(
-            PhishingEmail.tracking_id == tracking_id
+    # Find phishing result by ID (using tracking_id as result ID)
+    try:
+        result_id = int(tracking_id)
+        result = await db.execute(
+            select(PhishingResult).where(
+                PhishingResult.id == result_id
+            )
         )
-    )
-    email = result.scalar_one_or_none()
-    
-    if not email:
-        # Don't reveal that the tracking ID is invalid
-        return {"redirect": "https://example.com"}
-    
-    # Update email status if not already clicked
-    if not email.clicked_at:
-        email.clicked_at = datetime.utcnow()
+        phishing_result = result.scalar_one_or_none()
         
-        # Create result record
-        result = PhishingResult(
-            campaign_id=email.campaign_id,
-            user_id=email.user_id,
-            email_id=email.id,
-            action="clicked",
-            timestamp=datetime.utcnow(),
-        )
-        db.add(result)
-        await db.commit()
-    
-    # Get template for redirect URL
-    template_result = await db.execute(
-        select(PhishingTemplate)
-        .join(PhishingCampaign)
-        .where(PhishingCampaign.id == email.campaign_id)
-    )
-    template = template_result.scalar_one_or_none()
-    
-    return {
-        "redirect": template.landing_page_url if template else "https://example.com"
-    }
+        if not phishing_result:
+            # Don't reveal that the tracking ID is invalid
+            return {"redirect": "https://example.com"}
+        
+        # Update click timestamp if not already clicked
+        if not phishing_result.link_clicked_at:
+            phishing_result.link_clicked_at = datetime.utcnow()
+            await db.commit()
+        
+        # TODO: Get redirect URL from campaign settings
+        return {"redirect": "https://example.com"}
+        
+    except (ValueError, TypeError):
+        # Invalid tracking ID format
+        return {"redirect": "https://example.com"}
 
 
-@router.post("/results/{tracking_id}/report")
+@router.post("/report/{tracking_id}")
 async def report_phishing(
     tracking_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
 ) -> dict:
     """
-    Report phishing email (public endpoint).
+    Report suspected phishing email.
     
     Args:
-        tracking_id: Unique tracking ID from email
+        tracking_id: Tracking ID
         db: Database session
+        current_user: Current authenticated user
         
     Returns:
         Success message
     """
-    # Find phishing email by tracking ID
-    result = await db.execute(
-        select(PhishingEmail).where(
-            PhishingEmail.tracking_id == tracking_id
+    # Find phishing result by ID
+    try:
+        result_id = int(tracking_id)
+        result = await db.execute(
+            select(PhishingResult).where(
+                and_(
+                    PhishingResult.id == result_id,
+                    PhishingResult.user_id == current_user.id,
+                )
+            )
         )
-    )
-    email = result.scalar_one_or_none()
-    
-    if not email:
-        # Don't reveal that the tracking ID is invalid
-        return {"message": "Thank you for reporting this email"}
-    
-    # Update email status if not already reported
-    if not email.reported_at:
-        email.reported_at = datetime.utcnow()
+        phishing_result = result.scalar_one_or_none()
         
-        # Create result record
-        result = PhishingResult(
-            campaign_id=email.campaign_id,
-            user_id=email.user_id,
-            email_id=email.id,
-            action="reported",
-            timestamp=datetime.utcnow(),
-        )
-        db.add(result)
-        await db.commit()
-    
-    return {"message": "Thank you for reporting this phishing email"}
+        if phishing_result and not phishing_result.reported_at:
+            phishing_result.reported_at = datetime.utcnow()
+            await db.commit()
+        
+        return {"message": "Thank you for reporting this suspicious email!"}
+        
+    except (ValueError, TypeError):
+        return {"message": "Thank you for reporting this suspicious email!"}
