@@ -28,7 +28,7 @@ async def list_companies(
     current_user: User = Depends(require_admin),
     pagination: tuple[int, int] = Depends(get_pagination_params),
     search: Optional[str] = Query(None, description="Search in company name"),
-    tier: Optional[SubscriptionTier] = Query(None, description="Filter by subscription tier"),
+    tier: Optional[str] = Query(None, description="Filter by subscription tier"),
     is_active: Optional[bool] = Query(None, description="Filter by active status"),
 ) -> CompanyListResponse:
     """
