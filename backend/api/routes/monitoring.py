@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta
 from typing import Dict, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
