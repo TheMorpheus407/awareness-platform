@@ -25,17 +25,6 @@ test.describe('Login Flow', () => {
   });
 
   test('should login successfully with valid credentials', async ({ page }) => {
-    // Listen for console messages
-    page.on('console', msg => console.log('Browser log:', msg.text()));
-    page.on('pageerror', err => console.log('Page error:', err.message));
-    
-    // Listen for network requests
-    page.on('response', response => {
-      if (response.url().includes('/auth/login')) {
-        console.log('Login response:', response.status(), response.statusText());
-      }
-    });
-    
     // Fill in valid test credentials
     await page.fill('input[type="email"]', 'user@example.com');
     await page.fill('input[type="password"]', 'UserPassword123!');

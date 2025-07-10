@@ -1,0 +1,87 @@
+global:
+  resolve_timeout: 5m
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'alerts@bootstrap-awareness.de'
+  smtp_auth_username: 'alerts@bootstrap-awareness.de'
+  smtp_auth_password: '${SMTP_PASSWORD}'
+  smtp_require_tls: true
+
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+  receiver: 'default'
+  
+  routes:
+    # Critical alerts - immediate notification
+    - match:
+        severity: critical
+      receiver: 'critical'
+      repeat_interval: 1h
+    
+    # Security alerts - immediate notification
+    - match:
+        service: security
+      receiver: 'security'
+      repeat_interval: 30m
+    
+    # Warning alerts - batched
+    - match:
+        severity: warning
+      receiver: 'warning'
+      group_wait: 5m
+      group_interval: 5m
+      repeat_interval: 4h
+
+receivers:
+  - name: 'default'
+    email_configs:
+      - to: 'admin@bootstrap-awareness.de'
+        headers:
+          Subject: '[Awareness Platform] Alert: {{ .GroupLabels.alertname }}'
+        html: |
+          <h2>🚨 Alert: {{ .GroupLabels.alertname }}</h2>
+          <p><strong>Status:</strong> {{ .Status }}</p>
+          {{ range .Alerts }}
+          <hr>
+          <h3>{{ .Labels.alertname }}</h3>
+          <p><strong>Severity:</strong> {{ .Labels.severity }}</p>
+          <p><strong>Summary:</strong> {{ .Annotations.summary }}</p>
+          <p><strong>Description:</strong> {{ .Annotations.description }}</p>
+          <p><strong>Started:</strong> {{ .StartsAt }}</p>
+          {{ end }}
+  
+  - name: 'critical'
+    email_configs:
+      - to: 'admin@bootstrap-awareness.de, oncall@bootstrap-awareness.de'
+        headers:
+          Subject: '[CRITICAL] Awareness Platform: {{ .GroupLabels.alertname }}'
+        send_resolved: true
+    # Optional: Add PagerDuty, Slack, etc.
+    # pagerduty_configs:
+    #   - service_key: '${PAGERDUTY_KEY}'
+  
+  - name: 'security'
+    email_configs:
+      - to: 'security@bootstrap-awareness.de'
+        headers:
+          Subject: '[SECURITY] Awareness Platform: {{ .GroupLabels.alertname }}'
+        send_resolved: true
+  
+  - name: 'warning'
+    email_configs:
+      - to: 'admin@bootstrap-awareness.de'
+        headers:
+          Subject: '[Warning] Awareness Platform: {{ .GroupLabels.alertname }}'
+
+inhibit_rules:
+  # Inhibit less severe alerts if critical alert is firing
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'instance']
