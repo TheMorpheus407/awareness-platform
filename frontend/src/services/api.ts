@@ -199,24 +199,24 @@ class ApiClient {
   }
 
   // Convenience methods for direct HTTP calls
-  get(url: string, config?: any) {
-    return this.client.get(url, config);
+  get<T = any>(url: string, config?: any) {
+    return this.client.get<T>(url, config);
   }
 
-  post(url: string, data?: any, config?: any) {
-    return this.client.post(url, data, config);
+  post<T = any>(url: string, data?: any, config?: any) {
+    return this.client.post<T>(url, data, config);
   }
 
-  put(url: string, data?: any, config?: any) {
-    return this.client.put(url, data, config);
+  put<T = any>(url: string, data?: any, config?: any) {
+    return this.client.put<T>(url, data, config);
   }
 
-  patch(url: string, data?: any, config?: any) {
-    return this.client.patch(url, data, config);
+  patch<T = any>(url: string, data?: any, config?: any) {
+    return this.client.patch<T>(url, data, config);
   }
 
-  delete(url: string, config?: any) {
-    return this.client.delete(url, config);
+  delete<T = any>(url: string, config?: any) {
+    return this.client.delete<T>(url, config);
   }
 }
 
