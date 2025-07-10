@@ -23,7 +23,6 @@ from schemas.user import (
     UserUpdate,
     User as UserSchema,
     UserListResponse,
-    UserWithCompany,
 )
 
 router = APIRouter()
@@ -175,7 +174,7 @@ async def create_user(
     return user
 
 
-@router.get("/{user_id}", response_model=UserWithCompany)
+@router.get("/{user_id}", response_model=UserSchema)
 async def get_user(
     user_id: UUID,
     db: AsyncSession = Depends(get_db),
