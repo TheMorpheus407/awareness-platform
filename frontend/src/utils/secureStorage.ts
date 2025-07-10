@@ -1,42 +1,78 @@
 /**
  * Secure token storage utility
- * Uses sessionStorage with encryption for better security than localStorage
+ * Uses sessionStorage with AES encryption for better security than localStorage
  * In production, tokens should be stored in httpOnly cookies
  */
+
+import CryptoJS from 'crypto-js';
 
 class SecureTokenStorage {
   private readonly TOKEN_KEY = 'auth_token';
   private readonly REFRESH_KEY = 'refresh_token';
-  private readonly ENCRYPTION_KEY = 'cyb3rs3c_2025'; // In production, use env variable
+  private readonly ENCRYPTION_KEY = process.env.VITE_ENCRYPTION_KEY || 'cyb3rs3c_2025_d3v_k3y'; // Use env variable in production
 
   /**
-   * Simple XOR encryption (for demonstration)
-   * In production, use a proper encryption library
+   * AES encryption using crypto-js library
+   * Provides proper encryption with PKCS7 padding
    */
   private encrypt(text: string): string {
-    let encrypted = '';
-    for (let i = 0; i < text.length; i++) {
-      encrypted += String.fromCharCode(
-        text.charCodeAt(i) ^ this.ENCRYPTION_KEY.charCodeAt(i % this.ENCRYPTION_KEY.length)
-      );
+    try {
+      // Generate a random IV for each encryption
+      const iv = CryptoJS.lib.WordArray.random(16);
+      
+      // Create key from string
+      const key = CryptoJS.SHA256(this.ENCRYPTION_KEY);
+      
+      // Encrypt with AES
+      const encrypted = CryptoJS.AES.encrypt(text, key, {
+        iv: iv,
+        mode: CryptoJS.mode.CBC,
+        padding: CryptoJS.pad.Pkcs7
+      });
+      
+      // Return IV + encrypted data as base64
+      const combined = iv.concat(encrypted.ciphertext);
+      return CryptoJS.enc.Base64.stringify(combined);
+    } catch (error) {
+      console.error('Encryption error:', error);
+      return '';
     }
-    return btoa(encrypted); // Base64 encode
   }
 
   /**
-   * Simple XOR decryption
+   * AES decryption using crypto-js library
    */
   private decrypt(encrypted: string): string {
     try {
-      const decoded = atob(encrypted); // Base64 decode
-      let decrypted = '';
-      for (let i = 0; i < decoded.length; i++) {
-        decrypted += String.fromCharCode(
-          decoded.charCodeAt(i) ^ this.ENCRYPTION_KEY.charCodeAt(i % this.ENCRYPTION_KEY.length)
-        );
-      }
-      return decrypted;
-    } catch {
+      // Decode from base64
+      const combined = CryptoJS.enc.Base64.parse(encrypted);
+      
+      // Extract IV (first 16 bytes)
+      const iv = CryptoJS.lib.WordArray.create(combined.words.slice(0, 4), 16);
+      
+      // Extract ciphertext (remaining bytes)
+      const ciphertext = CryptoJS.lib.WordArray.create(
+        combined.words.slice(4),
+        combined.sigBytes - 16
+      );
+      
+      // Create key from string
+      const key = CryptoJS.SHA256(this.ENCRYPTION_KEY);
+      
+      // Decrypt
+      const decrypted = CryptoJS.AES.decrypt(
+        { ciphertext: ciphertext } as any,
+        key,
+        {
+          iv: iv,
+          mode: CryptoJS.mode.CBC,
+          padding: CryptoJS.pad.Pkcs7
+        }
+      );
+      
+      return decrypted.toString(CryptoJS.enc.Utf8);
+    } catch (error) {
+      console.error('Decryption error:', error);
       return '';
     }
   }

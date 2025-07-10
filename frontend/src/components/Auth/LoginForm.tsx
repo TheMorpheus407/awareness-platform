@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, LogIn } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import type { LoginCredentials } from '../../types';
-import { LoadingSpinner } from '../Common';
+import { LoadingSpinner, LanguageSwitcher } from '../Common';
 import { useTranslation } from 'react-i18next';
 
 export const LoginForm: React.FC = () => {
@@ -27,9 +27,13 @@ export const LoginForm: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full">
-        <div className="bg-white rounded-xl shadow-lg p-8">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary-50 to-primary-100 px-4 sm:px-6 lg:px-8">
+      <div className="absolute top-4 right-4">
+        <LanguageSwitcher />
+      </div>
+      <div className="flex-1 flex items-center justify-center">
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-xl shadow-lg p-8">
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-100 rounded-full mb-4">
               <LogIn className="w-8 h-8 text-primary-600" />
@@ -140,5 +144,6 @@ export const LoginForm: React.FC = () => {
         </div>
       </div>
     </div>
+  </div>
   );
 };

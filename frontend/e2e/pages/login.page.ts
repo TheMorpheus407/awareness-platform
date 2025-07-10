@@ -13,10 +13,10 @@ export class LoginPage {
     this.page = page;
     this.emailInput = page.getByPlaceholder(/you@example.com/i);
     this.passwordInput = page.getByPlaceholder(/••••••••/);
-    this.submitButton = page.getByRole('button', { name: /sign in/i });
+    this.submitButton = page.locator('button[type="submit"]');
     this.registerLink = page.getByRole('link', { name: /sign up/i });
     this.errorMessage = page.getByRole('alert');
-    this.languageSwitcher = page.getByRole('button', { name: /EN|DE/i });
+    this.languageSwitcher = page.locator('button').filter({ hasText: /🇬🇧|🇩🇪/ });
   }
 
   async goto() {
@@ -31,8 +31,23 @@ export class LoginPage {
 
   async switchLanguage(lang: 'en' | 'de') {
     const currentLang = await this.languageSwitcher.textContent();
-    if ((lang === 'en' && currentLang === 'DE') || (lang === 'de' && currentLang === 'EN')) {
+    const isCurrentlyEnglish = currentLang?.includes('EN');
+    const isCurrentlyGerman = currentLang?.includes('DE');
+    
+    if ((lang === 'en' && isCurrentlyGerman) || (lang === 'de' && isCurrentlyEnglish)) {
       await this.languageSwitcher.click();
+      // Wait for dropdown to appear
+      await this.page.waitForTimeout(100);
+      
+      // Click on the desired language in the dropdown
+      if (lang === 'de') {
+        await this.page.locator('button:has-text("Deutsch")').click();
+      } else {
+        await this.page.locator('button:has-text("English")').click();
+      }
+      
+      // Wait for language change to take effect
+      await this.page.waitForTimeout(500);
     }
   }
 

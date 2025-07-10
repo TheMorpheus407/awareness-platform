@@ -61,12 +61,13 @@ class ApiClient {
 
   // Auth endpoints
   async login(email: string, password: string) {
-    const formData = new FormData();
-    formData.append('username', email);
-    formData.append('password', password);
+    // Create URL-encoded form data
+    const params = new URLSearchParams();
+    params.append('username', email);
+    params.append('password', password);
     
     try {
-      const response = await this.client.post('/auth/login', formData, {
+      const response = await this.client.post('/auth/login', params, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
