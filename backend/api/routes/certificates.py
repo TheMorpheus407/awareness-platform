@@ -15,7 +15,7 @@ from core.logging import logger
 from db.session import get_db
 from models.course import UserCourseProgress
 from models.user import User
-from schemas.course import Certificate, CertificateGenerate
+from schemas.course import CourseCertificate
 from services.certificate_generator import CertificateGenerator
 
 router = APIRouter()
