@@ -1,0 +1,115 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Logs
+*.log
+logs/
+
+# Tests
+tests/
+test_*.py
+*_test.py
+conftest.py
+pytest.ini
+pytest_minimal.ini
+.coverage
+coverage.xml
+*.cover
+
+# Documentation
+*.md
+docs/
+README.md
+CONTRIBUTING.md
+
+# Scripts (keep only necessary ones)
+scripts/test_*.py
+scripts/*_test.py
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+.~*
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+azure-pipelines.yml
+
+# Development files
+Makefile
+requirements-dev.txt
+.pre-commit-config.yaml
+.flake8
+.pylintrc
+pyproject.toml
+setup.cfg
+setup.py
+
+# Static files (if served separately)
+static/
+media/
+
+# Certificates (security)
+*.pem
+*.key
+*.crt
+*.p12
+
+# Database files
+*.sqlite
+*.db
+
+# Backup files
+*.backup
+*.sql.gz

@@ -30,7 +30,7 @@ from schemas.auth import (
     APIKeyResponse,
     AuthenticationLog,
 )
-from schemas.company import CompanyCreate
+from schemas.company import CompanyRegistration
 from schemas.user import UserCreate, User as UserSchema
 from services.email import EmailService
 
@@ -158,7 +158,7 @@ async def refresh_token(
 
 @router.post("/register", response_model=RegistrationResponse)
 async def register(
-    company_data: CompanyCreate,
+    company_data: CompanyRegistration,
     user_data: UserCreate,
     db: AsyncSession = Depends(get_db)
 ) -> RegistrationResponse:
