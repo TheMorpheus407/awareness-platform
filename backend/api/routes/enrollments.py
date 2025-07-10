@@ -86,13 +86,13 @@ async def enroll_in_course(
     return enrollment
 
 
-@router.get("/my-courses", response_model=CourseEnrollmentListResponse)
+@router.get("/my-courses", response_model=List[CourseEnrollment])
 async def get_my_enrollments(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
     pagination: tuple[int, int] = Depends(get_pagination_params),
     status: Optional[str] = Query(None, regex="^(active|completed)$"),
-) -> CourseEnrollmentListResponse:
+) -> List[CourseEnrollment]:
     """
     Get current user's course enrollments.
     
@@ -132,13 +132,7 @@ async def get_my_enrollments(
     result = await db.execute(query)
     enrollments = result.scalars().all()
     
-    return CourseEnrollmentListResponse(
-        items=enrollments,
-        total=total,
-        page=(offset // limit) + 1,
-        size=limit,
-        pages=(total + limit - 1) // limit,
-    )
+    return enrollments
 
 
 @router.get("/course/{course_id}/users", response_model=List[User])
