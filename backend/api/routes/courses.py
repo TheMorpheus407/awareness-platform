@@ -117,7 +117,7 @@ async def create_course(
     return course
 
 
-@router.get("/{course_id}", response_model=CourseWithModules)
+@router.get("/{course_id}", response_model=CourseDetail)
 async def get_course(
     course_id: UUID,
     db: AsyncSession = Depends(get_db),
@@ -166,7 +166,7 @@ async def get_course(
 @router.patch("/{course_id}", response_model=CourseSchema)
 async def update_course(
     course_id: UUID,
-    course_update: CourseUpdate,
+    course_update: dict,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_company_admin),
 ) -> Course:
