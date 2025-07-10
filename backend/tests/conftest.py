@@ -8,6 +8,28 @@ import pytest_asyncio
 import uuid
 import json
 
+# Configure event loop for async tests
+@pytest.fixture(scope="session")
+def event_loop():
+    """Create an instance of the default event loop for the test session."""
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    yield loop
+    # Clean up pending tasks
+    try:
+        pending = asyncio.all_tasks(loop)
+    except AttributeError:
+        # Python 3.9+ uses asyncio.all_tasks without loop parameter
+        pending = asyncio.all_tasks()
+    
+    for task in pending:
+        task.cancel()
+    
+    if pending:
+        loop.run_until_complete(asyncio.gather(*pending, return_exceptions=True))
+    
+    loop.close()
+
 # Add backend directory to sys.path
 backend_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(backend_dir))

@@ -84,6 +84,27 @@ class User(BaseModel, SoftDeleteMixin):
         back_populates="user",
         cascade="all, delete-orphan"
     )
+    lesson_progress: List["UserLessonProgress"] = relationship(
+        "UserLessonProgress",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
+    badges: List["UserBadge"] = relationship(
+        "UserBadge",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
+    points: Optional["UserPoints"] = relationship(
+        "UserPoints",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan"
+    )
+    certificates: List["Certificate"] = relationship(
+        "Certificate",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
     phishing_results: List["PhishingResult"] = relationship(
         "PhishingResult",
         back_populates="user",

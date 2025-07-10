@@ -268,3 +268,88 @@ class PhishingStatistics(BaseSchema):
     most_successful_category: Optional[PhishingCategory] = None
     users_never_clicked: int = Field(0, ge=0)
     users_always_report: int = Field(0, ge=0)
+
+
+class PhishingTemplateCreate(BaseSchema):
+    """Schema for creating a phishing template."""
+
+    name: str = Field(..., min_length=1, max_length=255)
+    category: str = Field(..., description="Template category")
+    difficulty: str = Field(..., description="Template difficulty level")
+    subject: str = Field(..., min_length=1, max_length=500)
+    sender_name: str = Field(..., min_length=1, max_length=255)
+    sender_email: str = Field(..., max_length=255)
+    html_content: str = Field(..., description="HTML email content")
+    text_content: Optional[str] = Field(None, description="Plain text email content")
+    landing_page_html: Optional[str] = Field(None, description="Landing page HTML")
+    language: str = Field("de", max_length=10)
+
+
+class PhishingTemplateUpdate(BaseSchema):
+    """Schema for updating a phishing template."""
+
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
+    category: Optional[str] = Field(None, description="Template category")
+    difficulty: Optional[str] = Field(None, description="Template difficulty level")
+    subject: Optional[str] = Field(None, min_length=1, max_length=500)
+    sender_name: Optional[str] = Field(None, min_length=1, max_length=255)
+    sender_email: Optional[str] = Field(None, max_length=255)
+    html_content: Optional[str] = Field(None, description="HTML email content")
+    text_content: Optional[str] = Field(None, description="Plain text email content")
+    landing_page_html: Optional[str] = Field(None, description="Landing page HTML")
+    language: Optional[str] = Field(None, max_length=10)
+
+
+class PhishingTemplateResponse(BaseSchema):
+    """Schema for phishing template response."""
+
+    id: UUID
+    company_id: Optional[UUID]
+    name: str
+    category: str
+    difficulty: str
+    subject: str
+    sender_name: str
+    sender_email: str
+    html_content: str
+    text_content: Optional[str]
+    landing_page_html: Optional[str]
+    language: str
+    is_public: bool
+    created_at: datetime
+    updated_at: Optional[datetime]
+
+    class Config:
+        orm_mode = True
+
+
+class CampaignAnalytics(BaseSchema):
+    """Real-time campaign analytics."""
+
+    campaign_id: UUID
+    campaign_name: str
+    status: str
+    total_targets: int
+    emails_sent: int
+    emails_opened: int
+    links_clicked: int
+    data_submitted: int
+    reported: int
+    open_rate: float
+    click_rate: float
+    submit_rate: float
+    report_rate: float
+    average_time_to_click: Optional[float]
+    hourly_breakdown: List[Dict[str, Any]]
+    department_breakdown: Dict[str, Dict[str, int]]
+    risk_assessment: Dict[str, Any]
+
+
+class EmailTrackingEvent(BaseSchema):
+    """Email tracking event."""
+
+    tracking_id: str
+    event_type: str = Field(..., description="opened, clicked, submitted, reported")
+    timestamp: datetime
+    ip_address: Optional[str]
+    user_agent: Optional[str]

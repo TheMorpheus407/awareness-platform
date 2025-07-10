@@ -12,10 +12,29 @@ on:
         required: false
         type: boolean
         default: false
+      confirm:
+        description: 'Type "ROLLBACK" to confirm (manual trigger only)'
+        required: false
+        type: string
+  workflow_call:
+    inputs:
+      reason:
+        description: 'Reason for rollback'
+        required: true
+        type: string
+      auto_rollback:
+        description: 'Triggered by automated system'
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   rollback:
     runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'workflow_call') ||
+      (github.event_name == 'workflow_dispatch' && 
+       (github.event.inputs.auto_rollback == 'true' || github.event.inputs.confirm == 'ROLLBACK'))
     steps:
       - uses: actions/checkout@v4
       
@@ -57,25 +76,30 @@ jobs:
             cd /opt/awareness
             
             # Check if backup exists
-            if [ ! -d "/opt/awareness-backup" ]; then
-              echo "::error::No backup found for rollback"
+            if [ ! -f "/opt/awareness/docker-compose.prod.ghcr.yml.backup" ]; then
+              echo "::error::No backup docker-compose file found for rollback"
               exit 1
             fi
             
-            # Stop current deployment
-            sudo docker compose -f docker-compose.prod.ghcr.yml down
+            # Stop current deployment gracefully
+            echo "Stopping current deployment..."
+            sudo docker-compose -f docker-compose.prod.ghcr.yml stop
+            sudo docker-compose -f docker-compose.prod.ghcr.yml down
             
-            # Backup current failed deployment for investigation
-            sudo cp -r /opt/awareness /opt/awareness-failed-$(date +%Y%m%d-%H%M%S)
+            # Backup current configuration for investigation
+            sudo cp docker-compose.prod.ghcr.yml docker-compose.prod.ghcr.yml.failed-$(date +%Y%m%d-%H%M%S)
             
             # Restore from backup
-            sudo rm -rf /opt/awareness
-            sudo cp -r /opt/awareness-backup /opt/awareness
+            echo "Restoring from backup configuration..."
+            sudo cp docker-compose.prod.ghcr.yml.backup docker-compose.prod.ghcr.yml
             
-            cd /opt/awareness
+            # Pull previous images (backup should have older tags)
+            echo "Pulling previous Docker images..."
+            sudo docker-compose -f docker-compose.prod.ghcr.yml pull
             
             # Start previous version
-            sudo docker compose -f docker-compose.prod.ghcr.yml up -d
+            echo "Starting rollback deployment..."
+            sudo docker-compose -f docker-compose.prod.ghcr.yml up -d
             
             # Wait for services
             sleep 30

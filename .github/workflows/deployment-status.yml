@@ -1,0 +1,153 @@
+name: Update Deployment Status
+
+on:
+  workflow_run:
+    workflows: ["Deploy to Production"]
+    types:
+      - completed
+  workflow_dispatch:
+
+jobs:
+  update-status:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Get deployment status
+        id: status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Get the latest deployment workflow run
+            const runs = await github.rest.actions.listWorkflowRuns({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'deploy.yml',
+              per_page: 1
+            });
+            
+            if (runs.data.workflow_runs.length === 0) {
+              core.setOutput('status', 'no-deployments');
+              core.setOutput('conclusion', 'none');
+              core.setOutput('timestamp', 'never');
+              return;
+            }
+            
+            const latestRun = runs.data.workflow_runs[0];
+            const timestamp = new Date(latestRun.created_at).toISOString();
+            
+            core.setOutput('status', latestRun.status);
+            core.setOutput('conclusion', latestRun.conclusion || 'in_progress');
+            core.setOutput('timestamp', timestamp);
+            core.setOutput('run_id', latestRun.id);
+            core.setOutput('actor', latestRun.actor.login);
+      
+      - name: Update deployment badge
+        run: |
+          STATUS="${{ steps.status.outputs.conclusion }}"
+          
+          # Determine badge color and text
+          case "$STATUS" in
+            "success")
+              BADGE_COLOR="success"
+              BADGE_TEXT="deployed"
+              ;;
+            "failure")
+              BADGE_COLOR="critical"
+              BADGE_TEXT="failed"
+              ;;
+            "in_progress")
+              BADGE_COLOR="yellow"
+              BADGE_TEXT="deploying"
+              ;;
+            *)
+              BADGE_COLOR="lightgrey"
+              BADGE_TEXT="unknown"
+              ;;
+          esac
+          
+          # Create badge URL
+          BADGE_URL="https://img.shields.io/badge/deployment-${BADGE_TEXT}-${BADGE_COLOR}"
+          
+          echo "Deployment status: $STATUS"
+          echo "Badge URL: $BADGE_URL"
+      
+      - name: Create deployment report
+        if: steps.status.outputs.conclusion != 'none'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ steps.status.outputs.conclusion }}';
+            const timestamp = '${{ steps.status.outputs.timestamp }}';
+            const actor = '${{ steps.status.outputs.actor }}';
+            const runId = '${{ steps.status.outputs.run_id }}';
+            
+            // Check if there's an existing deployment status issue
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'deployment-status',
+              state: 'open',
+              per_page: 1
+            });
+            
+            const statusEmoji = {
+              'success': '✅',
+              'failure': '❌',
+              'in_progress': '🔄',
+              'cancelled': '⚠️'
+            }[status] || '❓';
+            
+            const reportBody = `## Deployment Status Report
+            
+            ### Latest Deployment
+            - **Status:** ${statusEmoji} ${status.toUpperCase()}
+            - **Triggered by:** @${actor}
+            - **Time:** ${new Date(timestamp).toLocaleString()}
+            - **Workflow Run:** [#${runId}](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId})
+            
+            ### Current Production Status
+            - **Environment:** Production
+            - **URL:** https://bootstrap-awareness.de
+            - **API Health:** [Check Status](https://bootstrap-awareness.de/api/health)
+            
+            ### Quick Actions
+            - [Trigger New Deployment](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/workflows/deploy.yml)
+            - [View All Deployments](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/workflows/deploy.yml)
+            - [Emergency Rollback](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/workflows/rollback.yml)
+            
+            ---
+            *This report is automatically updated after each deployment.*`;
+            
+            if (issues.data.length > 0) {
+              // Update existing issue
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issues.data[0].number,
+                body: reportBody
+              });
+              
+              console.log(`Updated deployment status issue #${issues.data[0].number}`);
+            } else {
+              // Create new issue
+              const newIssue = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: '📊 Deployment Status Dashboard',
+                body: reportBody,
+                labels: ['deployment-status', 'automated']
+              });
+              
+              console.log(`Created deployment status issue #${newIssue.data.number}`);
+            }
+      
+      - name: Update README badge
+        if: steps.status.outputs.conclusion != 'none'
+        run: |
+          # This would update a deployment status badge in README
+          # For now, just log the badge that could be used
+          echo "Deployment Badge: ![Deployment Status](https://github.com/${{ github.repository }}/actions/workflows/deploy.yml/badge.svg)"

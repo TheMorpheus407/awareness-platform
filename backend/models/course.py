@@ -39,6 +39,12 @@ class Course(BaseModel):
     is_active = Column(Boolean, nullable=False, server_default=text('true'), index=True)
     
     # Relationships
+    modules: List["Module"] = relationship(
+        "Module",
+        back_populates="course",
+        cascade="all, delete-orphan",
+        order_by="Module.order_index"
+    )
     quizzes: List["Quiz"] = relationship(
         "Quiz",
         back_populates="course",
@@ -228,3 +234,308 @@ class UserCourseProgress(BaseModel):
     def __repr__(self) -> str:
         """String representation of UserCourseProgress."""
         return f"<UserCourseProgress User:{self.user_id} Course:{self.course_id} ({self.status})>"
+
+
+class Module(BaseModel):
+    """Module model for course structure."""
+    
+    __tablename__ = "modules"
+    
+    # Foreign Keys
+    course_id = Column(Integer, ForeignKey('courses.id', ondelete='CASCADE'), nullable=False, index=True)
+    
+    # Module Information
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    order_index = Column(Integer, nullable=False)
+    duration_minutes = Column(Integer, nullable=False, server_default=text('30'))
+    
+    # Status
+    is_active = Column(Boolean, nullable=False, server_default=text('true'))
+    is_required = Column(Boolean, nullable=False, server_default=text('true'))
+    
+    # Relationships
+    course: "Course" = relationship("Course", back_populates="modules")
+    lessons: List["Lesson"] = relationship(
+        "Lesson",
+        back_populates="module",
+        cascade="all, delete-orphan",
+        order_by="Lesson.order_index"
+    )
+    
+    @property
+    def lesson_count(self) -> int:
+        """Get number of lessons in the module."""
+        return len(self.lessons)
+    
+    @property
+    def total_duration(self) -> int:
+        """Calculate total duration including all lessons."""
+        return self.duration_minutes + sum(lesson.duration_minutes for lesson in self.lessons)
+    
+    def __repr__(self) -> str:
+        """String representation of Module."""
+        return f"<Module {self.title} (Course: {self.course_id})>"
+
+
+class Lesson(BaseModel):
+    """Lesson model for module content."""
+    
+    __tablename__ = "lessons"
+    
+    # Foreign Keys
+    module_id = Column(Integer, ForeignKey('modules.id', ondelete='CASCADE'), nullable=False, index=True)
+    
+    # Lesson Information
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    content_type = Column(String(50), nullable=False)  # video, text, interactive, mixed
+    content_url = Column(String(500), nullable=True)  # For video/external content
+    content_markdown = Column(Text, nullable=True)  # For text content
+    order_index = Column(Integer, nullable=False)
+    duration_minutes = Column(Integer, nullable=False, server_default=text('10'))
+    
+    # Interactive Elements
+    interactive_elements = Column(JSON, nullable=True)  # JSON structure for interactive content
+    resources = Column(JSON, nullable=True)  # Additional resources (downloads, links)
+    
+    # Status
+    is_active = Column(Boolean, nullable=False, server_default=text('true'))
+    is_required = Column(Boolean, nullable=False, server_default=text('true'))
+    
+    # Relationships
+    module: "Module" = relationship("Module", back_populates="lessons")
+    
+    @property
+    def is_video(self) -> bool:
+        """Check if lesson is video content."""
+        return self.content_type == 'video'
+    
+    @property
+    def is_text(self) -> bool:
+        """Check if lesson is text content."""
+        return self.content_type == 'text'
+    
+    @property
+    def is_interactive(self) -> bool:
+        """Check if lesson has interactive elements."""
+        return self.content_type == 'interactive' or bool(self.interactive_elements)
+    
+    def __repr__(self) -> str:
+        """String representation of Lesson."""
+        return f"<Lesson {self.title} (Module: {self.module_id})>"
+
+
+class UserLessonProgress(BaseModel):
+    """Track user progress for individual lessons."""
+    
+    __tablename__ = "user_lesson_progress"
+    __table_args__ = (
+        UniqueConstraint('user_id', 'lesson_id', name='uq_user_lesson'),
+    )
+    
+    # Foreign Keys
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    lesson_id = Column(Integer, ForeignKey('lessons.id', ondelete='CASCADE'), nullable=False)
+    module_id = Column(Integer, ForeignKey('modules.id', ondelete='CASCADE'), nullable=False)
+    course_id = Column(Integer, ForeignKey('courses.id', ondelete='CASCADE'), nullable=False)
+    
+    # Progress Information
+    status = Column(String(50), nullable=False, server_default='not_started')  # not_started, in_progress, completed
+    progress_percentage = Column(Integer, nullable=False, server_default=text('0'))
+    time_spent_seconds = Column(Integer, nullable=False, server_default=text('0'))
+    
+    # Video Progress
+    video_progress_seconds = Column(Integer, nullable=True)
+    video_total_seconds = Column(Integer, nullable=True)
+    
+    # Interactive Progress
+    interactions_completed = Column(JSON, nullable=True)  # Track completed interactive elements
+    
+    # Timestamps
+    started_at = Column(DateTime(timezone=True), nullable=True)
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+    last_accessed_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Relationships
+    user: "User" = relationship("User", back_populates="lesson_progress")
+    lesson: "Lesson" = relationship("Lesson")
+    
+    def mark_complete(self) -> None:
+        """Mark lesson as completed."""
+        self.status = 'completed'
+        self.progress_percentage = 100
+        self.completed_at = datetime.utcnow()
+    
+    def update_video_progress(self, current_seconds: int, total_seconds: int) -> None:
+        """Update video watching progress."""
+        self.video_progress_seconds = current_seconds
+        self.video_total_seconds = total_seconds
+        percentage = int((current_seconds / total_seconds) * 100) if total_seconds > 0 else 0
+        self.progress_percentage = min(100, percentage)
+        self.last_accessed_at = datetime.utcnow()
+        
+        if percentage >= 90:  # Consider completed at 90%
+            self.mark_complete()
+    
+    def __repr__(self) -> str:
+        """String representation of UserLessonProgress."""
+        return f"<UserLessonProgress User:{self.user_id} Lesson:{self.lesson_id} ({self.status})>"
+
+
+class Badge(BaseModel):
+    """Badge model for gamification."""
+    
+    __tablename__ = "badges"
+    
+    # Badge Information
+    name = Column(String(100), nullable=False, unique=True)
+    description = Column(Text, nullable=False)
+    icon_url = Column(String(500), nullable=True)
+    badge_type = Column(String(50), nullable=False)  # completion, streak, score, special
+    
+    # Requirements
+    requirements = Column(JSON, nullable=False)  # JSON structure defining earning criteria
+    points_value = Column(Integer, nullable=False, server_default=text('10'))
+    
+    # Status
+    is_active = Column(Boolean, nullable=False, server_default=text('true'))
+    
+    # Relationships
+    user_badges: List["UserBadge"] = relationship(
+        "UserBadge",
+        back_populates="badge",
+        cascade="all, delete-orphan"
+    )
+    
+    def __repr__(self) -> str:
+        """String representation of Badge."""
+        return f"<Badge {self.name} ({self.badge_type})>"
+
+
+class UserBadge(BaseModel):
+    """User earned badges tracking."""
+    
+    __tablename__ = "user_badges"
+    __table_args__ = (
+        UniqueConstraint('user_id', 'badge_id', name='uq_user_badge'),
+    )
+    
+    # Foreign Keys
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    badge_id = Column(Integer, ForeignKey('badges.id', ondelete='CASCADE'), nullable=False)
+    
+    # Earning Information
+    earned_at = Column(DateTime(timezone=True), nullable=False, server_default=text('CURRENT_TIMESTAMP'))
+    earned_for = Column(JSON, nullable=True)  # Context of how badge was earned
+    points_awarded = Column(Integer, nullable=False)
+    
+    # Relationships
+    user: "User" = relationship("User", back_populates="badges")
+    badge: "Badge" = relationship("Badge", back_populates="user_badges")
+    
+    def __repr__(self) -> str:
+        """String representation of UserBadge."""
+        return f"<UserBadge User:{self.user_id} Badge:{self.badge_id}>"
+
+
+class UserPoints(BaseModel):
+    """Track user points for gamification."""
+    
+    __tablename__ = "user_points"
+    
+    # Foreign Keys
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False, unique=True, index=True)
+    
+    # Points Information
+    total_points = Column(Integer, nullable=False, server_default=text('0'))
+    current_level = Column(Integer, nullable=False, server_default=text('1'))
+    points_to_next_level = Column(Integer, nullable=False, server_default=text('100'))
+    
+    # Statistics
+    courses_completed = Column(Integer, nullable=False, server_default=text('0'))
+    perfect_quizzes = Column(Integer, nullable=False, server_default=text('0'))
+    current_streak_days = Column(Integer, nullable=False, server_default=text('0'))
+    longest_streak_days = Column(Integer, nullable=False, server_default=text('0'))
+    last_activity_date = Column(DateTime(timezone=True), nullable=True)
+    
+    # Relationships
+    user: "User" = relationship("User", back_populates="points", uselist=False)
+    
+    def add_points(self, points: int, reason: str) -> tuple[int, bool]:
+        """
+        Add points and check for level up.
+        Returns (new_level, leveled_up).
+        """
+        self.total_points += points
+        leveled_up = False
+        
+        # Check for level up (100 points per level, increasing by 50 each level)
+        while self.total_points >= self.points_to_next_level:
+            self.current_level += 1
+            self.points_to_next_level += 50 * self.current_level
+            leveled_up = True
+        
+        return self.current_level, leveled_up
+    
+    def update_streak(self, activity_date: datetime) -> None:
+        """Update streak based on activity date."""
+        if self.last_activity_date:
+            days_diff = (activity_date.date() - self.last_activity_date.date()).days
+            if days_diff == 1:
+                self.current_streak_days += 1
+            elif days_diff > 1:
+                self.current_streak_days = 1
+        else:
+            self.current_streak_days = 1
+        
+        self.longest_streak_days = max(self.longest_streak_days, self.current_streak_days)
+        self.last_activity_date = activity_date
+    
+    def __repr__(self) -> str:
+        """String representation of UserPoints."""
+        return f"<UserPoints User:{self.user_id} Points:{self.total_points} Level:{self.current_level}>"
+
+
+class Certificate(BaseModel):
+    """Certificate model for course completion."""
+    
+    __tablename__ = "certificates"
+    __table_args__ = (
+        UniqueConstraint('user_id', 'course_id', name='uq_user_course_certificate'),
+    )
+    
+    # Foreign Keys
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    course_id = Column(Integer, ForeignKey('courses.id', ondelete='CASCADE'), nullable=False)
+    company_id = Column(Integer, ForeignKey('companies.id', ondelete='CASCADE'), nullable=False)
+    
+    # Certificate Information
+    certificate_number = Column(String(50), nullable=False, unique=True)
+    verification_code = Column(String(100), nullable=False, unique=True)
+    issued_at = Column(DateTime(timezone=True), nullable=False, server_default=text('CURRENT_TIMESTAMP'))
+    expires_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Course Performance
+    completion_date = Column(DateTime(timezone=True), nullable=False)
+    final_score = Column(Integer, nullable=False)  # Quiz score percentage
+    time_spent_hours = Column(Integer, nullable=False)
+    
+    # File Information
+    pdf_url = Column(String(500), nullable=True)
+    pdf_generated_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Relationships
+    user: "User" = relationship("User", back_populates="certificates")
+    course: "Course" = relationship("Course")
+    company: "Company" = relationship("Company")
+    
+    def is_valid(self) -> bool:
+        """Check if certificate is still valid."""
+        if self.expires_at:
+            return datetime.utcnow() < self.expires_at
+        return True
+    
+    def __repr__(self) -> str:
+        """String representation of Certificate."""
+        return f"<Certificate {self.certificate_number} User:{self.user_id} Course:{self.course_id}>"

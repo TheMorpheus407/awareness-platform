@@ -3,7 +3,7 @@ from fastapi import status
 from httpx import AsyncClient
 
 from core.security import verify_password
-from models.user import User
+from models.user import User, UserRole
 
 
 class TestAuthEndpoints:
@@ -14,7 +14,7 @@ class TestAuthEndpoints:
         response = client.post(
             "/api/v1/auth/login",
             data={
-                "email": test_user.email,
+                "username": test_user.email,
                 "password": "testpassword123"
             }
         )
@@ -29,7 +29,7 @@ class TestAuthEndpoints:
         response = client.post(
             "/api/v1/auth/login",
             data={
-                "email": test_user.email,
+                "username": test_user.email,
                 "password": "wrongpassword"
             }
         )
@@ -46,7 +46,7 @@ class TestAuthEndpoints:
             first_name="Inactive User",
             company_id=test_company.id,
             is_active=False,
-            role="user"
+            role=UserRole.EMPLOYEE
         )
         db_session.add(inactive_user)
         db_session.commit()
@@ -54,7 +54,7 @@ class TestAuthEndpoints:
         response = client.post(
             "/api/v1/auth/login",
             data={
-                "email": inactive_user.email,
+                "username": inactive_user.email,
                 "password": "password123"
             }
         )

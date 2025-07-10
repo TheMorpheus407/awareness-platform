@@ -394,8 +394,14 @@ jobs:
   # Trigger deployment workflow
   trigger-deployment:
     runs-on: ubuntu-latest
-    needs: [backend-tests, frontend-tests]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.backend-tests.result == 'success' && needs.frontend-tests.result == 'success'
+    needs: [backend-tests, frontend-tests, e2e-tests, build-and-push]
+    if: |
+      github.event_name == 'push' && 
+      github.ref == 'refs/heads/main' && 
+      needs.backend-tests.result == 'success' && 
+      needs.frontend-tests.result == 'success' && 
+      (needs.e2e-tests.result == 'success' || needs.e2e-tests.result == 'skipped') &&
+      needs.build-and-push.result == 'success'
     permissions:
       actions: write
       contents: read
@@ -405,11 +411,30 @@ jobs:
       uses: actions/github-script@v7
       with:
         script: |
-          await github.rest.actions.createWorkflowDispatch({
+          // Wait for any in-progress deployments to complete
+          const deploymentRuns = await github.rest.actions.listWorkflowRuns({
             owner: context.repo.owner,
             repo: context.repo.repo,
             workflow_id: 'deploy.yml',
-            ref: 'main'
+            status: 'in_progress'
+          });
+          
+          if (deploymentRuns.data.workflow_runs.length > 0) {
+            console.log('Waiting for in-progress deployments to complete...');
+            await new Promise(resolve => setTimeout(resolve, 30000)); // Wait 30 seconds
+          }
+          
+          // Trigger deployment with inputs
+          const response = await github.rest.actions.createWorkflowDispatch({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            workflow_id: 'deploy.yml',
+            ref: 'main',
+            inputs: {
+              environment: 'production',
+              requires_approval: 'false'
+            }
           });
           
           console.log('Deployment workflow triggered successfully');
+          console.log(`Check deployment status at: https://github.com/${context.repo.owner}/${context.repo.repo}/actions/workflows/deploy.yml`);

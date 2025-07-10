@@ -5,6 +5,7 @@ Phishing campaign service for managing phishing simulations and training.
 import asyncio
 import secrets
 import hashlib
+import json
 from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any, Tuple
 import logging
@@ -598,3 +599,361 @@ class PhishingService:
             })
 
         return history
+
+    async def get_campaign_analytics(self, campaign_id: int) -> Dict[str, Any]:
+        """Get detailed analytics for a phishing campaign."""
+        campaign = await self.db.get(
+            PhishingCampaign,
+            campaign_id,
+            options=[selectinload(PhishingCampaign.results)]
+        )
+        if not campaign:
+            raise ValidationError("Campaign not found")
+
+        # Get all results with user info
+        stmt = select(PhishingResult).where(
+            PhishingResult.campaign_id == campaign_id
+        ).options(selectinload(PhishingResult.user))
+        result = await self.db.execute(stmt)
+        results = result.scalars().all()
+
+        # Calculate metrics
+        total_targets = len(campaign.target_users)
+        emails_sent = len([r for r in results if r.sent_at])
+        emails_opened = len([r for r in results if r.email_opened_at])
+        links_clicked = len([r for r in results if r.clicked_at])
+        data_submitted = len([r for r in results if r.data_submitted_at])
+        reported = len([r for r in results if r.reported_at])
+
+        # Calculate rates
+        open_rate = (emails_opened / emails_sent * 100) if emails_sent > 0 else 0
+        click_rate = (links_clicked / emails_sent * 100) if emails_sent > 0 else 0
+        submit_rate = (data_submitted / emails_sent * 100) if emails_sent > 0 else 0
+        report_rate = (reported / emails_sent * 100) if emails_sent > 0 else 0
+
+        # Average time to click
+        click_times = [
+            (r.clicked_at - r.sent_at).total_seconds()
+            for r in results
+            if r.clicked_at and r.sent_at
+        ]
+        avg_time_to_click = sum(click_times) / len(click_times) if click_times else None
+
+        # Hourly breakdown
+        hourly_breakdown = self._generate_hourly_breakdown(results)
+
+        # Department breakdown
+        dept_breakdown = {}
+        for result in results:
+            if result.user and result.user.department:
+                dept = result.user.department
+                if dept not in dept_breakdown:
+                    dept_breakdown[dept] = {
+                        "total": 0,
+                        "opened": 0,
+                        "clicked": 0,
+                        "submitted": 0,
+                        "reported": 0
+                    }
+                dept_breakdown[dept]["total"] += 1
+                if result.email_opened_at:
+                    dept_breakdown[dept]["opened"] += 1
+                if result.clicked_at:
+                    dept_breakdown[dept]["clicked"] += 1
+                if result.data_submitted_at:
+                    dept_breakdown[dept]["submitted"] += 1
+                if result.reported_at:
+                    dept_breakdown[dept]["reported"] += 1
+
+        # Risk assessment
+        high_risk_users = len([
+            r for r in results
+            if r.data_submitted_at
+        ])
+        medium_risk_users = len([
+            r for r in results
+            if r.clicked_at and not r.data_submitted_at
+        ])
+        low_risk_users = len([
+            r for r in results
+            if not r.clicked_at
+        ])
+
+        risk_assessment = {
+            "high_risk": high_risk_users,
+            "medium_risk": medium_risk_users,
+            "low_risk": low_risk_users,
+            "average_risk_score": (
+                (high_risk_users * 3 + medium_risk_users * 2 + low_risk_users) / 
+                emails_sent
+            ) if emails_sent > 0 else 0
+        }
+
+        return {
+            "campaign_id": campaign_id,
+            "campaign_name": campaign.name,
+            "status": campaign.status,
+            "total_targets": total_targets,
+            "emails_sent": emails_sent,
+            "emails_opened": emails_opened,
+            "links_clicked": links_clicked,
+            "data_submitted": data_submitted,
+            "reported": reported,
+            "open_rate": round(open_rate, 2),
+            "click_rate": round(click_rate, 2),
+            "submit_rate": round(submit_rate, 2),
+            "report_rate": round(report_rate, 2),
+            "average_time_to_click": avg_time_to_click,
+            "hourly_breakdown": hourly_breakdown,
+            "department_breakdown": dept_breakdown,
+            "risk_assessment": risk_assessment,
+        }
+
+    def _generate_hourly_breakdown(self, results: List[PhishingResult]) -> List[Dict[str, Any]]:
+        """Generate hourly breakdown of campaign events."""
+        hourly_data = {}
+        
+        for result in results:
+            # Email sent
+            if result.sent_at:
+                hour = result.sent_at.replace(minute=0, second=0, microsecond=0)
+                if hour not in hourly_data:
+                    hourly_data[hour] = {
+                        "hour": hour,
+                        "sent": 0,
+                        "opened": 0,
+                        "clicked": 0,
+                        "submitted": 0,
+                        "reported": 0
+                    }
+                hourly_data[hour]["sent"] += 1
+            
+            # Email opened
+            if result.email_opened_at:
+                hour = result.email_opened_at.replace(minute=0, second=0, microsecond=0)
+                if hour not in hourly_data:
+                    hourly_data[hour] = {
+                        "hour": hour,
+                        "sent": 0,
+                        "opened": 0,
+                        "clicked": 0,
+                        "submitted": 0,
+                        "reported": 0
+                    }
+                hourly_data[hour]["opened"] += 1
+            
+            # Link clicked
+            if result.clicked_at:
+                hour = result.clicked_at.replace(minute=0, second=0, microsecond=0)
+                if hour not in hourly_data:
+                    hourly_data[hour] = {
+                        "hour": hour,
+                        "sent": 0,
+                        "opened": 0,
+                        "clicked": 0,
+                        "submitted": 0,
+                        "reported": 0
+                    }
+                hourly_data[hour]["clicked"] += 1
+            
+            # Data submitted
+            if result.data_submitted_at:
+                hour = result.data_submitted_at.replace(minute=0, second=0, microsecond=0)
+                if hour not in hourly_data:
+                    hourly_data[hour] = {
+                        "hour": hour,
+                        "sent": 0,
+                        "opened": 0,
+                        "clicked": 0,
+                        "submitted": 0,
+                        "reported": 0
+                    }
+                hourly_data[hour]["submitted"] += 1
+            
+            # Reported
+            if result.reported_at:
+                hour = result.reported_at.replace(minute=0, second=0, microsecond=0)
+                if hour not in hourly_data:
+                    hourly_data[hour] = {
+                        "hour": hour,
+                        "sent": 0,
+                        "opened": 0,
+                        "clicked": 0,
+                        "submitted": 0,
+                        "reported": 0
+                    }
+                hourly_data[hour]["reported"] += 1
+        
+        # Convert to sorted list
+        return sorted(hourly_data.values(), key=lambda x: x["hour"])
+
+    async def generate_landing_page(
+        self,
+        campaign: PhishingCampaign,
+        user_info: Optional[Dict[str, Any]] = None
+    ) -> str:
+        """Generate landing page HTML for phishing campaign."""
+        # Get template
+        template = await self.db.get(PhishingTemplate, campaign.template_id)
+        
+        # Use template's landing page if available
+        if template and template.landing_page_html:
+            html = template.landing_page_html
+            
+            # Replace placeholders if user info available
+            if user_info:
+                for key, value in user_info.items():
+                    html = html.replace(f"{{{{{key}}}}}", str(value))
+            
+            return html
+        
+        # Generate default landing page
+        user_name = "User"
+        if user_info:
+            user_name = f"{user_info.get('first_name', '')} {user_info.get('last_name', '')}".strip()
+        
+        return f"""
+        <!DOCTYPE html>
+        <html lang="de">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Phishing Simulation - Awareness Training</title>
+            <style>
+                body {{
+                    font-family: Arial, sans-serif;
+                    line-height: 1.6;
+                    margin: 0;
+                    padding: 0;
+                    background-color: #f4f4f4;
+                }}
+                .container {{
+                    max-width: 800px;
+                    margin: 50px auto;
+                    padding: 20px;
+                    background-color: white;
+                    border-radius: 10px;
+                    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                }}
+                .warning {{
+                    background-color: #ff5252;
+                    color: white;
+                    padding: 20px;
+                    border-radius: 5px;
+                    margin-bottom: 20px;
+                    text-align: center;
+                }}
+                .warning h1 {{
+                    margin: 0;
+                }}
+                .info {{
+                    background-color: #e3f2fd;
+                    padding: 15px;
+                    border-radius: 5px;
+                    margin: 20px 0;
+                }}
+                .red-flags {{
+                    background-color: #fff3e0;
+                    padding: 15px;
+                    border-radius: 5px;
+                    margin: 20px 0;
+                }}
+                .red-flags ul {{
+                    margin: 10px 0;
+                }}
+                .btn {{
+                    display: inline-block;
+                    background-color: #2196f3;
+                    color: white;
+                    padding: 10px 20px;
+                    text-decoration: none;
+                    border-radius: 5px;
+                    margin-top: 20px;
+                }}
+                .btn:hover {{
+                    background-color: #1976d2;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="warning">
+                    <h1>⚠️ Dies war eine Phishing-Simulation!</h1>
+                    <p>Sie haben auf einen simulierten Phishing-Link geklickt.</p>
+                </div>
+                
+                <div class="info">
+                    <h2>Was ist passiert?</h2>
+                    <p>Hallo {user_name},</p>
+                    <p>Sie haben gerade an einer Phishing-Simulation teilgenommen, die von Ihrer IT-Sicherheitsabteilung durchgeführt wurde. 
+                    Dies war kein echter Angriff, aber in einem realen Szenario hätten Cyberkriminelle jetzt Zugriff auf Ihre Anmeldedaten oder persönlichen Informationen haben können.</p>
+                </div>
+                
+                <div class="red-flags">
+                    <h2>🚩 Warnsignale in dieser E-Mail:</h2>
+                    <ul>
+                        <li><strong>Dringlichkeit:</strong> Die E-Mail erzeugte künstlichen Zeitdruck</li>
+                        <li><strong>Absenderadresse:</strong> Die Domain war nicht offiziell</li>
+                        <li><strong>Generische Anrede:</strong> Keine persönliche Ansprache</li>
+                        <li><strong>Verdächtige Links:</strong> Der Link führte nicht zur erwarteten Webseite</li>
+                        <li><strong>Rechtschreibfehler:</strong> Professionelle E-Mails enthalten selten Fehler</li>
+                    </ul>
+                </div>
+                
+                <h2>Was sollten Sie tun?</h2>
+                <ul>
+                    <li>✅ Überprüfen Sie immer die Absenderadresse sorgfältig</li>
+                    <li>✅ Bewegen Sie die Maus über Links, um das Ziel zu sehen (ohne zu klicken)</li>
+                    <li>✅ Seien Sie skeptisch bei dringenden Anfragen</li>
+                    <li>✅ Melden Sie verdächtige E-Mails an Ihre IT-Abteilung</li>
+                    <li>✅ Geben Sie niemals Passwörter über E-Mail-Links ein</li>
+                </ul>
+                
+                <div style="text-align: center;">
+                    <a href="/training/phishing-awareness" class="btn">Zum Awareness-Training</a>
+                </div>
+                
+                <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666;">
+                    <p>Diese Simulation wurde durchgeführt von: {campaign.name}</p>
+                    <p>Bei Fragen wenden Sie sich an Ihre IT-Sicherheitsabteilung</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+
+    async def schedule_campaign(
+        self,
+        campaign_id: int,
+        scheduled_at: datetime,
+        batch_size: int = 50,
+        interval_minutes: int = 5
+    ) -> None:
+        """Schedule a phishing campaign for future execution."""
+        # Store scheduling info in cache
+        schedule_key = f"phishing_schedule:{campaign_id}"
+        schedule_data = {
+            "campaign_id": campaign_id,
+            "scheduled_at": scheduled_at.isoformat(),
+            "batch_size": batch_size,
+            "interval_minutes": interval_minutes,
+            "status": "scheduled"
+        }
+        
+        # Calculate seconds until execution
+        seconds_until = (scheduled_at - datetime.utcnow()).total_seconds()
+        
+        if seconds_until > 0:
+            # Store in cache with expiration
+            await self.cache.setex(
+                schedule_key,
+                int(seconds_until + 3600),  # Keep for 1 hour after scheduled time
+                json.dumps(schedule_data)
+            )
+            
+            logger.info(
+                f"Campaign {campaign_id} scheduled for {scheduled_at} "
+                f"(in {seconds_until} seconds)"
+            )
+        else:
+            raise ValidationError("Scheduled time must be in the future")

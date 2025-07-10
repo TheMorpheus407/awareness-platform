@@ -35,13 +35,20 @@ class InterceptHandler(logging.Handler):
 
 def serialize_record(record: Dict[str, Any]) -> str:
     """Serialize log record to JSON format."""
+    # Handle timestamp safely
+    timestamp = None
+    if "time" in record and hasattr(record["time"], "timestamp"):
+        timestamp = record["time"].timestamp()
+    elif "time" in record:
+        timestamp = str(record["time"])
+    
     subset = {
-        "timestamp": record["time"].timestamp(),
-        "message": record["message"],
-        "level": record["level"].name,
-        "module": record["module"],
-        "function": record["function"],
-        "line": record["line"],
+        "timestamp": timestamp,
+        "message": record.get("message", ""),
+        "level": record.get("level", {}).get("name", "INFO") if isinstance(record.get("level"), dict) else str(record.get("level", "INFO")),
+        "module": record.get("module", ""),
+        "function": record.get("function", ""),
+        "line": record.get("line", 0),
     }
     
     # Add extra fields
@@ -59,6 +66,17 @@ def setup_logging() -> None:
     """Configure logging for the application."""
     # Remove default logger
     logger.remove()
+    
+    # Skip complex logging setup in test environment
+    if settings.ENVIRONMENT == "test" or settings.TESTING:
+        # Simple console output for tests
+        logger.add(
+            sys.stderr,
+            format="{time} | {level} | {message}",
+            level="INFO",
+            colorize=False,
+        )
+        return
     
     # Console logging with colors
     if settings.is_development:

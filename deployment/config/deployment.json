@@ -1,0 +1,70 @@
+{
+  "production": {
+    "server": {
+      "host": "83.228.205.20",
+      "user": "ubuntu",
+      "deploy_path": "/opt/awareness"
+    },
+    "health_checks": {
+      "endpoints": [
+        "/api/health",
+        "/api/docs",
+        "/api/auth/status"
+      ],
+      "timeout": 10,
+      "retries": 3,
+      "retry_delay": 10
+    },
+    "monitoring": {
+      "duration": 300,
+      "check_interval": 30,
+      "error_threshold": 3,
+      "success_rate_threshold": 95
+    },
+    "rollback": {
+      "auto_rollback_enabled": true,
+      "backup_retention_days": 7,
+      "confirmation_required": true
+    },
+    "deployment": {
+      "strategy": "rolling",
+      "health_check_wait": 30,
+      "container_startup_timeout": 120,
+      "zero_downtime": true
+    },
+    "notifications": {
+      "slack_webhook": "${SLACK_WEBHOOK_URL}",
+      "email_recipients": ["team@bootstrap-awareness.de"],
+      "github_issues": true
+    },
+    "resources": {
+      "min_disk_space_gb": 5,
+      "min_memory_gb": 2,
+      "docker_prune_threshold_gb": 50
+    }
+  },
+  "staging": {
+    "server": {
+      "host": "staging.bootstrap-awareness.de",
+      "user": "ubuntu",
+      "deploy_path": "/opt/awareness-staging"
+    },
+    "health_checks": {
+      "endpoints": ["/api/health"],
+      "timeout": 30,
+      "retries": 2,
+      "retry_delay": 5
+    },
+    "monitoring": {
+      "duration": 180,
+      "check_interval": 60,
+      "error_threshold": 5,
+      "success_rate_threshold": 90
+    },
+    "rollback": {
+      "auto_rollback_enabled": false,
+      "backup_retention_days": 3,
+      "confirmation_required": false
+    }
+  }
+}

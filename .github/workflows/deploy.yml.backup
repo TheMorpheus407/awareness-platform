@@ -1,76 +1,17 @@
 name: Deploy to Production
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
-  workflow_call:
-    inputs:
-      environment:
-        description: 'Deployment environment'
-        required: false
-        default: 'production'
-        type: string
-      requires_approval:
-        description: 'Require manual approval before deployment'
-        required: false
-        default: false
-        type: boolean
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  # Validation job to ensure CI/CD passed
-  validate-deployment:
-    runs-on: ubuntu-latest
-    outputs:
-      can_deploy: ${{ steps.check.outputs.can_deploy }}
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Run pre-deployment checks
-        run: |
-          echo "Running pre-deployment validation..."
-          ./deployment/scripts/pre-deployment-checks.sh || true
-      
-      - name: Check CI/CD status
-        id: check
-        uses: actions/github-script@v7
-        with:
-          script: |
-            // Get the latest workflow runs for CI/CD
-            const runs = await github.rest.actions.listWorkflowRuns({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'ci-cd.yml',
-              branch: 'main',
-              status: 'success',
-              per_page: 1
-            });
-            
-            if (runs.data.workflow_runs.length === 0) {
-              core.setFailed('No successful CI/CD runs found on main branch');
-              core.setOutput('can_deploy', 'false');
-              return;
-            }
-            
-            const latestRun = runs.data.workflow_runs[0];
-            const runDate = new Date(latestRun.created_at);
-            const hoursSinceRun = (Date.now() - runDate) / (1000 * 60 * 60);
-            
-            // Ensure the CI/CD run is recent (within 24 hours)
-            if (hoursSinceRun > 24) {
-              core.setFailed(`Latest successful CI/CD run is too old (${hoursSinceRun.toFixed(1)} hours ago)`);
-              core.setOutput('can_deploy', 'false');
-              return;
-            }
-            
-            console.log(`✅ Found recent successful CI/CD run from ${hoursSinceRun.toFixed(1)} hours ago`);
-            core.setOutput('can_deploy', 'true');
-
   test:
-    needs: validate-deployment
-    if: needs.validate-deployment.outputs.can_deploy == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -129,7 +70,7 @@ jobs:
 
   build:
     needs: test
-    if: success() && needs.validate-deployment.outputs.can_deploy == 'true'  # Only build if tests pass and deployment is validated
+    if: success()  # Only build if tests pass
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -174,10 +115,7 @@ jobs:
 
   deploy:
     needs: build
-    if: needs.build.result == 'success' && needs.validate-deployment.outputs.can_deploy == 'true'
-    environment:
-      name: ${{ inputs.environment || 'production' }}
-      url: https://bootstrap-awareness.de
+    if: needs.build.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 30  # Add timeout to prevent exit code 137
     steps:
@@ -262,15 +200,7 @@ jobs:
           # Run optimized deployment
           ssh ubuntu@83.228.205.20 "cd /opt/awareness && timeout 1200 sudo REGISTRY=$REGISTRY IMAGE_NAME=$IMAGE_NAME ./scripts/deploy-optimized.sh"
       
-      - name: Rollback on failure
-        if: failure()
-        run: |
-          echo "Deployment failed, initiating rollback..."
-          ssh ubuntu@83.228.205.20 "cd /opt/awareness && sudo docker-compose -f docker-compose.prod.ghcr.yml down"
-          ssh ubuntu@83.228.205.20 "cd /opt/awareness && sudo docker-compose -f docker-compose.prod.ghcr.yml.backup up -d" || echo "No backup found"
-      
       - name: Health check
-        id: health_check
         run: |
           MAX_RETRIES=5
           RETRY_DELAY=10
@@ -289,82 +219,10 @@ jobs:
             fi
           done
           echo "::error::Health check failed after $MAX_RETRIES attempts"
-          # Trigger rollback
-          echo "health_check_failed=true" >> $GITHUB_OUTPUT
           exit 1
-      
-      - name: Post-deployment validation
-        run: |
-          echo "Running post-deployment validation..."
-          # Check API endpoints
-          endpoints=("/api/health" "/api/docs" "/api/auth/status")
-          for endpoint in "${endpoints[@]}"; do
-            response=$(curl -s -o /dev/null -w "%{http_code}" "https://bootstrap-awareness.de$endpoint")
-            if [ $response -eq 200 ] || [ $response -eq 401 ]; then
-              echo "✅ $endpoint is responding correctly ($response)"
-            else
-              echo "❌ $endpoint returned unexpected status: $response"
-            fi
-          done
-      
-      - name: Create deployment backup
-        if: success()
-        run: |
-          ssh ubuntu@83.228.205.20 "cd /opt/awareness && sudo cp docker-compose.prod.ghcr.yml docker-compose.prod.ghcr.yml.backup"
-          echo "Deployment backup created for potential rollback"
       
       - name: Create admin user
         run: |
           echo "Creating admin user on production..."
           scp backend/scripts/create_production_admin.py ubuntu@83.228.205.20:/tmp/
           ssh ubuntu@83.228.205.20 "sudo docker cp /tmp/create_production_admin.py awareness-backend-1:/tmp/ && sudo docker exec awareness-backend-1 python /tmp/create_production_admin.py" || true
-      
-      - name: Run deployment monitoring
-        if: success()
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Copy monitoring script
-          scp deployment/scripts/monitor-deployment.sh ubuntu@83.228.205.20:/tmp/
-          ssh ubuntu@83.228.205.20 "sudo mv /tmp/monitor-deployment.sh /opt/awareness/scripts/ && sudo chmod +x /opt/awareness/scripts/monitor-deployment.sh"
-          
-          # Create GitHub webhook URL for automatic rollback
-          WEBHOOK_URL="https://api.github.com/repos/${{ github.repository }}/dispatches"
-          
-          # Run monitoring in background on server (5 minute monitoring period)
-          ssh ubuntu@83.228.205.20 "cd /opt/awareness && nohup sudo GITHUB_WEBHOOK_URL='$WEBHOOK_URL' GITHUB_TOKEN='${{ secrets.GITHUB_TOKEN }}' ./scripts/monitor-deployment.sh > monitoring.log 2>&1 &"
-          
-          echo "Deployment monitoring started - will run for 5 minutes"
-          echo "Check logs at: /opt/awareness/monitoring.log"
-      
-      - name: Create deployment summary
-        if: always()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const deploymentStatus = '${{ job.status }}';
-            const summary = `## Deployment Summary
-            
-            **Status:** ${deploymentStatus === 'success' ? '✅ Success' : '❌ Failed'}
-            **Environment:** ${{ inputs.environment || 'production' }}
-            **Triggered by:** ${{ github.actor }}
-            **Time:** ${new Date().toISOString()}
-            
-            ### Components Deployed
-            - Backend: \`ghcr.io/${{ env.IMAGE_NAME }}/backend:latest\`
-            - Frontend: \`ghcr.io/${{ env.IMAGE_NAME }}/frontend:latest\`
-            
-            ### Post-Deployment
-            - Health monitoring: ${deploymentStatus === 'success' ? 'Active for 5 minutes' : 'N/A'}
-            - Automatic rollback: ${deploymentStatus === 'success' ? 'Enabled' : 'N/A'}
-            
-            ### Next Steps
-            ${deploymentStatus === 'success' 
-              ? '- Monitor application logs\n- Check user reports\n- Verify all features working' 
-              : '- Check deployment logs\n- Fix identified issues\n- Retry deployment'}
-            `;
-            
-            await core.summary
-              .addHeading('Deployment to Production')
-              .addRaw(summary)
-              .write();

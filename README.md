@@ -23,6 +23,7 @@ For complete project information, see:
 - [`SOURCE_OF_TRUTH.md`](SOURCE_OF_TRUTH.md) - Single source of project truth
 - [`ROADMAP.md`](ROADMAP.md) - Development roadmap and milestones
 - [`docs/`](docs/) - All technical and user documentation
+- [`docs/QUALITY_GATES.md`](docs/QUALITY_GATES.md) - Quality assurance and CI/CD setup
 
 ## 🛠️ Quick Start
 
