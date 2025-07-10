@@ -88,13 +88,13 @@ async def download_certificate(
     )
 
 
-@router.post("/{course_id}/regenerate", response_model=Certificate)
+@router.post("/{course_id}/regenerate", response_model=CourseCertificate)
 async def regenerate_certificate(
     course_id: int,
     template: Optional[str] = "default",
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
-) -> Certificate:
+) -> CourseCertificate:
     """
     Regenerate certificate with a different template.
     
@@ -132,7 +132,7 @@ async def regenerate_certificate(
         progress.certificate_issued = True
         await db.commit()
         
-        return Certificate(
+        return CourseCertificate(
             id=f"CERT-{progress.id}",
             user_id=current_user.id,
             course_id=course_id,
@@ -148,11 +148,11 @@ async def regenerate_certificate(
         )
 
 
-@router.get("/verify/{verification_code}", response_model=Certificate)
+@router.get("/verify/{verification_code}", response_model=CourseCertificate)
 async def verify_certificate(
     verification_code: str,
     db: AsyncSession = Depends(get_db),
-) -> Certificate:
+) -> CourseCertificate:
     """
     Verify certificate authenticity by verification code.
     
@@ -181,7 +181,7 @@ async def verify_certificate(
     if not progress or not progress.certificate_issued:
         raise HTTPException(status_code=404, detail="Certificate not found")
     
-    return Certificate(
+    return CourseCertificate(
         id=f"CERT-{progress.id}",
         user_id=progress.user_id,
         user_name=f"{progress.user.first_name} {progress.user.last_name}",
@@ -194,11 +194,11 @@ async def verify_certificate(
     )
 
 
-@router.get("/user/all", response_model=list[Certificate])
+@router.get("/user/all", response_model=list[CourseCertificate])
 async def get_user_certificates(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
-) -> list[Certificate]:
+) -> list[CourseCertificate]:
     """Get all certificates earned by the current user."""
     # Get all completed courses with certificates
     result = await db.execute(
@@ -215,7 +215,7 @@ async def get_user_certificates(
     certificates = []
     for progress in progress_list:
         certificates.append(
-            Certificate(
+            CourseCertificate(
                 id=f"CERT-{progress.id}",
                 user_id=current_user.id,
                 course_id=progress.course_id,
