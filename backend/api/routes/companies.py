@@ -18,6 +18,7 @@ from schemas.company import (
     CompanyListResponse,
     CompanyStats,
 )
+from schemas.user import User as UserSchema
 
 router = APIRouter()
 
@@ -364,13 +365,13 @@ async def activate_company(
     return {"message": "Company activated successfully"}
 
 
-@router.get("/{company_id}/users", response_model=List[User])
+@router.get("/{company_id}/users", response_model=List[UserSchema])
 async def get_company_users(
     company_id: UUID,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
     is_active: Optional[bool] = Query(True, description="Filter by active status"),
-) -> List[User]:
+) -> List[UserSchema]:
     """
     Get users of a company.
     
