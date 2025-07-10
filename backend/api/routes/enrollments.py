@@ -11,14 +11,11 @@ from sqlalchemy.orm import selectinload
 
 from api.dependencies.auth import get_current_active_user, require_company_admin
 from api.dependencies.common import get_db, get_pagination_params
-from models.course import Course, CourseEnrollment, LessonProgress, Module, Lesson
+from models.course import Course, UserCourseProgress
 from models.user import User, UserRole
 from schemas.course import (
-    CourseEnrollmentCreate,
-    CourseEnrollment as CourseEnrollmentSchema,
-    CourseEnrollmentListResponse,
-    LessonProgressUpdate,
-    LessonProgress as LessonProgressSchema,
+    CourseEnrollment,
+    CourseProgress,
 )
 
 router = APIRouter()
