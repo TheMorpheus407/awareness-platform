@@ -13,11 +13,10 @@ from api.dependencies.common import get_db, get_pagination_params
 from models.company import Company, SubscriptionTier
 from models.user import User
 from schemas.company import (
-    CompanyCreate,
-    CompanyUpdate,
+    CompanyRegistration,
     Company as CompanySchema,
     CompanyListResponse,
-    CompanyWithStats,
+    CompanyStats,
 )
 
 router = APIRouter()
@@ -92,7 +91,7 @@ async def list_companies(
 
 @router.post("/", response_model=CompanySchema)
 async def create_company(
-    company_data: CompanyCreate,
+    company_data: CompanyRegistration,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_admin),
 ) -> Company:
@@ -140,12 +139,12 @@ async def create_company(
     return company
 
 
-@router.get("/{company_id}", response_model=CompanyWithStats)
+@router.get("/{company_id}", response_model=CompanySchema)
 async def get_company(
     company_id: UUID,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
-) -> CompanyWithStats:
+) -> CompanySchema:
     """
     Get company by ID.
     
@@ -199,7 +198,7 @@ async def get_company(
     admin_count = admin_count_result.scalar()
     
     # Create response with stats
-    return CompanyWithStats(
+    return CompanySchema(
         **company.__dict__,
         user_count=user_count,
         admin_count=admin_count,
@@ -210,7 +209,7 @@ async def get_company(
 @router.patch("/{company_id}", response_model=CompanySchema)
 async def update_company(
     company_id: UUID,
-    company_update: CompanyUpdate,
+    company_update: dict,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_admin),
 ) -> Company:
