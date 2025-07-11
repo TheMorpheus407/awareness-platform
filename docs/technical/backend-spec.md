@@ -153,9 +153,6 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str
     EMAIL_FROM: str = "noreply@cybersec-platform.de"
     
-    # YouTube
-    YOUTUBE_API_KEY: str
-    
     # Storage
     AWS_ACCESS_KEY_ID: Optional[str] = None
     AWS_SECRET_ACCESS_KEY: Optional[str] = None
@@ -1111,7 +1108,6 @@ SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=noreply@cybersec-platform.de
 SMTP_PASSWORD=your-smtp-password
-YOUTUBE_API_KEY=your-youtube-api-key
 ```
 
 ### 12.2 Gunicorn Configuration

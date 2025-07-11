@@ -21,6 +21,7 @@ from .course_service import CourseService
 from .quiz_service import QuizService
 from .progress_service import ProgressService
 from .gamification_service import GamificationService
+from .notification_service import NotificationService, notification_service, notification_manager
 
 __all__ = [
     "EmailService",
@@ -38,4 +39,7 @@ __all__ = [
     "QuizService",
     "ProgressService",
     "GamificationService",
+    "NotificationService",
+    "notification_service",
+    "notification_manager",
 ]

@@ -428,7 +428,6 @@ describe('Button Component', () => {
 ### 12.1 Environment Variables
 ```env
 VITE_API_URL=https://api.cybersec-platform.de
-VITE_YOUTUBE_API_KEY=your-youtube-api-key
 VITE_SENTRY_DSN=your-sentry-dsn
 ```
 

@@ -14,6 +14,7 @@ from models.user import User
 from core.logging import logger
 from core.exceptions import ValidationError, NotFoundError, AuthorizationError
 from core.security import SecurityUtils
+from services.notification_service import notification_service
 import secrets
 import string
 
@@ -168,6 +169,21 @@ class QuizService:
             f"User {user_id} submitted quiz {quiz_id}: "
             f"Score: {percentage:.1f}% ({'passed' if passed else 'failed'})"
         )
+        
+        # Send notification about quiz result
+        await notification_service.notify_quiz_result(
+            user_id=str(user_id),
+            quiz_id=str(quiz_id),
+            score=percentage
+        )
+        
+        # If certificate was generated, send notification
+        if certificate_id:
+            await notification_service.notify_certificate_ready(
+                user_id=str(user_id),
+                course_id=str(quiz.course_id),
+                certificate_id=str(certificate_id)
+            )
         
         return {
             "score": percentage,

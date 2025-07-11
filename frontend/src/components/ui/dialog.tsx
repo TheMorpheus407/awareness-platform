@@ -70,8 +70,9 @@ export const DialogHeader: React.FC<DialogHeaderProps> = ({ children, className,
         <button
           onClick={onClose}
           className="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          aria-label="Close dialog"
         >
-          <X className="h-5 w-5" />
+          <X className="h-5 w-5" aria-hidden="true" />
         </button>
       )}
     </div>

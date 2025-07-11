@@ -7,6 +7,11 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   fullWidth?: boolean;
   loading?: boolean;
   children: React.ReactNode;
+  ariaLabel?: string;
+  ariaPressed?: boolean;
+  ariaExpanded?: boolean;
+  ariaControls?: string;
+  ariaDescribedby?: string;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -17,6 +22,11 @@ export const Button: React.FC<ButtonProps> = ({
   children,
   className,
   disabled,
+  ariaLabel,
+  ariaPressed,
+  ariaExpanded,
+  ariaControls,
+  ariaDescribedby,
   ...props
 }) => {
   const baseStyles = 'inline-flex items-center justify-center font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
@@ -46,6 +56,13 @@ export const Button: React.FC<ButtonProps> = ({
         className
       )}
       disabled={disabled || loading}
+      aria-label={ariaLabel}
+      aria-pressed={ariaPressed}
+      aria-expanded={ariaExpanded}
+      aria-controls={ariaControls}
+      aria-describedby={ariaDescribedby}
+      aria-busy={loading}
+      aria-disabled={disabled || loading}
       {...props}
     >
       {loading && (
@@ -54,6 +71,7 @@ export const Button: React.FC<ButtonProps> = ({
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <circle
             className="opacity-25"
@@ -70,6 +88,7 @@ export const Button: React.FC<ButtonProps> = ({
           ></path>
         </svg>
       )}
+      {loading && <span className="sr-only">Loading...</span>}
       {children}
     </button>
   );

@@ -41,7 +41,6 @@ services:
       - internal
     environment:
       - VITE_API_URL=https://api.cybersec-platform.de
-      - VITE_YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
 
   # Backend API Container
   backend:
@@ -67,7 +66,6 @@ services:
       - SMTP_PORT=${SMTP_PORT}
       - SMTP_USER=${SMTP_USER}
       - SMTP_PASSWORD=${SMTP_PASSWORD}
-      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
     depends_on:
       postgres:
         condition: service_healthy
@@ -460,7 +458,7 @@ SMTP_USER=noreply@cybersec-platform.de
 SMTP_PASSWORD=your-smtp-password
 
 # External APIs
-YOUTUBE_API_KEY=your-youtube-api-key
+# (Optional services like SendGrid, Stripe can be configured here)
 
 # Domains
 ALLOWED_HOSTS=cybersec-platform.de,www.cybersec-platform.de,api.cybersec-platform.de
@@ -493,7 +491,7 @@ SMTP_USER=
 SMTP_PASSWORD=
 
 # External APIs
-YOUTUBE_API_KEY=your-dev-youtube-api-key
+# (Optional services like SendGrid, Stripe can be configured here)
 
 # Domains
 ALLOWED_HOSTS=localhost,127.0.0.1

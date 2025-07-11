@@ -19,6 +19,7 @@ import Demo from './pages/Demo';
 import { Careers } from './pages/Careers';
 import { Partners } from './pages/Partners';
 import { CaseStudies } from './pages/CaseStudies';
+import { NotificationTest } from './pages/NotificationTest';
 
 function App() {
   const { t } = useTranslation();
@@ -84,6 +85,7 @@ function App() {
             <Route path="/settings" element={<div className="text-2xl font-bold">{t('settings.comingSoon')}</div>} />
             <Route path="/checkout" element={<CheckoutForm />} />
             <Route path="/billing" element={<BillingDashboard />} />
+            <Route path="/notification-test" element={<NotificationTest />} />
           </Route>
         </Route>
       </Routes>

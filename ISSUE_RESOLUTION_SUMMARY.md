@@ -8,7 +8,13 @@
 
 ### Issue #214: Remove YouTube API Requirement
 **Status**: ✅ Completed - Can be closed
-**Details**: No YouTube API references found in the codebase. No code removal needed.
+**Details**: 
+- Removed all YouTube API key references from configuration files
+- Updated docker-compose files (prod, prod.ghcr, and dev versions)
+- Updated setup scripts and GitHub secrets templates
+- Updated documentation to remove YouTube API requirements
+- The application uses YouTube video IDs for embedding videos via iframes, which doesn't require an API key
+- No actual YouTube API service implementation was found in the codebase
 
 ### Issue #208: Replace XOR Encryption
 **Status**: ✅ Completed - Can be closed

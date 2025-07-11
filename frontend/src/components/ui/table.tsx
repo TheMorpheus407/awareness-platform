@@ -27,10 +27,11 @@ interface TableRowProps extends React.HTMLAttributes<HTMLTableRowElement> {
 
 export const Table = React.forwardRef<HTMLTableElement, TableProps>(
   ({ className, ...props }, ref) => (
-    <div className="relative w-full overflow-auto">
+    <div className="relative w-full overflow-auto" role="region" aria-label="Table container">
       <table
         ref={ref}
         className={clsx("w-full caption-bottom text-sm", className)}
+        role="table"
         {...props}
       />
     </div>
@@ -64,6 +65,7 @@ export const TableHead = React.forwardRef<HTMLTableCellElement, TableHeadProps>(
         "h-12 px-4 text-left align-middle font-medium text-gray-500 dark:text-gray-400 [&:has([role=checkbox])]:pr-0",
         className
       )}
+      scope="col"
       {...props}
     />
   )

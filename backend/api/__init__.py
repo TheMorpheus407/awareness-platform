@@ -15,6 +15,7 @@ from .routes import (
     health,
     health_extended,
     monitoring,
+    notifications,
     password_reset,
     payments,
     phishing,
@@ -45,5 +46,6 @@ api_router.include_router(email_verification.router, prefix="/auth/verify-email"
 api_router.include_router(health.router, prefix="/health", tags=["Health"])
 api_router.include_router(health_extended.router, prefix="/health", tags=["Health"])
 api_router.include_router(monitoring.router, prefix="/monitoring", tags=["Monitoring"])
+api_router.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
 
 __all__ = ["api_router"]

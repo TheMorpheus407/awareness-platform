@@ -42,14 +42,14 @@ export const LoginForm: React.FC = () => {
             <p className="text-secondary-600 mt-2">{t('auth.login.subtitle')}</p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" aria-label={t('auth.login.formLabel')}>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-secondary-700 mb-2">
                 {t('auth.login.emailLabel')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-secondary-400" />
+                  <Mail className="h-5 w-5 text-secondary-400" aria-hidden="true" />
                 </div>
                 <input
                   {...register('email', {
@@ -59,14 +59,18 @@ export const LoginForm: React.FC = () => {
                       message: t('auth.errors.invalidEmail'),
                     },
                   })}
+                  id="email"
                   type="email"
                   autoComplete="email"
                   className="pl-10 input-field"
                   placeholder={t('auth.login.emailPlaceholder')}
+                  aria-required="true"
+                  aria-invalid={errors.email ? 'true' : 'false'}
+                  aria-describedby={errors.email ? 'email-error' : undefined}
                 />
               </div>
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                <p id="email-error" role="alert" className="mt-1 text-sm text-red-600" aria-live="polite">{errors.email.message}</p>
               )}
             </div>
 
@@ -76,7 +80,7 @@ export const LoginForm: React.FC = () => {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-secondary-400" />
+                  <Lock className="h-5 w-5 text-secondary-400" aria-hidden="true" />
                 </div>
                 <input
                   {...register('password', {
@@ -86,14 +90,18 @@ export const LoginForm: React.FC = () => {
                       message: t('auth.errors.passwordMinLength'),
                     },
                   })}
+                  id="password"
                   type="password"
                   autoComplete="current-password"
                   className="pl-10 input-field"
                   placeholder={t('auth.login.passwordPlaceholder')}
+                  aria-required="true"
+                  aria-invalid={errors.password ? 'true' : 'false'}
+                  aria-describedby={errors.password ? 'password-error' : undefined}
                 />
               </div>
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                <p id="password-error" role="alert" className="mt-1 text-sm text-red-600" aria-live="polite">{errors.password.message}</p>
               )}
             </div>
 
@@ -111,7 +119,7 @@ export const LoginForm: React.FC = () => {
               </div>
 
               <div className="text-sm">
-                <a href="#" className="font-medium text-primary-600 hover:text-primary-500">
+                <a href="#" className="font-medium text-primary-600 hover:text-primary-500" aria-label={t('auth.login.forgotPasswordAriaLabel')}>
                   {t('auth.login.forgotPassword')}
                 </a>
               </div>
@@ -121,12 +129,15 @@ export const LoginForm: React.FC = () => {
               type="submit"
               disabled={isLoading}
               className="w-full btn-primary py-3 flex items-center justify-center"
+              aria-label={t('auth.login.signInAriaLabel')}
+              aria-busy={isLoading}
+              aria-disabled={isLoading}
             >
               {isLoading ? (
                 <LoadingSpinner size="small" />
               ) : (
                 <>
-                  <LogIn className="w-5 h-5 mr-2" />
+                  <LogIn className="w-5 h-5 mr-2" aria-hidden="true" />
                   {t('auth.login.signIn')}
                 </>
               )}
