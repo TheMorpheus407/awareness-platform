@@ -13,7 +13,6 @@ from .email_campaign import EmailCampaignService
 from .email_scheduler import EmailSchedulerService
 from .phishing_service import PhishingService
 from .certificate_generator import CertificateGenerator
-from .content_delivery import ContentDeliveryService
 from .stripe_service import StripeService
 from .analytics_collector import AnalyticsCollector
 from .campaign_scheduler import CampaignScheduler
@@ -22,6 +21,14 @@ from .quiz_service import QuizService
 from .progress_service import ProgressService
 from .gamification_service import GamificationService
 from .notification_service import NotificationService, notification_service, notification_manager
+
+# Conditional import of ContentDeliveryService due to boto3 dependency
+try:
+    from .content_delivery import ContentDeliveryService
+except ImportError as e:
+    import logging
+    logging.warning(f"ContentDeliveryService not available: {str(e)}")
+    ContentDeliveryService = None
 
 __all__ = [
     "EmailService",

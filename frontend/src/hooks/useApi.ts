@@ -1,16 +1,16 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, DependencyList } from 'react';
 import { AxiosError } from 'axios';
 import type { ApiError } from '../types';
 
-interface UseApiOptions {
-  onSuccess?: (data: any) => void;
+interface UseApiOptions<T = unknown> {
+  onSuccess?: (data: T) => void;
   onError?: (error: ApiError) => void;
 }
 
-export function useApi<T = any>(
+export function useApi<T = unknown>(
   apiCall: () => Promise<T>,
-  dependencies: any[] = [],
-  options?: UseApiOptions
+  dependencies: DependencyList = [],
+  options?: UseApiOptions<T>
 ) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
@@ -43,9 +43,9 @@ export function useApi<T = any>(
   return { data, loading, error, refetch: execute };
 }
 
-export function useMutation<TData = any, TVariables = any>(
+export function useMutation<TData = unknown, TVariables = unknown>(
   apiCall: (variables: TVariables) => Promise<TData>,
-  options?: UseApiOptions
+  options?: UseApiOptions<TData>
 ) {
   const [data, setData] = useState<TData | null>(null);
   const [loading, setLoading] = useState(false);

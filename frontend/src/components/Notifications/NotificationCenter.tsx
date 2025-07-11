@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Bell, X, Check, AlertCircle, CheckCircle, Info } from 'lucide-react';
-import { useWebSocket, NotificationMessage } from '../../hooks/useWebSocket';
+import { useWebSocket } from '../../hooks/useWebSocket';
+import type { NotificationMessage } from '../../hooks/useWebSocket';
 import { formatDistanceToNow } from 'date-fns';
 
 export const NotificationCenter: React.FC = () => {

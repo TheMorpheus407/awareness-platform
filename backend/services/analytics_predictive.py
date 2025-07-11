@@ -1,15 +1,26 @@
 """Predictive analytics service using machine learning models."""
 
-import numpy as np
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional, Tuple
 from sqlalchemy import select, func, and_, case
 from sqlalchemy.ext.asyncio import AsyncSession
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import StandardScaler
-import joblib
 import os
+
+# Optional ML dependencies
+try:
+    import numpy as np
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.preprocessing import StandardScaler
+    import joblib
+    HAS_ML_DEPS = True
+except ImportError:
+    HAS_ML_DEPS = False
+    np = None
+    LogisticRegression = None
+    RandomForestClassifier = None
+    StandardScaler = None
+    joblib = None
 
 from models.user import User
 from models.course import UserCourseProgress

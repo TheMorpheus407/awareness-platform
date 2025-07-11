@@ -8,7 +8,7 @@ from collections import defaultdict
 
 from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
-import aioredis
+from services.aioredis_compat import Redis, from_url
 from fastapi import WebSocket
 
 from models.analytics import AnalyticsEvent
@@ -31,7 +31,7 @@ class RealTimeAnalyticsService:
     async def initialize(self):
         """Initialize Redis pub/sub for real-time updates."""
         try:
-            self.redis_client = aioredis.from_url(
+            self.redis_client = from_url(
                 settings.REDIS_URL,
                 decode_responses=True
             )

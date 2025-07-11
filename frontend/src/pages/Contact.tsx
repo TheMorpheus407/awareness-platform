@@ -3,9 +3,18 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Mail, Phone, MapPin, Clock, Send, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { SEO } from '../components/SEO';
+import { getPageMetadata } from '../utils/seo/pageMetadata';
+import { generateBreadcrumbStructuredData } from '../utils/seo/generateStructuredData';
 
 export const Contact: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const metadata = getPageMetadata('contact');
+  
+  const breadcrumbData = generateBreadcrumbStructuredData([
+    { name: 'Home', url: window.location.origin },
+    { name: 'Contact', url: window.location.href }
+  ]);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -30,7 +39,13 @@ export const Contact: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <>
+      <SEO 
+        {...metadata} 
+        lang={i18n.language}
+        jsonLd={breadcrumbData}
+      />
+      <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <Link to="/" className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-6">
           <ArrowLeft className="w-4 h-4 mr-2" />
@@ -207,6 +222,7 @@ export const Contact: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };

@@ -1,0 +1,243 @@
+version: '3.8'
+
+services:
+  # Prometheus - Metrics collection
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: prometheus
+    restart: always
+    volumes:
+      - ./infrastructure/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./infrastructure/monitoring/prometheus/alerts:/etc/prometheus/alerts
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--storage.tsdb.retention.time=30d'
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  # Grafana - Visualization
+  grafana:
+    image: grafana/grafana:10.0.0
+    container_name: grafana
+    restart: always
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./infrastructure/monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ./infrastructure/monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource,grafana-piechart-panel
+      - GF_SERVER_ROOT_URL=https://monitoring.bootstrap-awareness.de
+      - GF_SMTP_ENABLED=true
+      - GF_SMTP_HOST=${SMTP_HOST}:${SMTP_PORT}
+      - GF_SMTP_USER=${SMTP_USER}
+      - GF_SMTP_PASSWORD=${SMTP_PASSWORD}
+      - GF_SMTP_FROM_ADDRESS=monitoring@bootstrap-awareness.de
+    ports:
+      - "3000:3000"
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  # Alertmanager - Alert routing
+  alertmanager:
+    image: prom/alertmanager:v0.26.0
+    container_name: alertmanager
+    restart: always
+    volumes:
+      - ./infrastructure/monitoring/alertmanager:/etc/alertmanager
+      - alertmanager_data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--cluster.advertise-address=0.0.0.0:9093'
+    ports:
+      - "9093:9093"
+    networks:
+      - monitoring
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  # Node Exporter - System metrics
+  node-exporter:
+    image: prom/node-exporter:v1.6.0
+    container_name: node-exporter
+    restart: always
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    ports:
+      - "9100:9100"
+    networks:
+      - monitoring
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  # cAdvisor - Container metrics
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.0
+    container_name: cadvisor
+    restart: always
+    privileged: true
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
+    ports:
+      - "8080:8080"
+    networks:
+      - monitoring
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  # PostgreSQL Exporter
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.13.0
+    container_name: postgres-exporter
+    restart: always
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@db:5432/${DATABASE_NAME}?sslmode=disable"
+    ports:
+      - "9187:9187"
+    networks:
+      - monitoring
+      - backend-network
+    depends_on:
+      - db
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  # Redis Exporter
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.52.0
+    container_name: redis-exporter
+    restart: always
+    environment:
+      REDIS_ADDR: "redis://redis:6379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redispass}
+    ports:
+      - "9121:9121"
+    networks:
+      - monitoring
+      - backend-network
+    depends_on:
+      - redis
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  # Blackbox Exporter - Endpoint monitoring
+  blackbox-exporter:
+    image: prom/blackbox-exporter:v0.24.0
+    container_name: blackbox-exporter
+    restart: always
+    volumes:
+      - ./infrastructure/monitoring/blackbox:/config
+    command:
+      - '--config.file=/config/blackbox.yml'
+    ports:
+      - "9115:9115"
+    networks:
+      - monitoring
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  # Loki - Log aggregation
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: loki
+    restart: always
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./infrastructure/monitoring/loki:/etc/loki
+      - loki_data:/loki
+    command: -config.file=/etc/loki/loki-config.yml
+    networks:
+      - monitoring
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  # Promtail - Log shipping
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: promtail
+    restart: always
+    volumes:
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./infrastructure/monitoring/promtail:/etc/promtail
+    command: -config.file=/etc/promtail/promtail-config.yml
+    networks:
+      - monitoring
+    depends_on:
+      - loki
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  # Uptime Kuma - Status page
+  uptime-kuma:
+    image: louislam/uptime-kuma:1.23.0
+    container_name: uptime-kuma
+    restart: always
+    volumes:
+      - uptime-kuma_data:/app/data
+    ports:
+      - "3001:3001"
+    networks:
+      - monitoring
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  # Watchtower - Automatic container updates
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: watchtower
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_INCLUDE_RESTARTING=true
+      - WATCHTOWER_LABEL_ENABLE=true
+      - WATCHTOWER_POLL_INTERVAL=3600
+      - WATCHTOWER_NOTIFICATIONS=slack
+      - WATCHTOWER_NOTIFICATION_SLACK_HOOK_URL=${SLACK_WEBHOOK}
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+    driver: bridge
+  backend-network:
+    external: true
+  frontend-network:
+    external: true
+
+volumes:
+  prometheus_data:
+  grafana_data:
+  alertmanager_data:
+  loki_data:
+  uptime-kuma_data:

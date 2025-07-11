@@ -1,6 +1,6 @@
 import axios from 'axios';
 import type { AxiosInstance, AxiosError } from 'axios';
-import type { ApiError } from '../types';
+import type { ApiError, UserUpdateData, CompanyCreateData, CompanyUpdateData, ApiConfig } from '../types';
 import { secureStorage } from '../utils/secureStorage';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
@@ -131,7 +131,7 @@ class ApiClient {
       await this.fetchCsrfToken();
       
       return response.data;
-    } catch (error: any) {
+    } catch (error) {
       // Check if 2FA is required
       if (error.response?.status === 428) {
         throw { requires2FA: true, ...error };
@@ -221,7 +221,7 @@ class ApiClient {
     return response.data;
   }
 
-  async updateUser(id: string, data: any) {
+  async updateUser(id: string, data: UserUpdateData) {
     const response = await this.client.put(`/users/${id}`, data);
     return response.data;
   }
@@ -244,12 +244,12 @@ class ApiClient {
     return response.data;
   }
 
-  async createCompany(data: any) {
+  async createCompany(data: CompanyCreateData) {
     const response = await this.client.post('/companies', data);
     return response.data;
   }
 
-  async updateCompany(id: string, data: any) {
+  async updateCompany(id: string, data: CompanyUpdateData) {
     const response = await this.client.put(`/companies/${id}`, data);
     return response.data;
   }
@@ -266,23 +266,23 @@ class ApiClient {
   }
 
   // Convenience methods for direct HTTP calls
-  get<T = any>(url: string, config?: any) {
+  get<T = unknown>(url: string, config?: ApiConfig) {
     return this.client.get<T>(url, config);
   }
 
-  post<T = any>(url: string, data?: any, config?: any) {
+  post<T = unknown>(url: string, data?: unknown, config?: ApiConfig) {
     return this.client.post<T>(url, data, config);
   }
 
-  put<T = any>(url: string, data?: any, config?: any) {
+  put<T = unknown>(url: string, data?: unknown, config?: ApiConfig) {
     return this.client.put<T>(url, data, config);
   }
 
-  patch<T = any>(url: string, data?: any, config?: any) {
+  patch<T = unknown>(url: string, data?: unknown, config?: ApiConfig) {
     return this.client.patch<T>(url, data, config);
   }
 
-  delete<T = any>(url: string, config?: any) {
+  delete<T = unknown>(url: string, config?: ApiConfig) {
     return this.client.delete<T>(url, config);
   }
 }

@@ -1,58 +1,164 @@
 groups:
-  - name: infrastructure
+  - name: infrastructure_alerts
     interval: 30s
     rules:
-      # High CPU usage
+      # Node CPU Usage
       - alert: HighCPUUsage
-        expr: (100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)) > 80
+        expr: |
+          100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
         for: 10m
         labels:
           severity: warning
-          service: system
+          service: infrastructure
         annotations:
           summary: "High CPU usage on {{ $labels.instance }}"
-          description: "CPU usage is {{ $value | humanize }}%"
+          description: "CPU usage is {{ $value }}% (threshold: 80%)"
+          runbook_url: "https://wiki.bootstrap-awareness.de/runbooks/high-cpu-usage"
 
-      # High memory usage
+      - alert: VeryHighCPUUsage
+        expr: |
+          100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 95
+        for: 5m
+        labels:
+          severity: critical
+          service: infrastructure
+        annotations:
+          summary: "Very high CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is {{ $value }}% (threshold: 95%)"
+          runbook_url: "https://wiki.bootstrap-awareness.de/runbooks/high-cpu-usage"
+
+      # Memory Usage
       - alert: HighMemoryUsage
-        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 90
+        expr: |
+          (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 80
         for: 10m
         labels:
-          severity: critical
-          service: system
+          severity: warning
+          service: infrastructure
         annotations:
           summary: "High memory usage on {{ $labels.instance }}"
-          description: "Memory usage is {{ $value | humanize }}%"
+          description: "Memory usage is {{ $value }}% (threshold: 80%)"
+          runbook_url: "https://wiki.bootstrap-awareness.de/runbooks/high-memory-usage"
 
-      # Low disk space
-      - alert: LowDiskSpace
-        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 10
+      - alert: VeryHighMemoryUsage
+        expr: |
+          (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 95
         for: 5m
         labels:
           severity: critical
-          service: system
+          service: infrastructure
         annotations:
-          summary: "Low disk space on {{ $labels.instance }}"
-          description: "Only {{ $value | humanize }}% disk space remaining"
+          summary: "Very high memory usage on {{ $labels.instance }}"
+          description: "Memory usage is {{ $value }}% (threshold: 95%)"
+          runbook_url: "https://wiki.bootstrap-awareness.de/runbooks/high-memory-usage"
 
-      # Service down
-      - alert: ServiceDown
-        expr: up == 0
+      # Disk Usage
+      - alert: HighDiskUsage
+        expr: |
+          (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|fuse.lxcfs"} / node_filesystem_size_bytes{fstype!~"tmpfs|fuse.lxcfs"})) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "High disk usage on {{ $labels.instance }} {{ $labels.device }}"
+          description: "Disk usage is {{ $value }}% (threshold: 80%)"
+          runbook_url: "https://wiki.bootstrap-awareness.de/runbooks/high-disk-usage"
+
+      - alert: VeryHighDiskUsage
+        expr: |
+          (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|fuse.lxcfs"} / node_filesystem_size_bytes{fstype!~"tmpfs|fuse.lxcfs"})) * 100 > 95
         for: 5m
         labels:
           severity: critical
-          service: monitoring
+          service: infrastructure
         annotations:
-          summary: "Service {{ $labels.job }} is down"
-          description: "{{ $labels.instance }} has been down for more than 5 minutes"
+          summary: "Very high disk usage on {{ $labels.instance }} {{ $labels.device }}"
+          description: "Disk usage is {{ $value }}% (threshold: 95%)"
+          runbook_url: "https://wiki.bootstrap-awareness.de/runbooks/high-disk-usage"
 
-      # Container restart
-      - alert: ContainerRestarting
-        expr: rate(container_last_seen{name=~"awareness.*"}[5m]) > 0.5
+      # Container Issues
+      - alert: ContainerDown
+        expr: |
+          up{job=~"backend|frontend|nginx|redis|postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: "{{ $labels.job }}"
+        annotations:
+          summary: "Container {{ $labels.job }} is down"
+          description: "Container {{ $labels.job }} on {{ $labels.instance }} is not responding"
+          runbook_url: "https://wiki.bootstrap-awareness.de/runbooks/container-down"
+
+      - alert: ContainerRestartingTooOften
+        expr: |
+          increase(container_restart_count[1h]) > 5
         for: 5m
         labels:
           severity: warning
-          service: docker
+          service: container
         annotations:
-          summary: "Container {{ $labels.name }} is restarting frequently"
-          description: "Container has restarted {{ $value }} times in the last 5 minutes"
+          summary: "Container {{ $labels.name }} restarting too often"
+          description: "Container has restarted {{ $value }} times in the last hour"
+
+      # PostgreSQL Issues
+      - alert: PostgreSQLDown
+        expr: |
+          up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL database is not responding"
+          runbook_url: "https://wiki.bootstrap-awareness.de/runbooks/postgresql-down"
+
+      - alert: PostgreSQLSlowQueries
+        expr: |
+          rate(pg_stat_statements_mean_time_seconds[5m]) > 1
+        for: 10m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "PostgreSQL slow queries detected"
+          description: "Average query time is {{ $value }}s"
+
+      # Redis Issues
+      - alert: RedisDown
+        expr: |
+          up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: cache
+        annotations:
+          summary: "Redis is down"
+          description: "Redis cache is not responding"
+          runbook_url: "https://wiki.bootstrap-awareness.de/runbooks/redis-down"
+
+      # SSL Certificate Expiry
+      - alert: SSLCertificateExpiringSoon
+        expr: |
+          probe_ssl_earliest_cert_expiry - time() < 86400 * 30
+        for: 1h
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "SSL certificate expiring soon for {{ $labels.instance }}"
+          description: "SSL certificate expires in {{ $value | humanizeDuration }}"
+
+      # Backup Monitoring
+      - alert: BackupFailed
+        expr: |
+          backup_last_success_timestamp < time() - 86400
+        for: 1h
+        labels:
+          severity: critical
+          service: backup
+        annotations:
+          summary: "Backup has not succeeded in 24 hours"
+          description: "Last successful backup was {{ $value | humanizeTimestamp }}"
+          runbook_url: "https://wiki.bootstrap-awareness.de/runbooks/backup-failed"

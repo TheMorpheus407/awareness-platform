@@ -29,11 +29,25 @@ import {
 import { LanguageSwitcher } from '../components/Common';
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
 import { useState } from 'react';
+import { SEO } from '../components/SEO';
+import { getPageMetadata } from '../utils/seo/pageMetadata';
+import { generateProductStructuredData } from '../utils/seo/generateStructuredData';
 
 const LandingEnhanced = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [activeIndustry, setActiveIndustry] = useState('finance');
   const [roiUsers, setRoiUsers] = useState(100);
+  
+  const metadata = getPageMetadata('home');
+  const productData = generateProductStructuredData({
+    name: 'Cybersecurity Awareness Training Platform',
+    description: 'Comprehensive security awareness training solution with phishing simulations, interactive courses, and analytics',
+    image: `${window.location.origin}/og-image.png`,
+    price: 5,
+    currency: 'EUR',
+    ratingValue: 4.8,
+    reviewCount: 150
+  });
   
   // Animation hooks for different sections
   const heroAnimation = useScrollAnimation();
@@ -140,7 +154,13 @@ const LandingEnhanced = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <>
+      <SEO 
+        {...metadata}
+        jsonLd={productData}
+        lang={i18n.language}
+      />
+      <div className="min-h-screen bg-white">
       {/* Navigation */}
       <nav className="fixed top-0 w-full bg-white/95 backdrop-blur-sm z-50 border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -911,7 +931,8 @@ const LandingEnhanced = () => {
           </div>
         </div>
       </footer>
-    </div>
+      </div>
+    </>
   );
 };
 

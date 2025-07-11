@@ -4,6 +4,9 @@ import { Check, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { paymentService } from '../../services/paymentService';
 import { LoadingSpinner } from '../Common';
+import { SEO } from '../SEO';
+import { getPageMetadata } from '../../utils/seo/pageMetadata';
+import { generateProductStructuredData } from '../../utils/seo/generateStructuredData';
 
 interface PricingTier {
   price_id: string;
@@ -18,11 +21,13 @@ interface PricingTier {
 }
 
 const PricingPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [pricing, setPricing] = useState<PricingTier[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedInterval, setSelectedInterval] = useState<'monthly' | 'yearly'>('monthly');
+  
+  const metadata = getPageMetadata('pricing');
 
   useEffect(() => {
     loadPricing();
@@ -72,7 +77,19 @@ const PricingPage: React.FC = () => {
   const filteredPricing = getFilteredPricing();
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <>
+      <SEO 
+        {...metadata}
+        lang={i18n.language}
+        jsonLd={pricing.length > 0 ? generateProductStructuredData({
+          name: 'Cybersecurity Awareness Training Plans',
+          description: 'Flexible pricing plans for organizations of all sizes',
+          image: `${window.location.origin}/og-image.png`,
+          price: pricing[0]?.amount || 5,
+          currency: pricing[0]?.currency || 'EUR'
+        }) : undefined}
+      />
+      <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
@@ -211,7 +228,8 @@ const PricingPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

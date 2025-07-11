@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI, Request
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
@@ -12,8 +13,11 @@ from loguru import logger
 
 from api import api_router
 from core.config import settings
-from core.middleware import SecurityHeadersMiddleware, RequestIdMiddleware, CSRFMiddleware, limiter
+from core.middleware import RequestIdMiddleware, CSRFMiddleware, limiter
+from core.security_headers import EnhancedSecurityHeadersMiddleware
+from core.rate_limiting import EnhancedRateLimitMiddleware
 from core.monitoring import init_sentry, MonitoringMiddleware
+from core.cache import cache
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
@@ -35,10 +39,27 @@ async def lifespan(app: FastAPI):
     logger.info(f"Environment: {settings.ENVIRONMENT}")
     logger.info(f"Debug mode: {settings.DEBUG}")
     
+    # Initialize Redis cache
+    try:
+        await cache.connect()
+        logger.info("Redis cache connected")
+    except Exception as e:
+        logger.error(f"Failed to connect to Redis cache: {e}")
+        # Continue without cache in development
+        if settings.ENVIRONMENT == "production":
+            raise
+    
     yield
     
     # Shutdown
     logger.info("Shutting down application")
+    
+    # Disconnect from Redis
+    try:
+        await cache.disconnect()
+        logger.info("Redis cache disconnected")
+    except Exception as e:
+        logger.error(f"Error disconnecting from Redis: {e}")
 
 
 # Create FastAPI app
@@ -52,8 +73,9 @@ app = FastAPI(
 )
 
 # Add security middleware
-app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(EnhancedSecurityHeadersMiddleware)
 app.add_middleware(RequestIdMiddleware)
+app.add_middleware(EnhancedRateLimitMiddleware)
 
 # Add CSRF protection
 app.add_middleware(

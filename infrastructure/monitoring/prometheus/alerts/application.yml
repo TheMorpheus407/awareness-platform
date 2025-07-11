@@ -1,58 +1,149 @@
 groups:
-  - name: application
+  - name: application_alerts
     interval: 30s
     rules:
-      # High error rate
-      - alert: HighErrorRate
-        expr: rate(app_requests_total{status_code=~"5.."}[5m]) > 0.05
-        for: 5m
-        labels:
-          severity: critical
-          service: backend
-        annotations:
-          summary: "High error rate detected"
-          description: "Error rate is {{ $value | humanizePercentage }} for the last 5 minutes"
-
-      # High response time
-      - alert: HighResponseTime
-        expr: histogram_quantile(0.95, rate(app_request_duration_seconds_bucket[5m])) > 2
+      # API Response Time
+      - alert: HighAPIResponseTime
+        expr: |
+          histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, method, path)) > 0.5
         for: 5m
         labels:
           severity: warning
-          service: backend
+          service: api
         annotations:
-          summary: "High response time detected"
-          description: "95th percentile response time is {{ $value }}s"
+          summary: "High API response time on {{ $labels.method }} {{ $labels.path }}"
+          description: "95th percentile response time is {{ $value }}s (threshold: 0.5s)"
+          runbook_url: "https://wiki.bootstrap-awareness.de/runbooks/high-api-response-time"
 
-      # Low active users
-      - alert: LowActiveUsers
-        expr: app_active_users < 1
-        for: 30m
-        labels:
-          severity: info
-          service: backend
-        annotations:
-          summary: "No active users"
-          description: "No active users for the last 30 minutes"
-
-      # Database connection pool exhausted
-      - alert: DatabaseConnectionPoolExhausted
-        expr: (app_db_connections_checked_out / app_db_connections_total) > 0.9
+      - alert: VeryHighAPIResponseTime
+        expr: |
+          histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, method, path)) > 1
         for: 5m
         labels:
           severity: critical
+          service: api
+        annotations:
+          summary: "Very high API response time on {{ $labels.method }} {{ $labels.path }}"
+          description: "95th percentile response time is {{ $value }}s (threshold: 1s)"
+          runbook_url: "https://wiki.bootstrap-awareness.de/runbooks/high-api-response-time"
+
+      # Error Rates
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(http_requests_total{status=~"5.."}[5m])) by (service)
+          /
+          sum(rate(http_requests_total[5m])) by (service)
+          > 0.01
+        for: 5m
+        labels:
+          severity: warning
+          service: "{{ $labels.service }}"
+        annotations:
+          summary: "High error rate in {{ $labels.service }}"
+          description: "Error rate is {{ $value | humanizePercentage }} (threshold: 1%)"
+          runbook_url: "https://wiki.bootstrap-awareness.de/runbooks/high-error-rate"
+
+      - alert: VeryHighErrorRate
+        expr: |
+          sum(rate(http_requests_total{status=~"5.."}[5m])) by (service)
+          /
+          sum(rate(http_requests_total[5m])) by (service)
+          > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          service: "{{ $labels.service }}"
+        annotations:
+          summary: "Very high error rate in {{ $labels.service }}"
+          description: "Error rate is {{ $value | humanizePercentage }} (threshold: 5%)"
+          runbook_url: "https://wiki.bootstrap-awareness.de/runbooks/high-error-rate"
+
+      # Authentication Failures
+      - alert: HighAuthenticationFailures
+        expr: |
+          sum(rate(authentication_failures_total[5m])) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          service: auth
+        annotations:
+          summary: "High rate of authentication failures"
+          description: "{{ $value }} authentication failures per second"
+          runbook_url: "https://wiki.bootstrap-awareness.de/runbooks/auth-failures"
+
+      # Database Connection Pool
+      - alert: DatabaseConnectionPoolExhaustion
+        expr: |
+          (database_connections_active / database_connections_max) > 0.8
+        for: 5m
+        labels:
+          severity: warning
           service: database
         annotations:
-          summary: "Database connection pool nearly exhausted"
-          description: "{{ $value | humanizePercentage }} of database connections are in use"
+          summary: "Database connection pool near exhaustion"
+          description: "{{ $value | humanizePercentage }} of connection pool used"
+          runbook_url: "https://wiki.bootstrap-awareness.de/runbooks/db-connection-pool"
 
-      # Failed login attempts spike
-      - alert: HighFailedLoginRate
-        expr: rate(app_failed_logins_total[5m]) > 10
-        for: 5m
+      # Cache Hit Rate
+      - alert: LowCacheHitRate
+        expr: |
+          rate(cache_hits_total[5m]) / (rate(cache_hits_total[5m]) + rate(cache_misses_total[5m])) < 0.8
+        for: 15m
         labels:
           severity: warning
+          service: cache
+        annotations:
+          summary: "Low cache hit rate"
+          description: "Cache hit rate is {{ $value | humanizePercentage }} (threshold: 80%)"
+          runbook_url: "https://wiki.bootstrap-awareness.de/runbooks/cache-hit-rate"
+
+      # Background Jobs
+      - alert: BackgroundJobFailures
+        expr: |
+          sum(rate(background_job_failures_total[5m])) by (job_type) > 0.01
+        for: 10m
+        labels:
+          severity: warning
+          service: background_jobs
+        annotations:
+          summary: "Background job failures for {{ $labels.job_type }}"
+          description: "{{ $value }} failures per second"
+
+      # Email Sending
+      - alert: EmailDeliveryFailures
+        expr: |
+          sum(rate(email_send_failures_total[5m])) > 0.05
+        for: 10m
+        labels:
+          severity: critical
+          service: email
+        annotations:
+          summary: "High email delivery failure rate"
+          description: "{{ $value }} email failures per second"
+          runbook_url: "https://wiki.bootstrap-awareness.de/runbooks/email-failures"
+
+      # Payment Processing
+      - alert: PaymentProcessingFailures
+        expr: |
+          sum(rate(payment_failures_total[5m])) > 0.01
+        for: 5m
+        labels:
+          severity: critical
+          service: payments
+        annotations:
+          summary: "Payment processing failures detected"
+          description: "{{ $value }} payment failures per second"
+          runbook_url: "https://wiki.bootstrap-awareness.de/runbooks/payment-failures"
+
+      # Security Events
+      - alert: SuspiciousActivity
+        expr: |
+          sum(rate(security_events_total{type="suspicious"}[5m])) > 0.1
+        for: 5m
+        labels:
+          severity: critical
           service: security
         annotations:
-          summary: "High rate of failed login attempts"
-          description: "{{ $value }} failed login attempts per second"
+          summary: "Suspicious security activity detected"
+          description: "{{ $value }} suspicious events per second"
+          runbook_url: "https://wiki.bootstrap-awareness.de/runbooks/security-events"

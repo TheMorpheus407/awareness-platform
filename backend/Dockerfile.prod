@@ -19,7 +19,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Create non-root user
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+RUN mkdir -p /var/log/cybersecurity-platform
+RUN mkdir -p /var/log/cybersecurity-platform && useradd -m -u 1000 appuser && chown -R appuser:appuser /app /var/log/cybersecurity-platform
+
+# Make scripts executable
+RUN chmod +x /app/start-prod.sh /app/scripts/init_database.py /app/scripts/init_db_production.py /app/scripts/check_api_health.py
+
 USER appuser
 
 # Expose port
@@ -28,5 +33,5 @@ EXPOSE 8000
 # Set Python path
 ENV PYTHONPATH=/app
 
-# Default command - skip migrations for now
-CMD ["python", "-m", "gunicorn", "main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "--access-logfile", "-", "--error-logfile", "-"]
+# Use the startup script that handles database initialization
+CMD ["/app/start-prod.sh"]

@@ -9,14 +9,24 @@ from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List, Tuple, Union
 import logging
 from pathlib import Path
-import boto3
-from botocore.exceptions import ClientError, NoCredentialsError
 from sqlalchemy.ext.asyncio import AsyncSession
 import aiofiles
 
 from core.config import settings
 from core.exceptions import NotFoundError, ContentDeliveryError, AuthorizationError
+from core.cache_decorators import cache_result, cache_aside
 from models import Course, User
+
+# Conditional import of boto3
+try:
+    import boto3
+    from botocore.exceptions import ClientError, NoCredentialsError
+    HAS_BOTO3 = True
+except ImportError:
+    HAS_BOTO3 = False
+    boto3 = None
+    ClientError = None
+    NoCredentialsError = None
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +43,7 @@ class ContentDeliveryService:
         self.s3_bucket = settings.AWS_S3_BUCKET
         self.cdn_domain = settings.AWS_S3_CUSTOM_DOMAIN
         
-        if settings.AWS_ACCESS_KEY_ID and settings.AWS_SECRET_ACCESS_KEY:
+        if HAS_BOTO3 and settings.AWS_ACCESS_KEY_ID and settings.AWS_SECRET_ACCESS_KEY:
             try:
                 self.s3_client = boto3.client(
                     's3',
@@ -45,7 +55,10 @@ class ContentDeliveryService:
             except Exception as e:
                 logger.error(f"Failed to initialize S3 client: {str(e)}")
         else:
-            logger.warning("AWS credentials not configured, using local storage")
+            if not HAS_BOTO3:
+                logger.warning("boto3 not installed, using local storage")
+            else:
+                logger.warning("AWS credentials not configured, using local storage")
             
         # Local storage fallback
         self.local_storage_path = Path(__file__).parent.parent / "storage"
@@ -156,10 +169,10 @@ class ContentDeliveryService:
                 'storage': 's3',
             }
             
-        except ClientError as e:
-            logger.error(f"S3 upload error: {str(e)}")
-            raise ContentDeliveryError(f"Failed to upload to S3: {str(e)}")
         except Exception as e:
+            if HAS_BOTO3 and ClientError and isinstance(e, ClientError):
+                logger.error(f"S3 upload error: {str(e)}")
+                raise ContentDeliveryError(f"Failed to upload to S3: {str(e)}")
             logger.error(f"Unexpected upload error: {str(e)}")
             raise ContentDeliveryError(f"Upload failed: {str(e)}")
 
@@ -258,9 +271,9 @@ class ContentDeliveryService:
             
             return content, content_type, metadata
             
-        except self.s3_client.exceptions.NoSuchKey:
-            raise NotFoundError("Content", f"Content not found: {file_key}")
         except Exception as e:
+            if HAS_BOTO3 and hasattr(e, '__class__') and e.__class__.__name__ == 'NoSuchKey':
+                raise NotFoundError("Content", f"Content not found: {file_key}")
             logger.error(f"S3 download error: {str(e)}")
             raise ContentDeliveryError(f"Failed to download from S3: {str(e)}")
 

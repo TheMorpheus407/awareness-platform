@@ -9,6 +9,7 @@ from .routes import (
     companies,
     content,
     courses,
+    debug,
     email_campaigns,
     email_verification,
     enrollments,
@@ -47,5 +48,6 @@ api_router.include_router(health.router, prefix="/health", tags=["Health"])
 api_router.include_router(health_extended.router, prefix="/health", tags=["Health"])
 api_router.include_router(monitoring.router, prefix="/monitoring", tags=["Monitoring"])
 api_router.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
+api_router.include_router(debug.router, prefix="/debug", tags=["Debug"])
 
 __all__ = ["api_router"]

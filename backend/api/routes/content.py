@@ -21,7 +21,14 @@ from schemas.content import (
     ContentUploadResponse,
     SecureContentURL,
 )
-from services.content_delivery import ContentDeliveryService
+# Conditional import due to boto3 dependency issues
+try:
+    from services.content_delivery import ContentDeliveryService
+    HAS_CONTENT_DELIVERY = True
+except ImportError as e:
+    logger.warning(f"ContentDeliveryService not available: {str(e)}")
+    ContentDeliveryService = None
+    HAS_CONTENT_DELIVERY = False
 
 router = APIRouter()
 
@@ -66,6 +73,11 @@ async def get_course_video_url(
         )
     
     # Generate secure access token
+    if not HAS_CONTENT_DELIVERY:
+        raise HTTPException(
+            status_code=503,
+            detail="Content delivery service is not available"
+        )
     content_service = ContentDeliveryService()
     
     # For YouTube videos, return the video ID with access token
@@ -105,6 +117,11 @@ async def get_course_materials(
         )
     
     # Get course materials from content service
+    if not HAS_CONTENT_DELIVERY:
+        raise HTTPException(
+            status_code=503,
+            detail="Content delivery service is not available"
+        )
     content_service = ContentDeliveryService()
     materials = await content_service.list_course_materials(course_id)
     
@@ -156,6 +173,11 @@ async def download_content(
         raise HTTPException(status_code=403, detail="Access token mismatch")
     
     # Get content from service
+    if not HAS_CONTENT_DELIVERY:
+        raise HTTPException(
+            status_code=503,
+            detail="Content delivery service is not available"
+        )
     content_service = ContentDeliveryService()
     try:
         file_path = await content_service.get_content_path(content_id)
@@ -195,6 +217,11 @@ async def stream_content(
         raise HTTPException(status_code=403, detail="Invalid or expired access token")
     
     # Get content service
+    if not HAS_CONTENT_DELIVERY:
+        raise HTTPException(
+            status_code=503,
+            detail="Content delivery service is not available"
+        )
     content_service = ContentDeliveryService()
     
     try:
@@ -281,6 +308,11 @@ async def upload_course_material(
         )
     
     # Upload file
+    if not HAS_CONTENT_DELIVERY:
+        raise HTTPException(
+            status_code=503,
+            detail="Content delivery service is not available"
+        )
     content_service = ContentDeliveryService()
     try:
         content_id = await content_service.upload_content(
@@ -324,6 +356,11 @@ async def delete_course_material(
         )
     
     # Delete content
+    if not HAS_CONTENT_DELIVERY:
+        raise HTTPException(
+            status_code=503,
+            detail="Content delivery service is not available"
+        )
     content_service = ContentDeliveryService()
     try:
         await content_service.delete_content(content_id)

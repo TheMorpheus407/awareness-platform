@@ -2,9 +2,12 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Users, Target, Award, Shield, CheckCircle, Globe, Heart } from 'lucide-react';
+import { SEO } from '../components/SEO';
+import { getPageMetadata } from '../utils/seo/pageMetadata';
 
 export const About: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const metadata = getPageMetadata('about');
 
   const values = [
     { icon: Shield, title: t('about.values.security'), description: t('about.values.securityDesc') },
@@ -21,7 +24,9 @@ export const About: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <>
+      <SEO {...metadata} lang={i18n.language} />
+      <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <Link to="/" className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-6">
           <ArrowLeft className="w-4 h-4 mr-2" />
@@ -120,6 +125,7 @@ export const About: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };

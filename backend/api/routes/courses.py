@@ -19,11 +19,13 @@ from services.progress_service import ProgressService
 from services.gamification_service import GamificationService
 from core.exceptions import NotFoundError, ValidationError, AuthorizationError
 from core.logging import logger
+from core.cache_decorators import cache_course_data, cache_analytics, cache_user_data
 
 router = APIRouter()
 
 
 @router.get("/", response_model=List[dict])
+@cache_course_data(expire=600)
 async def list_courses(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -128,6 +130,7 @@ async def create_course(
 
 
 @router.get("/{course_id}", response_model=dict)
+@cache_course_data(expire=600)
 async def get_course(
     course_id: UUID,
     db: AsyncSession = Depends(get_db),
@@ -410,6 +413,7 @@ async def create_lesson(
 
 
 @router.get("/{course_id}/progress", response_model=dict)
+@cache_user_data(expire=300)
 async def get_course_progress(
     course_id: UUID,
     db: AsyncSession = Depends(get_db),
@@ -697,6 +701,7 @@ async def submit_quiz(
 
 
 @router.get("/my-courses", response_model=List[dict])
+@cache_user_data(expire=300)
 async def get_my_courses(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -744,6 +749,7 @@ async def get_my_courses(
 
 
 @router.get("/gamification/my-stats", response_model=dict)
+@cache_user_data(expire=300)
 async def get_my_gamification_stats(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -769,6 +775,7 @@ async def get_my_gamification_stats(
 
 
 @router.get("/gamification/leaderboard", response_model=List[dict])
+@cache_analytics(expire=900)
 async def get_leaderboard(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),

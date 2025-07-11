@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Calendar, User, Tag, Search, ChevronRight, TrendingUp, Shield, Lock, AlertTriangle } from 'lucide-react';
+import { SEO } from '../components/SEO';
+import { getPageMetadata } from '../utils/seo/pageMetadata';
 
 interface BlogPost {
   id: number;
@@ -16,7 +18,8 @@ interface BlogPost {
 }
 
 export const Blog: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const metadata = getPageMetadata('blog');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
@@ -72,7 +75,9 @@ export const Blog: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <>
+      <SEO {...metadata} lang={i18n.language} />
+      <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <Link to="/" className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-6">
           <ArrowLeft className="w-4 h-4 mr-2" />
@@ -186,6 +191,7 @@ export const Blog: React.FC = () => {
           </form>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };

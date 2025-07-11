@@ -1,0 +1,36 @@
+# Robots.txt for Cybersecurity Awareness Platform
+# https://awareness.bootstrapacademy.com
+
+User-agent: *
+Allow: /
+
+# Directories
+Disallow: /api/
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /users/
+Disallow: /companies/
+Disallow: /phishing/
+Disallow: /analytics/
+Disallow: /reports/
+Disallow: /settings/
+Disallow: /billing/
+Disallow: /checkout/
+Disallow: /notification-test/
+
+# Files
+Disallow: /login
+Disallow: /register
+Disallow: /*.json$
+Disallow: /*.js.map$
+
+# Allow specific resources
+Allow: /sitemap.xml
+Allow: /logo.svg
+Allow: /og-image.png
+
+# Crawl-delay for responsible crawling
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://awareness.bootstrapacademy.com/sitemap.xml

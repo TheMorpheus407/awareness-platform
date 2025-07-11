@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Play, Monitor, Shield, Mail, BarChart, Users, ChevronRight, CheckCircle } from 'lucide-react';
+import { SEO } from '../components/SEO';
+import { getPageMetadata } from '../utils/seo/pageMetadata';
 
 interface DemoStep {
   id: number;
@@ -12,7 +14,8 @@ interface DemoStep {
 }
 
 const Demo: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const metadata = getPageMetadata('demo');
   const [activeStep, setActiveStep] = useState(0);
   const [showVideo, setShowVideo] = useState(false);
 
@@ -64,7 +67,9 @@ const Demo: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <>
+      <SEO {...metadata} lang={i18n.language} />
+      <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <Link to="/" className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-6">
           <ArrowLeft className="w-4 h-4 mr-2" />
@@ -226,7 +231,8 @@ const Demo: React.FC = () => {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

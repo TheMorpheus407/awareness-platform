@@ -1,0 +1,235 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
+
+jobs:
+  # Deploy to Staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event.inputs.environment == 'staging')
+    environment:
+      name: staging
+      url: https://staging.bootstrap-awareness.de
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.STAGING_SSH_KEY }}
+      
+      - name: Add staging host to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.STAGING_HOST }} >> ~/.ssh/known_hosts
+      
+      - name: Deploy to staging
+        run: |
+          # Create deployment package
+          tar -czf deployment.tar.gz \
+            docker-compose.prod.yml \
+            nginx/ \
+            backend/Dockerfile.prod \
+            frontend/Dockerfile.prod \
+            infrastructure/
+          
+          # Copy to staging server
+          scp deployment.tar.gz ${{ secrets.STAGING_USER }}@${{ secrets.STAGING_HOST }}:/tmp/
+          
+          # Deploy on staging server
+          ssh ${{ secrets.STAGING_USER }}@${{ secrets.STAGING_HOST }} << 'EOF'
+            cd /opt/awareness-platform
+            tar -xzf /tmp/deployment.tar.gz
+            
+            # Update images
+            docker-compose -f docker-compose.prod.yml pull
+            
+            # Run database migrations
+            docker-compose -f docker-compose.prod.yml run --rm backend alembic upgrade head
+            
+            # Deploy with zero downtime
+            docker-compose -f docker-compose.prod.yml up -d --no-deps --scale backend=2 backend
+            sleep 30
+            docker-compose -f docker-compose.prod.yml up -d --no-deps nginx
+            
+            # Health check
+            curl -f http://localhost/health || exit 1
+            
+            # Cleanup old containers
+            docker system prune -f
+          EOF
+      
+      - name: Run smoke tests
+        run: |
+          # Wait for deployment to stabilize
+          sleep 60
+          
+          # Run smoke tests against staging
+          npm install -g newman
+          newman run infrastructure/tests/postman/smoke-tests.json \
+            --env-var baseUrl=https://staging.bootstrap-awareness.de
+
+  # Deploy to Production
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: github.event.inputs.environment == 'production'
+    environment:
+      name: production
+      url: https://bootstrap-awareness.de
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.PRODUCTION_SSH_KEY }}
+      
+      - name: Add production host to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.PRODUCTION_HOST }} >> ~/.ssh/known_hosts
+      
+      - name: Create backup before deployment
+        run: |
+          ssh ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} << 'EOF'
+            cd /opt/awareness-platform
+            ./infrastructure/scripts/backup-production.sh
+          EOF
+      
+      - name: Deploy to production
+        run: |
+          # Create deployment package
+          tar -czf deployment.tar.gz \
+            docker-compose.prod.yml \
+            nginx/ \
+            backend/Dockerfile.prod \
+            frontend/Dockerfile.prod \
+            infrastructure/
+          
+          # Copy to production server
+          scp deployment.tar.gz ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }}:/tmp/
+          
+          # Deploy on production server
+          ssh ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} << 'EOF'
+            cd /opt/awareness-platform
+            
+            # Extract deployment package
+            tar -xzf /tmp/deployment.tar.gz
+            
+            # Pull latest images
+            docker-compose -f docker-compose.prod.yml pull
+            
+            # Run database migrations with backup
+            docker-compose -f docker-compose.prod.yml run --rm backend \
+              python scripts/backup_and_migrate.py
+            
+            # Blue-green deployment
+            docker-compose -f docker-compose.prod.yml up -d --no-deps --scale backend=4 backend
+            
+            # Wait for new containers to be healthy
+            sleep 60
+            
+            # Switch traffic to new containers
+            docker-compose -f docker-compose.prod.yml up -d --no-deps nginx
+            
+            # Health check
+            for i in {1..10}; do
+              if curl -f https://bootstrap-awareness.de/health; then
+                echo "Health check passed"
+                break
+              fi
+              if [ $i -eq 10 ]; then
+                echo "Health check failed, rolling back"
+                ./infrastructure/scripts/rollback.sh
+                exit 1
+              fi
+              sleep 10
+            done
+            
+            # Remove old containers
+            docker-compose -f docker-compose.prod.yml rm -f --stop
+            docker system prune -f
+          EOF
+      
+      - name: Verify deployment
+        run: |
+          # Run comprehensive tests against production
+          npm install -g newman
+          newman run infrastructure/tests/postman/production-tests.json \
+            --env-var baseUrl=https://bootstrap-awareness.de
+      
+      - name: Update monitoring
+        run: |
+          # Notify monitoring systems
+          curl -X POST ${{ secrets.DATADOG_WEBHOOK }} \
+            -H "Content-Type: application/json" \
+            -d '{
+              "title": "Production Deployment",
+              "text": "Successfully deployed version ${{ github.sha }}",
+              "alert_type": "info"
+            }'
+      
+      - name: Create release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.run_number }}
+          release_name: Release v${{ github.run_number }}
+          body: |
+            Production deployment of commit ${{ github.sha }}
+            
+            Changes:
+            ${{ github.event.head_commit.message }}
+          draft: false
+          prerelease: false
+
+  # Rollback job
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    if: failure()
+    needs: [deploy-staging, deploy-production]
+    steps:
+      - name: Rollback staging
+        if: needs.deploy-staging.result == 'failure'
+        run: |
+          ssh ${{ secrets.STAGING_USER }}@${{ secrets.STAGING_HOST }} << 'EOF'
+            cd /opt/awareness-platform
+            ./infrastructure/scripts/rollback.sh
+          EOF
+      
+      - name: Rollback production
+        if: needs.deploy-production.result == 'failure'
+        run: |
+          ssh ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} << 'EOF'
+            cd /opt/awareness-platform
+            ./infrastructure/scripts/rollback.sh
+          EOF
+      
+      - name: Notify team
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          text: 'Deployment failed and was rolled back!'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
