@@ -1,0 +1,14 @@
+# Automated backup cron jobs for the Awareness Platform
+# Install with: crontab -u www-data backup-cron
+
+# Daily database and file backups at 2:00 AM
+0 2 * * * /app/scripts/automated_backup.sh >> /var/log/backups/cron.log 2>&1
+
+# Weekly full system backup on Sunday at 3:00 AM
+0 3 * * 0 /app/scripts/automated_backup.sh --full >> /var/log/backups/cron-weekly.log 2>&1
+
+# Monthly backup verification on the 1st at 4:00 AM
+0 4 1 * * /app/scripts/verify_backups.sh >> /var/log/backups/cron-verify.log 2>&1
+
+# Cleanup old backup logs monthly
+0 5 1 * * find /var/log/backups -name "*.log" -mtime +90 -delete

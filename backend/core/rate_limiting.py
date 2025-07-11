@@ -15,7 +15,7 @@ from slowapi.errors import RateLimitExceeded
 
 from core.config import settings
 from core.logging import logger
-from core.cache import get_cache
+from core.cache import cache
 
 
 class RateLimitConfig:
@@ -69,7 +69,7 @@ class EnhancedRateLimiter:
     
     def __init__(self):
         """Initialize the rate limiter."""
-        self.cache = get_cache()
+        self.cache = cache
         self.config = RateLimitConfig()
         self.request_history = defaultdict(list)
         self._cleanup_task = None
