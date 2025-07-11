@@ -37,6 +37,38 @@ from services.email import EmailService
 router = APIRouter()
 
 
+@router.get("/csrf-token")
+async def get_csrf_token(request: Request) -> dict:
+    """
+    Get CSRF token for the current session.
+    
+    This endpoint is used by the frontend to get the CSRF token
+    that must be included in all state-changing requests.
+    
+    Args:
+        request: HTTP request object
+        
+    Returns:
+        Dict containing the CSRF token
+    """
+    # The CSRF middleware will automatically set the token in the response
+    # We just need to trigger it by accessing this endpoint
+    csrf_token = getattr(request.state, "csrf_token", None)
+    
+    if not csrf_token:
+        # This shouldn't happen if the middleware is properly configured
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="CSRF token not available"
+        )
+    
+    return {
+        "csrf_token": csrf_token,
+        "header_name": "X-CSRF-Token",
+        "cookie_name": "csrf_token"
+    }
+
+
 @router.post("/login", response_model=TokenResponse)
 async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),

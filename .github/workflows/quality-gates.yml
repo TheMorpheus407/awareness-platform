@@ -141,36 +141,7 @@ jobs:
             body: report
           });
 
-  # SonarCloud Integration (Currently Disabled)
-  # To enable SonarCloud scanning:
-  # 1. Create a project at https://sonarcloud.io with key "awareness-platform"
-  # 2. Add the project to organization "awareness" 
-  # 3. Generate a SONAR_TOKEN and add it to GitHub Secrets
-  # 4. Uncomment the job below
-  #
-  # enforce-test-coverage:
-  #   runs-on: ubuntu-latest
-  #   
-  #   steps:
-  #   - uses: actions/checkout@v4
-  #     with:
-  #       fetch-depth: 0
-  #   
-  #   - name: SonarCloud Scan
-  #     uses: SonarSource/sonarcloud-github-action@master
-  #     env:
-  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  #     with:
-  #       args: >
-  #         -Dsonar.projectKey=awareness-platform
-  #         -Dsonar.organization=awareness
-  #         -Dsonar.python.coverage.reportPaths=backend/coverage.xml
-  #         -Dsonar.javascript.lcov.reportPaths=frontend/coverage/lcov.info
-  #         -Dsonar.coverage.exclusions=**/*test*,**/*spec*,**/migrations/**
-  #         -Dsonar.qualitygate.wait=true
-
-  # Alternative: Local Coverage Enforcement
+  # Custom Test Coverage Enforcement
   enforce-test-coverage:
     runs-on: ubuntu-latest
     needs: quality-gates

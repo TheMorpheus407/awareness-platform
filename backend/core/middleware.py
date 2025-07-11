@@ -1,10 +1,13 @@
 """Custom middleware for the application."""
 
+import hashlib
+import hmac
+import secrets
 import time
 import uuid
-from typing import Callable
+from typing import Callable, Optional
 
-from fastapi import Request, Response
+from fastapi import Request, Response, HTTPException
 from fastapi.responses import JSONResponse
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -170,3 +173,192 @@ limiter = Limiter(
     enabled=settings.RATE_LIMIT_ENABLED,
     storage_uri=settings.RATE_LIMIT_STORAGE_URL,
 )
+
+
+class CSRFMiddleware(BaseHTTPMiddleware):
+    """CSRF protection middleware for FastAPI."""
+    
+    def __init__(
+        self,
+        app,
+        secret_key: Optional[str] = None,
+        cookie_name: str = "csrf_token",
+        cookie_secure: bool = True,
+        cookie_httponly: bool = True,
+        cookie_samesite: str = "strict",
+        header_name: str = "X-CSRF-Token",
+        safe_methods: set = None,
+        exclude_paths: set = None,
+        token_length: int = 32,
+    ):
+        """
+        Initialize CSRF middleware.
+        
+        Args:
+            app: The FastAPI application
+            secret_key: Secret key for signing tokens (defaults to settings.SECRET_KEY)
+            cookie_name: Name of the CSRF cookie
+            cookie_secure: Set secure flag on cookie (HTTPS only)
+            cookie_httponly: Set httponly flag on cookie
+            cookie_samesite: SameSite policy for cookie
+            header_name: Name of the CSRF header
+            safe_methods: HTTP methods that don't require CSRF protection
+            exclude_paths: Paths to exclude from CSRF protection
+            token_length: Length of the CSRF token
+        """
+        super().__init__(app)
+        self.secret_key = secret_key or settings.SECRET_KEY
+        self.cookie_name = cookie_name
+        self.cookie_secure = cookie_secure and settings.is_production
+        self.cookie_httponly = cookie_httponly
+        self.cookie_samesite = cookie_samesite
+        self.header_name = header_name
+        self.safe_methods = safe_methods or {"GET", "HEAD", "OPTIONS", "TRACE"}
+        self.exclude_paths = exclude_paths or {
+            "/api/health",
+            "/api/health/db",
+            "/health",
+            "/api/docs",
+            "/api/redoc",
+            "/api/openapi.json",
+        }
+        self.token_length = token_length
+    
+    def _generate_csrf_token(self) -> str:
+        """Generate a new CSRF token."""
+        token = secrets.token_urlsafe(self.token_length)
+        return token
+    
+    def _sign_token(self, token: str) -> str:
+        """Sign a CSRF token with the secret key."""
+        signature = hmac.new(
+            self.secret_key.encode(),
+            token.encode(),
+            hashlib.sha256
+        ).hexdigest()
+        return f"{token}.{signature}"
+    
+    def _verify_token(self, signed_token: str) -> bool:
+        """Verify a signed CSRF token."""
+        try:
+            token, signature = signed_token.rsplit(".", 1)
+            expected_signature = hmac.new(
+                self.secret_key.encode(),
+                token.encode(),
+                hashlib.sha256
+            ).hexdigest()
+            return hmac.compare_digest(signature, expected_signature)
+        except (ValueError, AttributeError):
+            return False
+    
+    def _get_token_from_cookie(self, request: Request) -> Optional[str]:
+        """Get CSRF token from cookie."""
+        return request.cookies.get(self.cookie_name)
+    
+    def _get_token_from_header(self, request: Request) -> Optional[str]:
+        """Get CSRF token from header."""
+        return request.headers.get(self.header_name)
+    
+    def _should_check_csrf(self, request: Request) -> bool:
+        """Check if CSRF protection should be applied to this request."""
+        # Skip safe methods
+        if request.method in self.safe_methods:
+            return False
+        
+        # Skip excluded paths
+        if request.url.path in self.exclude_paths:
+            return False
+        
+        # Skip if path starts with excluded prefix
+        for path in self.exclude_paths:
+            if request.url.path.startswith(path):
+                return False
+        
+        return True
+    
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        """Process the request and apply CSRF protection."""
+        # Get or generate CSRF token
+        csrf_token_cookie = self._get_token_from_cookie(request)
+        
+        if not csrf_token_cookie:
+            # Generate new token for first-time visitors
+            csrf_token = self._generate_csrf_token()
+            signed_token = self._sign_token(csrf_token)
+            request.state.csrf_token = csrf_token
+            request.state.csrf_token_new = True
+        else:
+            # Verify existing token
+            if not self._verify_token(csrf_token_cookie):
+                logger.warning(
+                    f"Invalid CSRF token cookie from {request.client.host}",
+                    extra={
+                        "method": request.method,
+                        "path": request.url.path,
+                        "client": request.client.host if request.client else None,
+                    }
+                )
+                # Generate new token if invalid
+                csrf_token = self._generate_csrf_token()
+                signed_token = self._sign_token(csrf_token)
+                request.state.csrf_token = csrf_token
+                request.state.csrf_token_new = True
+            else:
+                # Extract the unsigned token
+                csrf_token = csrf_token_cookie.split(".")[0]
+                signed_token = csrf_token_cookie
+                request.state.csrf_token = csrf_token
+                request.state.csrf_token_new = False
+        
+        # Check CSRF token for state-changing requests
+        if self._should_check_csrf(request):
+            csrf_token_header = self._get_token_from_header(request)
+            
+            if not csrf_token_header:
+                logger.warning(
+                    f"Missing CSRF token header for {request.method} {request.url.path}",
+                    extra={
+                        "method": request.method,
+                        "path": request.url.path,
+                        "client": request.client.host if request.client else None,
+                    }
+                )
+                raise HTTPException(
+                    status_code=403,
+                    detail="CSRF token missing",
+                    headers={"X-CSRF-Token-Required": "true"}
+                )
+            
+            # Compare tokens (unsigned versions)
+            if not hmac.compare_digest(csrf_token, csrf_token_header):
+                logger.warning(
+                    f"CSRF token mismatch for {request.method} {request.url.path}",
+                    extra={
+                        "method": request.method,
+                        "path": request.url.path,
+                        "client": request.client.host if request.client else None,
+                    }
+                )
+                raise HTTPException(
+                    status_code=403,
+                    detail="CSRF token invalid"
+                )
+        
+        # Process the request
+        response = await call_next(request)
+        
+        # Set CSRF cookie if new or updated
+        if hasattr(request.state, "csrf_token_new") and request.state.csrf_token_new:
+            response.set_cookie(
+                key=self.cookie_name,
+                value=signed_token,
+                secure=self.cookie_secure,
+                httponly=self.cookie_httponly,
+                samesite=self.cookie_samesite,
+                max_age=86400,  # 24 hours
+                path="/",
+            )
+            # Also add the unsigned token to response headers for easy access
+            response.headers["X-CSRF-Token"] = csrf_token
+        
+        return response

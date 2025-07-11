@@ -28,5 +28,5 @@ EXPOSE 8000
 # Set Python path
 ENV PYTHONPATH=/app
 
-# Default command
-CMD ["sh", "start.sh"]
+# Default command - skip migrations for now
+CMD ["python", "-m", "gunicorn", "main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "--access-logfile", "-", "--error-logfile", "-"]

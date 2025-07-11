@@ -115,7 +115,6 @@ SECRET_KEY=CHANGE_ME_MIN_32_CHARS_RANDOM_STRING
 JWT_SECRET_KEY=CHANGE_ME_JWT_SECRET
 
 # External Services
-YOUTUBE_API_KEY=your-youtube-api-key
 SENDGRID_API_KEY=your-sendgrid-api-key
 STRIPE_SECRET_KEY=your-stripe-secret-key
 STRIPE_PUBLIC_KEY=your-stripe-public-key

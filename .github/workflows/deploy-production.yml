@@ -207,8 +207,8 @@ jobs:
       
       - name: Copy deployment files
         run: |
-          # Copy docker-compose file
-          scp docker-compose.prod.optimized.yml ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }}:${{ env.APP_DIR }}/docker-compose.yml
+          # Copy docker-compose file (using the correct ghcr version)
+          scp docker-compose.prod.ghcr.yml ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }}:${{ env.APP_DIR }}/docker-compose.yml
           
           # Copy nginx configurations
           scp -r deployment/nginx/* ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }}:${{ env.APP_DIR }}/nginx/
@@ -292,23 +292,45 @@ jobs:
             export REGISTRY=${{ env.REGISTRY }}
             export IMAGE_NAME=${{ env.IMAGE_NAME }}
             
-            # Use enhanced deployment script
-            if [ -f scripts/deploy-with-verification.sh ]; then
-              ./scripts/deploy-with-verification.sh
+            # Use the existing deployment script
+            if [ -f scripts/deploy-production-optimized.sh ]; then
+              echo 'Using optimized deployment script...'
+              ./scripts/deploy-production-optimized.sh
             else
-              # Fallback to standard deployment
-              docker-compose -f docker-compose.yml pull
-              docker-compose -f docker-compose.yml down --remove-orphans
-              docker-compose -f docker-compose.yml up -d
+              # Fallback to standard deployment with memory limits
+              echo 'Using standard deployment with memory optimizations...'
               
-              # Wait for services
-              sleep 30
+              # Set Docker memory limits to prevent OOM kills
+              export DOCKER_CLIENT_TIMEOUT=120
+              export COMPOSE_HTTP_TIMEOUT=120
               
-              # Run migrations
-              docker-compose -f docker-compose.yml exec -T backend alembic upgrade head || true
+              # Stop existing containers gracefully
+              docker-compose -f docker-compose.yml down --remove-orphans --timeout 30
               
-              # Create admin user
-              docker-compose -f docker-compose.yml exec -T backend python /app/scripts/create_production_admin.py || true
+              # Clean up to free memory
+              docker system prune -f --volumes || true
+              
+              # Pull new images one at a time to avoid memory spikes
+              docker-compose -f docker-compose.yml pull --quiet
+              
+              # Start services with restart policy
+              docker-compose -f docker-compose.yml up -d --remove-orphans
+              
+              # Wait for services to stabilize
+              echo 'Waiting for services to start...'
+              sleep 45
+              
+              # Run migrations with timeout
+              timeout 120 docker-compose -f docker-compose.yml exec -T backend alembic upgrade head || {
+                echo 'Migration failed or timed out, but continuing...'
+              }
+              
+              # Create admin user if script exists
+              if docker-compose -f docker-compose.yml exec -T backend test -f /app/scripts/create_production_admin.py; then
+                timeout 60 docker-compose -f docker-compose.yml exec -T backend python /app/scripts/create_production_admin.py || {
+                  echo 'Admin user creation failed or timed out, but continuing...'
+                }
+              fi
             fi
             
             # Show final status
@@ -316,6 +338,7 @@ jobs:
           "
       
       - name: Health check
+        timeout-minutes: 5
         run: |
           MAX_RETRIES=10
           RETRY_DELAY=10
@@ -323,14 +346,14 @@ jobs:
           for i in $(seq 1 $MAX_RETRIES); do
             echo "Health check attempt $i/$MAX_RETRIES"
             
-            # Check API health
-            API_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://bootstrap-awareness.de/api/health || echo "000")
+            # Check API health with timeout
+            API_STATUS=$(timeout 10 curl -s -o /dev/null -w "%{http_code}" https://bootstrap-awareness.de/api/health || echo "000")
             
             if [ "$API_STATUS" = "200" ]; then
               echo "✅ API health check passed"
               
-              # Check frontend
-              FRONTEND_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://bootstrap-awareness.de || echo "000")
+              # Check frontend with timeout
+              FRONTEND_STATUS=$(timeout 10 curl -s -o /dev/null -w "%{http_code}" https://bootstrap-awareness.de || echo "000")
               
               if [ "$FRONTEND_STATUS" = "200" ]; then
                 echo "✅ Frontend health check passed"

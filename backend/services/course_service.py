@@ -27,8 +27,11 @@ class CourseService:
         limit: int = 10,
         offset: int = 0
     ) -> List[Course]:
-        """Search and filter courses."""
-        query = select(Course)
+        """Search and filter courses with optimized loading."""
+        query = select(Course).options(
+            selectinload(Course.modules),
+            selectinload(Course.quizzes)
+        )
         
         # Apply filters
         filters = []
@@ -95,9 +98,15 @@ class CourseService:
         return course
         
     async def get_course(self, course_id: int) -> Optional[Course]:
-        """Get course by ID."""
+        """Get course by ID with related data."""
         result = await self.db.execute(
-            select(Course).where(Course.id == course_id)
+            select(Course)
+            .where(Course.id == course_id)
+            .options(
+                selectinload(Course.modules).selectinload("lessons"),
+                selectinload(Course.quizzes).selectinload("questions"),
+                selectinload(Course.user_progress)
+            )
         )
         return result.scalar_one_or_none()
         

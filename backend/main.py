@@ -12,7 +12,7 @@ from loguru import logger
 
 from api import api_router
 from core.config import settings
-from core.middleware import SecurityHeadersMiddleware, RequestIdMiddleware, limiter
+from core.middleware import SecurityHeadersMiddleware, RequestIdMiddleware, CSRFMiddleware, limiter
 from core.monitoring import init_sentry, MonitoringMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -54,6 +54,23 @@ app = FastAPI(
 # Add security middleware
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RequestIdMiddleware)
+
+# Add CSRF protection
+app.add_middleware(
+    CSRFMiddleware,
+    secret_key=settings.SECRET_KEY,
+    cookie_secure=settings.is_production,
+    exclude_paths={
+        "/api/health",
+        "/api/health/db",
+        "/health",
+        "/api/docs",
+        "/api/redoc",
+        "/api/openapi.json",
+        "/api/v1/auth/login",  # Exclude login endpoint to allow initial token generation
+        "/api/v1/auth/register",  # Exclude registration endpoint
+    }
+)
 
 # Add monitoring middleware
 app.add_middleware(MonitoringMiddleware)

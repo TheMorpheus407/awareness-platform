@@ -7,6 +7,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 class ApiClient {
   private client: AxiosInstance;
+  private csrfToken: string | null = null;
 
   constructor() {
     // Migrate any existing tokens from localStorage
@@ -20,13 +21,28 @@ class ApiClient {
       withCredentials: true, // Enable sending cookies
     });
 
-    // Request interceptor to add token
+    // Initialize CSRF token
+    this.initializeCsrfToken();
+
+    // Request interceptor to add token and CSRF token
     this.client.interceptors.request.use(
       (config) => {
+        // Add auth token
         const token = secureStorage.getAccessToken();
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
+
+        // Add CSRF token for state-changing requests
+        const isStateChangingMethod = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(config.method?.toUpperCase() || '');
+        const isExcludedPath = ['/auth/login', '/auth/register', '/auth/csrf-token'].some(path => 
+          config.url?.includes(path)
+        );
+        
+        if (isStateChangingMethod && !isExcludedPath && this.csrfToken) {
+          config.headers['X-CSRF-Token'] = this.csrfToken;
+        }
+
         return config;
       },
       (error) => {
@@ -36,8 +52,15 @@ class ApiClient {
 
     // Response interceptor for error handling
     this.client.interceptors.response.use(
-      (response) => response,
-      (error: AxiosError<ApiError>) => {
+      (response) => {
+        // Extract CSRF token from response headers if present
+        const csrfToken = response.headers['x-csrf-token'];
+        if (csrfToken) {
+          this.csrfToken = csrfToken;
+        }
+        return response;
+      },
+      async (error: AxiosError<ApiError>) => {
         if (error.response?.status === 401) {
           // Token expired or invalid
           secureStorage.clearTokens();
@@ -49,10 +72,41 @@ class ApiClient {
           if (!publicPaths.includes(currentPath)) {
             window.location.href = '/login';
           }
+        } else if (error.response?.status === 403 && error.response?.data?.detail?.includes('CSRF')) {
+          // CSRF token missing or invalid, try to refresh it
+          try {
+            await this.fetchCsrfToken();
+            // Retry the original request
+            if (error.config) {
+              error.config.headers['X-CSRF-Token'] = this.csrfToken;
+              return this.client.request(error.config);
+            }
+          } catch (csrfError) {
+            console.error('Failed to refresh CSRF token:', csrfError);
+          }
         }
         return Promise.reject(error);
       }
     );
+  }
+
+  private async initializeCsrfToken() {
+    try {
+      await this.fetchCsrfToken();
+    } catch (error) {
+      console.warn('Failed to initialize CSRF token:', error);
+    }
+  }
+
+  private async fetchCsrfToken() {
+    try {
+      const response = await this.client.get('/auth/csrf-token');
+      this.csrfToken = response.data.csrf_token;
+      return this.csrfToken;
+    } catch (error) {
+      console.error('Failed to fetch CSRF token:', error);
+      throw error;
+    }
   }
 
   get axios() {
@@ -72,6 +126,10 @@ class ApiClient {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
       });
+      
+      // Refresh CSRF token after successful login
+      await this.fetchCsrfToken();
+      
       return response.data;
     } catch (error: any) {
       // Check if 2FA is required
@@ -88,6 +146,10 @@ class ApiClient {
       password,
       totp_code: totpCode,
     });
+    
+    // Refresh CSRF token after successful login
+    await this.fetchCsrfToken();
+    
     return response.data;
   }
 
@@ -97,6 +159,10 @@ class ApiClient {
       password,
       backup_code: backupCode,
     });
+    
+    // Refresh CSRF token after successful login
+    await this.fetchCsrfToken();
+    
     return response.data;
   }
 
